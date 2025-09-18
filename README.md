@@ -75,7 +75,7 @@ Tämä voisi olla sitä **Iineksen** hommaa
 
 ## 4 Ei-toiminnalliset vaatimukset
 
-Nää vois olla **Phonkin ja Tiituksen** hommia
+Nää vois olla **Phongin ja Tiituksen** hommia
 
 - **Suorituskyky:** järjestelmän on päivitettävä opiskelijan ja opettajan näkymät reaaliajassa  
 - **Käytettävyys:** sovelluksen käyttöliittymän tulee olla selkeä ja saavutettava  
@@ -108,7 +108,7 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 
 ## 6 Liittymät muihin järjestelmiin
 
-**Tiitus, Phonki, Liisa** 
+**Tiitus, Phong, Liisa** 
 
 - Integraatio Helsingin yliopiston **Sisu-järjestelmään** (raportoinnin kautta).  
 - Firebase-autentikointi ja tietokanta.
