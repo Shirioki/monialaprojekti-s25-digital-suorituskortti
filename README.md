@@ -77,22 +77,22 @@ Tämä voisi olla sitä **Iineksen** hommaa
 
 Nää vois olla **Phongin ja Tiituksen** hommia
 
-- **Suorituskyky:**
+### **Suorituskyky:**
 - Järjestelmän on päivitettävä opiskelijan ja opettajan näkymät reaaliajassa.
 - Offline-tila missä opiskelija voi kirjata suorituksia ilman verkkoyhteyttä ja tiedot   synkronoituvat kun yhteys palautuu.
 - Sovelluksen pitää kestää kuormaa eli suorituskyky ei voi heikentyä käyttäjämäärien mukaan.
    
-- **Käytettävyys:**
+### **Käytettävyys:**
 - Sovelluksen käyttöliittymän tulee olla selkeä ja saavutettava.
 - Sovelluksen pitää toimia iOS- sekä Android laitteilla.
 - Käyttäjien tulee saada ohjeistusta ja interaktiivisia vinkkejä ensimmäisellä kirjautumisella.
   
-- **Integraatiovalmius:**
+### **Integraatiovalmius:**
 - Suoritustietojen raportointi on oltava vietävissä Sisu-järjestelmään
 - Tiedot pitää olla standardoidussa muodossa kuten CSV/REST-rajapinta.
 - Sovelluksessa pitää olla mahdollisuus tulevaisuudessa tukea integraatioita muihin Helsingin yliopiston järjestelmiin.
 
-- - **Tietoturva:** roolipohjainen käyttöoikeus, autentikointi Firebase-tunnuksilla  ---- Tää olis sitä **Liisan** tonttia
+### **Tietoturva:** roolipohjainen käyttöoikeus, autentikointi Firebase-tunnuksilla  ---- Tää olis sitä **Liisan** tonttia
   -  Roolipohjainen käyttöoikeus varmistaa, että eri käyttäjäryhmät, opiskelijat, opettajat ja hallinto näkevät ja käsittelevät vain heille kuuluvia tietoja. Firebase-autentikointi tarjoaa turvallisen kirjautumisprosessin, joka tukee käyttäjien yksilöintiä ja tietojen suojaamista. Lisäksi järjestelmä tukee auditointia ja lokitietojen hallintaa, mikä mahdollistaa toiminnan jäljitettävyyden ja tietosuojaloukkausten hallinnan.
 Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen järjestelmä, joka tukee opiskelijoiden oppimista ja opettajien ohjaustyötä nykyaikaisessa, digitaalisessa ympäristössä.
 
