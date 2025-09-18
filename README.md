@@ -77,9 +77,20 @@ Tämä voisi olla sitä **Iineksen** hommaa
 
 Nää vois olla **Phongin ja Tiituksen** hommia
 
-- **Suorituskyky:** järjestelmän on päivitettävä opiskelijan ja opettajan näkymät reaaliajassa  
-- **Käytettävyys:** sovelluksen käyttöliittymän tulee olla selkeä ja saavutettava  
-- **Integraatiovalmius:** suoritustietojen raportointi on oltava vietävissä Sisu-järjestelmään
+- **Suorituskyky:**
+- Järjestelmän on päivitettävä opiskelijan ja opettajan näkymät reaaliajassa.
+- Offline-tila missä opiskelija voi kirjata suorituksia ilman verkkoyhteyttä ja tiedot   synkronoituvat kun yhteys palautuu.
+- Sovelluksen pitää kestää kuormaa eli suorituskyky ei voi heikentyä käyttäjämäärien mukaan.
+   
+- **Käytettävyys:**
+- Sovelluksen käyttöliittymän tulee olla selkeä ja saavutettava.
+- Sovelluksen pitää toimia iOS- sekä Android laitteilla.
+- Käyttäjien tulee saada ohjeistusta ja interaktiivisia vinkkejä ensimmäisellä kirjautumisella.
+  
+- **Integraatiovalmius:**
+- Suoritustietojen raportointi on oltava vietävissä Sisu-järjestelmään
+- Tiedot pitää olla standardoidussa muodossa kuten CSV/REST-rajapinta.
+- Sovelluksessa pitää olla mahdollisuus tulevaisuudessa tukea integraatioita muihin Helsingin yliopiston järjestelmiin.
 
 - - **Tietoturva:** roolipohjainen käyttöoikeus, autentikointi Firebase-tunnuksilla  ---- Tää olis sitä **Liisan** tonttia
   -  Roolipohjainen käyttöoikeus varmistaa, että eri käyttäjäryhmät, opiskelijat, opettajat ja hallinto näkevät ja käsittelevät vain heille kuuluvia tietoja. Firebase-autentikointi tarjoaa turvallisen kirjautumisprosessin, joka tukee käyttäjien yksilöintiä ja tietojen suojaamista. Lisäksi järjestelmä tukee auditointia ja lokitietojen hallintaa, mikä mahdollistaa toiminnan jäljitettävyyden ja tietosuojaloukkausten hallinnan.
@@ -110,9 +121,15 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 
 **Tiitus, Phong, Liisa** 
 
-- Integraatio Helsingin yliopiston **Sisu-järjestelmään** (raportoinnin kautta).  
-- Firebase-autentikointi ja tietokanta.
-- Firebase-autentikointi on Googlen tarjoama palvelu, joka mahdollistaa turvallisen ja skaalautuvan käyttäjien tunnistamisen mobiili- ja verkkosovelluksissa. Se on erityisen hyödyllinen projekteissa, joissa tarvitaan nopea ja luotettava kirjautumisratkaisu ilman raskasta taustajärjestelmän rakentamista.
+### 6.1 Sisu järjestelmä
+- Integraatio Helsingin yliopiston Sisu-järjestelmään (raportoinnin kautta).
+- Rajapinta toteutetaan standardoidussa muodossa, kuten CSV/REST-rajapinta.
+- Jos siirto epäonnistuu, järjestelmän tulee antaa selkeä virheilmoitus ja mahdollisuuden yrittää uudelleen ilman tietojen katoamista. 
+
+### 6.2 Firebase-autentikointi ja tietokanta
+
+Firebase-autentikointi on Googlen tarjoama palvelu, joka mahdollistaa turvallisen ja skaalautuvan käyttäjien tunnistamisen mobiili- ja verkkosovelluksissa. Se on erityisen hyödyllinen projekteissa, joissa tarvitaan nopea ja luotettava kirjautumisratkaisu ilman raskasta taustajärjestelmän rakentamista.
+
 Firebase-autentikointi tarjoaa:
 •	Useita kirjautumistapoja
 Tukee sähköpostilla ja salasanalla kirjautumista, puhelinnumeroa (SMS-varmennus), sekä kolmannen osapuolen tunnistautumista kuten Google, Facebook, Twitter ja Apple.
