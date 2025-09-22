@@ -56,6 +56,13 @@ Mahdollistaa opiskelijoiden suoritusten digitaalinen hallinta ja opettajien teke
 - Asiakas pyyti VRK - Korttia kirjautumiseen, mutta sen toteuttaminen ei ole projektin puitteissa mahdollista. 
 - Prototyypissä ei välttämättä vielä toteuteta vahvaa tunnistautumista, mutta se huomioidaan jatkokehityksessä  
 
+### 2.5 Lainsäädäntö ja tietosuoja
+- Sovelluksen toteutuksessa noudatetaan EU:n yleistä tietosuoja-asetusta (GDPR), Suomen tietosuojalakia sekä Helsingin yliopiston tietoturvaohjeita.
+- Kaikki käyttäjien henkilötiedot käsitellään salattuna, ja järjestelmässä huomioidaan yleisimmät aplikaatio turvallisuus -suositukset sovellusturvallisuuden varmistamiseksi.
+- Lisäksi pilvipalveluntarjoajan (Firebase) sertifioinnit ja tietoturvavaatimukset otetaan huomioon.
+- Projektissa noudatetaan Helsingin yliopiston virallisia tietoturvaohjeita.  
+Tämä tarkoittaa, että sovelluksen kehityksessä ja käytössä huomioidaan yliopiston linjaukset tietojen luottamuksellisuudesta, eheydestä ja saatavuudesta. 
+
  Tänne lissää 
 
 ---
