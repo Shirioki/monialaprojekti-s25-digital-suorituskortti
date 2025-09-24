@@ -67,6 +67,9 @@ Tämä tarkoittaa, että sovelluksen kehityksessä ja käytössä huomioidaan yl
 
 ---
 
+
+
+
 ## 3 Toiminnalliset vaatimukset
 
 Esimerkkejä, täydennettävä:
@@ -108,16 +111,44 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 
 ## 5 Käyttötapaukset
 
+
+
+
 **Tänne voitas porukalla keksiä näitä ja sit tehdä se UML Kaavio**  
 
-### UC-1: Opiskelijan liittyminen kurssille
-- **Osallistujat:** Opiskelija, Opettaja, Järjestelmä  
-- **Esiehdot:** Opiskelijalla on luotu profiili  
-- **Tapahtumat:**  
-  1. Opiskelija syöttää kurssikoodin  
-  2. Järjestelmä lisää opiskelijan kurssille  
-  3. Opettaja näkee opiskelijan kurssilistauksessaan  
-- **Poikkeukset:** Virheellinen kurssikoodi → virheilmoitus  
+-- **Tässä käyttötapausesimerkki** -- 
+
+## Käyttötapaus UC-1: Opiskelija liittyy kurssille ja suorittaa tehtävät
+
+**Tunnus:** UC-1  
+**Nimi:** Kurssille liittyminen ja tehtävien suorittaminen  
+**Kuvaus:** Opiskelija liittyy haluamalleen kurssille ja suorittaa sen tehtävät järjestelmän kautta.  
+
+### Osallistujat
+- **Pääosallistuja:** Opiskelija  
+- **Sidosryhmät:** Sovellus
+
+### Esiehdot
+- Opiskelijalla on voimassa oleva käyttäjätili.  
+- Kurssi on olemassa ja siihen voi liittyä.  
+
+### Peruspolku
+1. Opiskelija saa opettajalta kurssille liittymiskutsun sähköpostiinsa, joka sisältää liittymiskoodin.
+2. Opiskelija seuraa linkkiä sovellukseen. 
+3. Opiskelija avaa sovelluksen ja valitsee **Kirjaudu sisään**.  
+4. Sovellus tarkistaa tunnukset ja kirjaa opiskelijan sisään.  
+5. Opiskelija valitsee **Liity Kurssille** toiminnon ja syöttää liittymiskoodin.   
+6. Järjestelmä vahvistaa liittymisen ja lisää opiskelijan kurssille.  
+7. Opiskelija avaa kurssin ja valitsee **Täyttä tehtävät**.  
+8. Sovellus tallentaa opiskelijan tehtäväpalautukset.  
+9. Opiskelija voi tarkistaa edistymisensä toiminnolla **Näytä kurssin edistyminen**.  
+
+### Poikkeuspolut
+- Tunnukset virheelliset → Järjestelmä ilmoittaa virheestä ja pyytää uudelleen.  
+- Liittymiskoodo on virheellinen → Järjestelmä ilmoittaa, eikä liittyminen onnistu.  
+
+### Jälkiehdot
+- Opiskelija on liittynyt kurssille ja hänen palautuksensa on tallennettu järjestelmään.
 
 ### UC-2: Tehtävän hyväksyminen
 *(täydennettävä projektin edetessä)*  
