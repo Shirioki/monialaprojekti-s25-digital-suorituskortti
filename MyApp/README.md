@@ -25,6 +25,23 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+# Required Packages
+This project uses the following packages:
+react
+react-native
+expo
+@react-native-picker/picker – For selecting courses in forms.
+
+
+Install the additional packages
+```
+npm install @react-native-picker/picker
+```
+# or with yarn
+```
+# yarn add @react-native-picker/picker
+```
+
 ## Get a fresh project
 
 When you're ready, run:
