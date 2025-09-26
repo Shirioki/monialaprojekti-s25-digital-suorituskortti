@@ -127,7 +127,7 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 - **Sidosryhmät:** Opettaja, Admin, Kurssinhallintamoduuli
 
 ### Esiehdot
- - Opiskelijalla on voimassa oleva käyttäjätunnus järjestelmään.
+- Opiskelijalla on voimassa oleva käyttäjätunnus järjestelmään.
 - Kurssi on olemassa ja avoinna liittymiselle.
 - Opiskelija on kirjautunut järjestelmään.
 
@@ -157,13 +157,13 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 **Kuvaus:** Opiskelija suorittaa kurssiin liittyviä tehtäviä digitaalisten harjoituskorttien muodossa. Tehtävät voivat sisältää potilastapauksia, toimenpiteiden kirjaamista, reflektiota tai teoreettisia harjoituksia, jotka arvioidaan opettajan toimesta.
 
 ### Osallistujat
-**Pääosallistuja:**: Opiskelija
-**Sidosryhmät:**: Opettaja, Sovellus (harjoituskorttijärjestelmä), Kurssinhallintamoduuli
+- **Pääosallistuja:**: Opiskelija
+- **Sidosryhmät:**: Opettaja, Sovellus (harjoituskorttijärjestelmä), Kurssinhallintamoduuli
 
 ### Esiehdot  
-•	Opiskelija on liittynyt kurssille.
-•	Opiskelijalla on voimassa oleva käyttäjätunnus ja pääsy järjestelmään.
-•	Kurssitehtävät ovat julkaistu ja saatavilla opiskelijalle.
+-	Opiskelija on liittynyt kurssille.
+-	Opiskelijalla on voimassa oleva käyttäjätunnus ja pääsy järjestelmään.
+-	Kurssitehtävät ovat julkaistu ja saatavilla opiskelijalle.
 
 ### Peruspolku
 1.	Opiskelija kirjautuu järjestelmään.
