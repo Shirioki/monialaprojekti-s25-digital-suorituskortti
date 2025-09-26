@@ -287,6 +287,7 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 
 **Tunnus:** UC-6  
 **Nimi:** Käyttäjähallinta: lisääminen ja poistaminen
+
 **Kuvaus:** Admin hallinnoi järjestelmän käyttäjiä lisäämällä uusia opiskelijoita ja opettajia tai poistamalla vanhoja käyttäjiä tarpeen mukaan. Tämä mahdollistaa järjestelmän ajantasaisuuden ja turvallisuuden.
 
 ### Osallistujat
@@ -326,6 +327,7 @@ Järjestelmä vahvistaa onnistuneen toimenpiteen.
 
 **Tunnus:** UC-7  
 **Nimi:** Käyttäjäroolien ja käyttöoikeuksien hallinta
+
 **Kuvaus:** Admin voi muuttaa järjestelmän käyttäjien rooleja (esim. opiskelija, opettaja, tarkastaja) ja määrittää heidän käyttöoikeutensa eri toimintoihin, kuten harjoituskorttien luomiseen, arviointiin tai raporttien tarkasteluun.
 
 ### Osallistujat
