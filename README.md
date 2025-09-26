@@ -242,6 +242,49 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 - Opiskelija saa ajantasaisen kuvan omasta edistymisestään kurssilla.
 
 
+## Käyttötapaus UC-5: Admin lisää tai poistaa käyttäjiä (opiskelijat, opettajat)
+
+**Tunnus:** UC-5  
+**Nimi:** Käyttäjähallinta: lisääminen ja poistaminen
+**Kuvaus:** Admin hallinnoi järjestelmän käyttäjiä lisäämällä uusia opiskelijoita ja opettajia tai poistamalla vanhoja käyttäjiä tarpeen mukaan. Tämä mahdollistaa järjestelmän ajantasaisuuden ja turvallisuuden.
+
+### Osallistujat
+- **Pääosallistuja:** Admin  
+- **Sidosryhmät:** Sovellus (käyttäjähallintamoduuli, tietokanta)
+
+### Esiehdot
+- Admin on kirjautunut järjestelmään ja hänellä on tarvittavat käyttöoikeudet.
+- Järjestelmä on toiminnassa ja yhteydessä käyttäjätietokantaan.
+### Peruspolku
+- Admin avaa käyttäjähallintanäkymän.
+-  Admin valitsee toiminnon: "Lisää käyttäjä" tai "Poista käyttäjä".
+Lisättäessä käyttäjää:
+-Admin syöttää tarvittavat tiedot (nimi, rooli, sähköposti, käyttäjätunnus).
+-Järjestelmä tarkistaa tietojen oikeellisuuden ja mahdolliset duplikaatit.
+- Järjestelmä tallentaa uuden käyttäjän tietokantaan.
+- Järjestelmä lähettää käyttäjälle aktivointiviestin tai tunnukset.
+Poistettaessa käyttäjää:
+-	Admin hakee käyttäjän tiedot.
+-	Admin vahvistaa poistamisen.
+-	Järjestelmä poistaa käyttäjän tiedot tai merkitsee ne inaktiiviseksi.
+Järjestelmä vahvistaa onnistuneen toimenpiteen.
+
+### Poikkeuspolut
+- Syötetyt tiedot ovat puutteelliset → Järjestelmä ilmoittaa virheestä ja pyytää korjausta.
+- Käyttäjä on jo olemassa → Järjestelmä estää duplikaatin ja ehdottaa muokkausta.
+- Käyttäjää ei löydy → Järjestelmä ilmoittaa virheestä.
+- Poisto epäonnistuu teknisen virheen vuoksi → Järjestelmä ilmoittaa virheestä ja kirjaa tapahtuman lokiin.
+
+### Jälkiehdot
+-	Käyttäjätietokanta on päivitetty.
+-	Käyttäjälle on luotu tunnukset, tai hänen tietonsa on poistettu.
+-	Lokitiedot on päivitetty toimenpiteestä.
+-	Järjestelmä on valmis seuraavaan hallintatoimenpiteeseen.
+
+
+
+
+
 ---
 
 ## 6 Liittymät muihin järjestelmiin
