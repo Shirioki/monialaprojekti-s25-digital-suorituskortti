@@ -116,40 +116,6 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 
 **Tänne voitas porukalla keksiä näitä ja sit tehdä se UML Kaavio**  
 
--- **Tässä käyttötapausesimerkki** -- 
-
-## Käyttötapaus UC-1: Opiskelija liittyy kurssille ja suorittaa tehtävät
-
-**Tunnus:** UC-1  
-**Nimi:** Kurssille liittyminen ja tehtävien suorittaminen  
-**Kuvaus:** Opiskelija liittyy haluamalleen kurssille ja suorittaa sen tehtävät järjestelmän kautta.  
-
-### Osallistujat
-- **Pääosallistuja:** Opiskelija  
-- **Sidosryhmät:** Sovellus
-
-### Esiehdot
-- Opiskelijalla on voimassa oleva käyttäjätili.  
-- Kurssi on olemassa ja siihen voi liittyä.  
-
-### Peruspolku
-1. Opiskelija saa opettajalta kurssille liittymiskutsun sähköpostiinsa, joka sisältää liittymiskoodin.
-2. Opiskelija seuraa linkkiä sovellukseen. 
-3. Opiskelija avaa sovelluksen ja valitsee **Kirjaudu sisään**.  
-4. Sovellus tarkistaa tunnukset ja kirjaa opiskelijan sisään.  
-5. Opiskelija valitsee **Liity Kurssille** toiminnon ja syöttää liittymiskoodin.   
-6. Järjestelmä vahvistaa liittymisen ja lisää opiskelijan kurssille.  
-7. Opiskelija avaa kurssin ja valitsee **Täyttä tehtävät**.  
-8. Sovellus tallentaa opiskelijan tehtäväpalautukset.  
-9. Opiskelija voi tarkistaa edistymisensä toiminnolla **Näytä kurssin edistyminen**.  
-
-### Poikkeuspolut
-- Tunnukset virheelliset → Järjestelmä ilmoittaa virheestä ja pyytää uudelleen.  
-- Liittymiskoodo on virheellinen → Järjestelmä ilmoittaa, eikä liittyminen onnistu.  
-
-### Jälkiehdot
-- Opiskelija on liittynyt kurssille ja hänen palautuksensa on tallennettu järjestelmään.
-
 ## Käyttötapaus UC-1: Opiskelija liittyy kurssille 
 
 **Tunnus:** UC-1  
@@ -184,12 +150,52 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 - Opiskelija voi tarkastella ja täyttää kurssiin liittyviä harjoituskortteja.
 - Opettaja näkee opiskelijan kurssin osallistujana.
 
-
-
-
-## UC-2: Tehtävän hyväksyminen
+## Käyttötapaus UC-2: Opiskelija suorittaa kurssitehtävät
 
 **Tunnus:** UC-2  
+**Nimi:** Kurssitehtävien suorittaminen  
+**Kuvaus:** Opiskelija suorittaa kurssiin liittyviä tehtäviä digitaalisten harjoituskorttien muodossa. Tehtävät voivat sisältää potilastapauksia, toimenpiteiden kirjaamista, reflektiota tai teoreettisia harjoituksia, jotka arvioidaan opettajan toimesta.
+
+### Osallistujat
+**Pääosallistuja:**: Opiskelija
+**Sidosryhmät:**: Opettaja, Sovellus (harjoituskorttijärjestelmä), Kurssinhallintamoduuli
+
+### Esiehdot  
+•	Opiskelija on liittynyt kurssille.
+•	Opiskelijalla on voimassa oleva käyttäjätunnus ja pääsy järjestelmään.
+•	Kurssitehtävät ovat julkaistu ja saatavilla opiskelijalle.
+
+### Peruspolku
+1.	Opiskelija kirjautuu järjestelmään.
+2.	Opiskelija siirtyy kurssin tehtäväosioon.
+3.	Opiskelija valitsee tehtävän tai harjoituskortin.
+4.	Opiskelija täyttää tehtävän vaadituilla tiedoilla.
+5.	Opiskelija tallentaa tai lähettää tehtävän arvioitavaksi.
+6.	Järjestelmä vahvistaa tehtävän vastaanoton ja merkitsee sen arviointiin.
+7.	Opettaja arvioi tehtävän ja antaa palautteen.
+8.	Opiskelija tarkastelee palautetta ja tekee tarvittaessa korjauksia.
+
+### Poikkeuspolut   
+
+-	Tehtävää ei löydy tai se on poistettu → Järjestelmä ilmoittaa virheestä.
+-	Tehtävän täyttö keskeytyy teknisen virheen vuoksi → Järjestelmä tallentaa luonnoksen ja ilmoittaa virheestä.
+-	Tehtävää ei voi lähettää → Järjestelmä ilmoittaa puuttuvista tiedoista tai virheellisestä muodosta.
+-	Opettaja ei arvioi tehtävää määräajassa → Järjestelmä lähettää muistutuksen opettajalle.
+  
+### Jälkiehdot
+
+-	Tehtävä on tallennettu ja arvioitu.
+-	Opiskelija on saanut palautteen ja voi seurata edistymistään.
+-	Tehtävä näkyy kurssin suoritusmerkinnöissä.
+
+
+
+
+
+
+## UC-3: Tehtävän hyväksyminen
+
+**Tunnus:** UC-3  
 **Nimi:** Tehtävän hyväksyminen  
 **Kuvaus:** Opettaja arvioi opiskelijan palautuksen ja hyväksyy sen järjestelmässä.  
 
@@ -218,9 +224,9 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 - Opiskelijan kurssin edistymistiedot päivittyvät.
 
 
-## UC-3: Opettaja luo uuden kurssin
+## UC-4: Opettaja luo uuden kurssin
 
-**Tunnus:** UC-3  
+**Tunnus:** UC-4  
 **Nimi:** Uuden kurssin luominen  
 **Kuvaus:** Opettaja luo järjestelmään uuden kurssin, johon opiskelijat voivat myöhemmin liittyä liittymiskoodilla.  
 
@@ -249,9 +255,9 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 - Kurssi on luotu järjestelmään ja opiskelijat voivat liittyä siihen liittymiskoodilla.
 
 
-## UC-4: Opiskelija tarkastelee omaa edistymistään
+## UC-5: Opiskelija tarkastelee omaa edistymistään
 
-**Tunnus:** UC-4  
+**Tunnus:** UC-5  
 **Nimi:** Oman edistymisen tarkastelu  
 **Kuvaus:** Opiskelija voi sovelluksessa seurata omaa suoritustaan kurssilla, nähdä hyväksytyt tehtävät ja palautteet reaaliajassa.  
 
@@ -279,9 +285,9 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 - Opiskelija saa ajantasaisen kuvan omasta edistymisestään kurssilla.
 
 
-## Käyttötapaus UC-5: Admin lisää tai poistaa käyttäjiä (opiskelijat, opettajat)
+## Käyttötapaus UC-6: Admin lisää tai poistaa käyttäjiä (opiskelijat, opettajat)
 
-**Tunnus:** UC-5  
+**Tunnus:** UC-6  
 **Nimi:** Käyttäjähallinta: lisääminen ja poistaminen
 **Kuvaus:** Admin hallinnoi järjestelmän käyttäjiä lisäämällä uusia opiskelijoita ja opettajia tai poistamalla vanhoja käyttäjiä tarpeen mukaan. Tämä mahdollistaa järjestelmän ajantasaisuuden ja turvallisuuden.
 
