@@ -120,6 +120,7 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 
 **Tunnus:** UC-1  
 **Nimi:** Kurssille liittyminen
+
 **Kuvaus:** Opiskelija liittyy haluamalleen kurssille järjestelmän kautta.  Kurssille liittyminen mahdollistaa harjoituskorttien täyttämisen ja arvioinnin kyseisen kurssin puitteissa.
 
 ### Osallistujat
