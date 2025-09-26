@@ -190,9 +190,6 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 
 
 
-
-
-
 ## UC-3: Tehtävän hyväksyminen
 
 **Tunnus:** UC-3  
@@ -323,6 +320,44 @@ Järjestelmä vahvistaa onnistuneen toimenpiteen.
 -	Käyttäjälle on luotu tunnukset, tai hänen tietonsa on poistettu.
 -	Lokitiedot on päivitetty toimenpiteestä.
 -	Järjestelmä on valmis seuraavaan hallintatoimenpiteeseen.
+
+## Käyttötapaus UC-7: Admin muokkaa käyttäjärooleja ja käyttöoikeuksia
+
+**Tunnus:** UC-7  
+**Nimi:** Käyttäjäroolien ja käyttöoikeuksien hallinta
+**Kuvaus:** Admin voi muuttaa järjestelmän käyttäjien rooleja (esim. opiskelija, opettaja, tarkastaja) ja määrittää heidän käyttöoikeutensa eri toimintoihin, kuten harjoituskorttien luomiseen, arviointiin tai raporttien tarkasteluun.
+
+### Osallistujat
+- **Pääosallistuja:** Admin
+- **Sidosryhmät:** Sovellus (käyttäjähallintamoduuli), Käyttäjät (opiskelijat, opettajat)
+
+### Esiehdot
+- Admin on kirjautunut järjestelmään ja hänellä on pääkäyttäjän oikeudet.
+- Käyttäjä, jonka roolia tai oikeuksia halutaan muuttaa, on olemassa järjestelmässä.
+- Järjestelmä on yhteydessä käyttäjätietokantaan.
+
+### Peruspolku
+- Admin avaa käyttäjähallintanäkymän.
+- Admin hakee haluamansa käyttäjän tiedot.
+- Admin valitsee toiminnon: "Muokkaa roolia" tai "Muokkaa käyttöoikeuksia".
+- Admin valitsee uuden roolin tai käyttöoikeudet (esim. luku-, kirjoitus-, arviointioikeus).
+- Järjestelmä tarkistaa muutoksen kelpoisuuden.
+- Admin vahvistaa muutoksen.
+- Järjestelmä tallentaa muutoksen ja päivittää käyttäjän oikeudet.
+- Järjestelmä ilmoittaa onnistuneesta päivityksestä.
+
+### Poikkeuspolut
+-  Käyttäjää ei löydy → Järjestelmä ilmoittaa virheestä.
+- Valittu rooli ei ole sallittu → Järjestelmä estää muutoksen ja ilmoittaa syyn.
+- Muutos ei ole teknisesti mahdollinen → Järjestelmä ilmoittaa virheestä ja kirjaa tapahtuman lokiin.
+-  Tallennus epäonnistuu → Järjestelmä ilmoittaa virheestä ja ehdottaa uudelleenyritystä.
+
+### Jälkiehdot
+- Käyttäjän rooli ja käyttöoikeudet on päivitetty.
+- Käyttäjä näkee uudet oikeudet seuraavassa kirjautumisessa.
+- Lokitiedot on päivitetty muutoksesta.
+- Järjestelmä on valmis seuraavaan hallintatoimenpiteeseen.
+
 
 
 
