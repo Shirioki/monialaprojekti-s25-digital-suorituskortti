@@ -151,7 +151,96 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 - Opiskelija on liittynyt kurssille ja hänen palautuksensa on tallennettu järjestelmään.
 
 ### UC-2: Tehtävän hyväksyminen
-*(täydennettävä projektin edetessä)*  
+
+**Tunnus:** UC-2
+**Nimi:** Tehtävän hyväksyminen
+**Kuvaus:** Opettaja arvioi opiskelijan palautuksen ja hyväksyy sen järjestelmässä.
+
+### Osallistujat
+- **Pääosallistuja:** Opettaja  
+- **Sidosryhmät:** Sovellus, Opiskelija
+
+### Esiehdot
+- Opettajalla on voimassa oleva käyttäjätili. 
+- Opiskelija on palauttanut tehtävän.  
+
+### Peruspolku
+1. Opettaja kirjautuu sovellukseen.
+2. Opettaja avaa kurssin hallintanäkymän.
+3. Opettaja tarkastelee opiskelijan palautusta.  
+4. Opettaja valitsee toiminnon Hyväksy tehtävä. 
+5. Sovellus tallentaa hyväksynnän ja merkitsee tehtävän suoritetuksi. 
+
+
+### Poikkeuspolut
+- Palautus puuttuu → Järjestelmä ilmoittaa virheestä. 
+- Opettajalla ei ole oikeuksia → Järjestelmä estää toiminnon.  
+
+### Jälkiehdot
+- Opiskelijan palautus on merkitty hyväksytyksi.
+- Opiskelijan kurssin edistymistiedot päivittyvät.
+
+
+### UC-3: Opettaja luo uuden kurssin
+
+**Tunnus:** UC-3
+**Nimi:** Uuden kurssin luominen
+**Kuvaus:** Opettaja luo järjestelmään uuden kurssin, johon opiskelijat voivat myöhemmin liittyä liittymiskoodilla.
+
+### Osallistujat
+- **Pääosallistuja:** Opettaja  
+- **Sidosryhmät:** Sovellus
+
+### Esiehdot
+- Opettajalla on voimassa oleva käyttäjätili. 
+- Opiskelija on oikeudet kurssien hallintaan.  
+
+### Peruspolku
+1. Opettaja kirjautuu sovellukseen.
+2. Opettaja valitsee toiminnon Luo uusi kurssi.
+3. Opettaja syöttää kurssin tiedot (nimi, kuvaus, aikataulu). 
+4. Sovellus luo kurssille automaattisesti liittymiskoodin.
+5. Sovellus tallentaa kurssin tietokantaan.
+6. Opettaja saa liittymiskoodin, jonka hän voi jakaa opiskelijoille.
+
+
+### Poikkeuspolut
+- Syötetty kurssin nimi on jo käytössä → Järjestelmä ilmoittaa virheestä.
+- Kurssin pakollisia tietoja puuttuu → Järjestelmä pyytää täydentämään. 
+
+### Jälkiehdot
+- Kurssi on luotu järjestelmään ja opiskelijat voivat liittyä siihen liittymiskoodilla.
+
+
+### UC-4: Opiskelija tarkastelee omaa edistymistään
+
+**Tunnus:** UC-4
+**Nimi:** Oman edistymisen tarkastelu
+**Kuvaus:** Opiskelija voi sovelluksessa seurata omaa suoritustaan kurssilla, nähdä hyväksytyt tehtävät ja palautteet reaaliajassa.
+
+### Osallistujat
+- **Pääosallistuja:** Opiskelija
+- **Sidosryhmät:** Sovellus
+
+### Esiehdot
+- Opiskelijalla on voimassa oleva käyttäjätili.
+- Opiskelija on liittynyt vähintään yhdelle kurssille.
+- Opettajat ovat arvioineet tehtäviä.
+
+### Peruspolku
+1. Opiskelija kirjautuu sovellukseen.
+2. Opiskelija avaa kurssinäkymän.
+3. Opiskelija valitsee toiminnon Näytä edistyminen.
+4. Sovellus hakee kurssin suoritustiedot Firebase-tietokannasta.
+5. Sovellus näyttää opiskelijalle suoritettujen ja hyväksyttyjen tehtävien listan sekä mahdollisen opettajan antaman palautteen.
+
+
+### Poikkeuspolut
+- Yhteysvirhe → Sovellus näyttää viimeksi tallennetut tiedot ja ilmoittaa, ettei reaaliaikaisia tietoja voitu hakea.
+
+### Jälkiehdot
+- Opiskelija saa ajantasaisen kuvan omasta edistymisestään kurssilla.
+
 
 ---
 
