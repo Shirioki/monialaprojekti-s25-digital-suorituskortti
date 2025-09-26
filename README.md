@@ -150,6 +150,43 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 ### Jälkiehdot
 - Opiskelija on liittynyt kurssille ja hänen palautuksensa on tallennettu järjestelmään.
 
+## Käyttötapaus UC-1: Opiskelija liittyy kurssille 
+
+**Tunnus:** UC-1  
+**Nimi:** Kurssille liittyminen
+**Kuvaus:** Opiskelija liittyy haluamalleen kurssille järjestelmän kautta.  Kurssille liittyminen mahdollistaa harjoituskorttien täyttämisen ja arvioinnin kyseisen kurssin puitteissa.
+
+### Osallistujat
+- **Pääosallistuja:** Opiskelija
+- **Sidosryhmät:** Opettaja, Admin, Kurssinhallintamoduuli
+
+### Esiehdot
+ - Opiskelijalla on voimassa oleva käyttäjätunnus järjestelmään.
+- Kurssi on olemassa ja avoinna liittymiselle.
+- Opiskelija on kirjautunut järjestelmään.
+
+### Peruspolku
+1.	Opiskelija kirjautuu järjestelmään.
+2.	Opiskelija siirtyy kurssilistaukseen.
+3.	Opiskelija valitsee haluamansa kurssin.
+4.	Opiskelija painaa "Liity kurssille" -painiketta.
+5.	Järjestelmä vahvistaa liittymisen ja lisää opiskelijan kurssin osallistujalistalle.
+6.	Opiskelija näkee kurssin sisällön ja siihen liittyvät harjoituskortit.
+
+### Poikkeuspolut
+-	Kurssia ei löydy → Järjestelmä ilmoittaa virheestä.
+-	Kurssi on suljettu liittymiseltä → Järjestelmä estää liittymisen ja ilmoittaa syyn.
+-	Opiskelija on jo liittynyt kurssille → Järjestelmä ilmoittaa, ettei liittyminen ole tarpeen.
+-	Liittyminen epäonnistuu teknisen virheen vuoksi → Järjestelmä ilmoittaa virheestä ja ohjaa tukipalveluun.
+
+### Jälkiehdot
+- Opiskelija on lisätty kurssin osallistujalistalle.
+- Opiskelija voi tarkastella ja täyttää kurssiin liittyviä harjoituskortteja.
+- Opettaja näkee opiskelijan kurssin osallistujana.
+
+
+
+
 ## UC-2: Tehtävän hyväksyminen
 
 **Tunnus:** UC-2  
