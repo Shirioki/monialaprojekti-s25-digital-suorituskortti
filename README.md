@@ -150,11 +150,11 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 ### Jälkiehdot
 - Opiskelija on liittynyt kurssille ja hänen palautuksensa on tallennettu järjestelmään.
 
-### UC-2: Tehtävän hyväksyminen
+## UC-2: Tehtävän hyväksyminen
 
-**Tunnus:** UC-2
-**Nimi:** Tehtävän hyväksyminen
-**Kuvaus:** Opettaja arvioi opiskelijan palautuksen ja hyväksyy sen järjestelmässä.
+**Tunnus:** UC-2  
+**Nimi:** Tehtävän hyväksyminen  
+**Kuvaus:** Opettaja arvioi opiskelijan palautuksen ja hyväksyy sen järjestelmässä.  
 
 ### Osallistujat
 - **Pääosallistuja:** Opettaja  
@@ -181,11 +181,11 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 - Opiskelijan kurssin edistymistiedot päivittyvät.
 
 
-### UC-3: Opettaja luo uuden kurssin
+## UC-3: Opettaja luo uuden kurssin
 
-**Tunnus:** UC-3
-**Nimi:** Uuden kurssin luominen
-**Kuvaus:** Opettaja luo järjestelmään uuden kurssin, johon opiskelijat voivat myöhemmin liittyä liittymiskoodilla.
+**Tunnus:** UC-3  
+**Nimi:** Uuden kurssin luominen  
+**Kuvaus:** Opettaja luo järjestelmään uuden kurssin, johon opiskelijat voivat myöhemmin liittyä liittymiskoodilla.  
 
 ### Osallistujat
 - **Pääosallistuja:** Opettaja  
@@ -212,11 +212,11 @@ Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen j�
 - Kurssi on luotu järjestelmään ja opiskelijat voivat liittyä siihen liittymiskoodilla.
 
 
-### UC-4: Opiskelija tarkastelee omaa edistymistään
+## UC-4: Opiskelija tarkastelee omaa edistymistään
 
-**Tunnus:** UC-4
-**Nimi:** Oman edistymisen tarkastelu
-**Kuvaus:** Opiskelija voi sovelluksessa seurata omaa suoritustaan kurssilla, nähdä hyväksytyt tehtävät ja palautteet reaaliajassa.
+**Tunnus:** UC-4  
+**Nimi:** Oman edistymisen tarkastelu  
+**Kuvaus:** Opiskelija voi sovelluksessa seurata omaa suoritustaan kurssilla, nähdä hyväksytyt tehtävät ja palautteet reaaliajassa.  
 
 ### Osallistujat
 - **Pääosallistuja:** Opiskelija
