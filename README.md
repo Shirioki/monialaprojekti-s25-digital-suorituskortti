@@ -406,7 +406,7 @@ Firebase-autentikointi sopii erinomaisesti projekteihin, kuten digitaalinen suor
 ---
 
 ## 8 Liitteet
-- Sovelluksen wireframe *(lisätään erikseen)*  
+- [Sovelluksen wireframe](https://www.figma.com/design/kcA0t7G717CqYGmhIGFy5p/Monialaprojekti-WF?t=JuTxYux5t83AS9Hy-1) 
 
 ---
 
