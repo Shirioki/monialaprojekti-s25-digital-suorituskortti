@@ -18,7 +18,7 @@ const App = () => {
   const [kurssit, setKurssit] = useState<Kurssi[]>([
     {
       id: '1',
-      nimi: 'Matematiikka',
+      nimi: 'Kurssi 1',
       tehtavat: [
         { id: '1', nimi: 'Tehtävä 1', pisteet: 5 },
         { id: '2', nimi: 'Tehtävä 2', pisteet: 4 },
@@ -27,7 +27,7 @@ const App = () => {
     },
     {
       id: '2',
-      nimi: 'Fysiikka',
+      nimi: 'Kurssi 2',
       tehtavat: [
         { id: '1', nimi: 'Tehtävä 1', pisteet: 4 },
         { id: '2', nimi: 'Tehtävä 2', pisteet: 5 },
