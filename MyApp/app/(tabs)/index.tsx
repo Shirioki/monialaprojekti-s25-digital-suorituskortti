@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TextInput, Button } from 'react-native'
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TextInput, Button, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { Picker } from '@react-native-picker/picker'
 
@@ -18,7 +18,7 @@ const App = () => {
   const [kurssit, setKurssit] = useState<Kurssi[]>([
     {
       id: '1',
-      nimi: 'Kurssi 1',
+      nimi: 'Kariologia',
       tehtavat: [
         { id: '1', nimi: 'Tehtävä 1', pisteet: 5 },
         { id: '2', nimi: 'Tehtävä 2', pisteet: 4 },
@@ -27,7 +27,7 @@ const App = () => {
     },
     {
       id: '2',
-      nimi: 'Kurssi 2',
+      nimi: 'Kirurgia',
       tehtavat: [
         { id: '1', nimi: 'Tehtävä 1', pisteet: 4 },
         { id: '2', nimi: 'Tehtävä 2', pisteet: 5 },
@@ -39,6 +39,7 @@ const App = () => {
   const [valittuKurssi, setValittuKurssi] = useState(kurssit[0].id)
   const [tehtavaNimi, setTehtavaNimi] = useState('')
   const [tehtavaPisteet, setTehtavaPisteet] = useState('')
+  const [openKurssiId, setOpenKurssiId] = useState<string | null>(null)
 
   const lisaaTehtava = () => {
     if (!tehtavaNimi || !tehtavaPisteet) return
@@ -66,16 +67,25 @@ const App = () => {
     </View>
   )
 
-  const renderKurssi = ({ item }: { item: Kurssi }) => (
-    <View style={styles.kurssiCard}>
-      <Text style={styles.kurssiTitle}>{item.nimi}</Text>
-      <FlatList
-        data={item.tehtavat}
-        renderItem={renderTehtava}
-        keyExtractor={t => t.id}
-      />
-    </View>
-  )
+  const renderKurssi = ({ item }: { item: Kurssi }) => {
+    const isOpen = openKurssiId === item.id
+
+    return (
+      <View style={styles.kurssiCard}>
+        <TouchableOpacity onPress={() => setOpenKurssiId(isOpen ? null : item.id)}>
+          <Text style={styles.kurssiTitle}>{item.nimi}</Text>
+        </TouchableOpacity>
+
+        {isOpen && (
+          <FlatList
+            data={item.tehtavat}
+            renderItem={renderTehtava}
+            keyExtractor={t => t.id}
+          />
+        )}
+      </View>
+    )
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -161,16 +171,15 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
   tehtavaCard: {
     backgroundColor: '#444',
     padding: 10,
     borderRadius: 8,
-    marginBottom: 5,
+    marginTop: 10,
   },
   tehtavaText: {
     color: 'white',
     fontSize: 18,
-  }
+  },
 })
