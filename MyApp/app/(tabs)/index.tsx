@@ -1,11 +1,10 @@
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TextInput, Button, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
-import { Picker } from '@react-native-picker/picker'
 
 interface Tehtava {
   id: string
   nimi: string
-  pisteet: number
+  tehty: boolean
 }
 
 interface Kurssi {
@@ -20,51 +19,88 @@ const App = () => {
       id: '1',
       nimi: 'Kariologia',
       tehtavat: [
-        { id: '1', nimi: 'Tehtävä 1', pisteet: 5 },
-        { id: '2', nimi: 'Tehtävä 2', pisteet: 4 },
-        { id: '3', nimi: 'Tehtävä 3', pisteet: 3 },
+        { id: '1', nimi: 'Tehtävä 1', tehty: false },
+        { id: '2', nimi: 'Tehtävä 2', tehty: true },
+        { id: '3', nimi: 'Tehtävä 3', tehty: false },
       ],
     },
     {
       id: '2',
       nimi: 'Kirurgia',
       tehtavat: [
-        { id: '1', nimi: 'Tehtävä 1', pisteet: 4 },
-        { id: '2', nimi: 'Tehtävä 2', pisteet: 5 },
-        { id: '3', nimi: 'Tehtävä 3', pisteet: 2 },
+        { id: '1', nimi: 'Tehtävä 1', tehty: false },
+        { id: '2', nimi: 'Tehtävä 2', tehty: false },
+        { id: '3', nimi: 'Tehtävä 3', tehty: true },
       ],
     },
   ])
 
-  const [valittuKurssi, setValittuKurssi] = useState(kurssit[0].id)
-  const [tehtavaNimi, setTehtavaNimi] = useState('')
-  const [tehtavaPisteet, setTehtavaPisteet] = useState('')
   const [openKurssiId, setOpenKurssiId] = useState<string | null>(null)
+  const [kurssiNimi, setKurssiNimi] = useState('')
+  const [tehtavaNimi, setTehtavaNimi] = useState('')
 
-  const lisaaTehtava = () => {
-    if (!tehtavaNimi || !tehtavaPisteet) return
-
-    setKurssit(prevKurssit =>
-      prevKurssit.map(kurssi => {
-        if (kurssi.id === valittuKurssi) {
-          const uusiTehtava: Tehtava = {
-            id: (kurssi.tehtavat.length + 1).toString(),
-            nimi: tehtavaNimi,
-            pisteet: parseInt(tehtavaPisteet),
-          }
-          return { ...kurssi, tehtavat: [...kurssi.tehtavat, uusiTehtava] }
-        }
-        return kurssi
-      })
+  // Toggle tehtävä status
+  const toggleTehtava = (kurssiId: string, tehtavaId: string) => {
+    setKurssit(prev =>
+      prev.map(kurssi =>
+        kurssi.id === kurssiId
+          ? {
+              ...kurssi,
+              tehtavat: kurssi.tehtavat.map(tehtava =>
+                tehtava.id === tehtavaId
+                  ? { ...tehtava, tehty: !tehtava.tehty }
+                  : tehtava
+              ),
+            }
+          : kurssi
+      )
     )
-    setTehtavaNimi('')
-    setTehtavaPisteet('')
   }
 
-  const renderTehtava = ({ item }: { item: Tehtava }) => (
-    <View style={styles.tehtavaCard}>
-      <Text style={styles.tehtavaText}>{item.nimi}: {item.pisteet} pistettä</Text>
-    </View>
+  // Add new kurssi
+  const lisaaKurssi = () => {
+    if (!kurssiNimi.trim()) return
+    const uusiKurssi: Kurssi = {
+      id: (kurssit.length + 1).toString(),
+      nimi: kurssiNimi,
+      tehtavat: [],
+    }
+    setKurssit([...kurssit, uusiKurssi])
+    setKurssiNimi('')
+  }
+
+  // Add new tehtävä to currently open kurssi
+  const lisaaTehtava = () => {
+    if (!openKurssiId || !tehtavaNimi.trim()) return
+
+    setKurssit(prev =>
+      prev.map(kurssi =>
+        kurssi.id === openKurssiId
+          ? {
+              ...kurssi,
+              tehtavat: [
+                ...kurssi.tehtavat,
+                { id: (kurssi.tehtavat.length + 1).toString(), nimi: tehtavaNimi, tehty: false },
+              ],
+            }
+          : kurssi
+      )
+    )
+    setTehtavaNimi('')
+  }
+
+  const renderTehtava = (kurssiId: string) => ({ item }: { item: Tehtava }) => (
+    <TouchableOpacity
+      style={[
+        styles.tehtavaCard,
+        { backgroundColor: item.tehty ? '#2e7d32' : '#b71c1c' }, // green if done, red if not
+      ]}
+      onPress={() => toggleTehtava(kurssiId, item.id)}
+    >
+      <Text style={styles.tehtavaText}>
+        {item.nimi}: {item.tehty ? 'Tehty ✅' : 'Tee ❌'}
+      </Text>
+    </TouchableOpacity>
   )
 
   const renderKurssi = ({ item }: { item: Kurssi }) => {
@@ -77,11 +113,24 @@ const App = () => {
         </TouchableOpacity>
 
         {isOpen && (
-          <FlatList
-            data={item.tehtavat}
-            renderItem={renderTehtava}
-            keyExtractor={t => t.id}
-          />
+          <>
+            <FlatList
+              data={item.tehtavat}
+              renderItem={renderTehtava(item.id)}
+              keyExtractor={t => t.id}
+            />
+
+            <View style={styles.form}>
+              <TextInput
+                style={styles.input}
+                placeholder="Uusi tehtävä"
+                placeholderTextColor="#aaa"
+                value={tehtavaNimi}
+                onChangeText={setTehtavaNimi}
+              />
+              <Button title="Lisää tehtävä" onPress={lisaaTehtava} />
+            </View>
+          </>
         )}
       </View>
     )
@@ -91,33 +140,16 @@ const App = () => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Digital Reports</Text>
 
+      {/* Add kurssi form */}
       <View style={styles.form}>
-        <Picker
-          selectedValue={valittuKurssi}
-          onValueChange={(itemValue) => setValittuKurssi(itemValue)}
-          style={styles.picker}
-        >
-          {kurssit.map(kurssi => (
-            <Picker.Item key={kurssi.id} label={kurssi.nimi} value={kurssi.id} />
-          ))}
-        </Picker>
-
         <TextInput
           style={styles.input}
-          placeholder="Tehtävän nimi"
+          placeholder="Kurssin nimi"
           placeholderTextColor="#aaa"
-          value={tehtavaNimi}
-          onChangeText={setTehtavaNimi}
+          value={kurssiNimi}
+          onChangeText={setKurssiNimi}
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Pisteet"
-          placeholderTextColor="#aaa"
-          value={tehtavaPisteet}
-          onChangeText={setTehtavaPisteet}
-          keyboardType="numeric"
-        />
-        <Button title="Lisää tehtävä" onPress={lisaaTehtava} />
+        <Button title="Lisää kurssi" onPress={lisaaKurssi} />
       </View>
 
       <FlatList
@@ -150,10 +182,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
   },
-  picker: {
-    color: 'white',
-    marginBottom: 10,
-  },
   input: {
     backgroundColor: '#333',
     color: 'white',
@@ -173,7 +201,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   tehtavaCard: {
-    backgroundColor: '#444',
     padding: 10,
     borderRadius: 8,
     marginTop: 10,
