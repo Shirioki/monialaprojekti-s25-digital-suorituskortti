@@ -89,18 +89,42 @@ const App = () => {
     setTehtavaNimi('')
   }
 
+  // Delete kurssi
+  const poistaKurssi = (kurssiId: string) => {
+    setKurssit(prev => prev.filter(kurssi => kurssi.id !== kurssiId))
+    if (openKurssiId === kurssiId) {
+      setOpenKurssiId(null)
+    }
+  }
+
+  // Delete tehtävä
+  const poistaTehtava = (kurssiId: string, tehtavaId: string) => {
+    setKurssit(prev =>
+      prev.map(kurssi =>
+        kurssi.id === kurssiId
+          ? {
+              ...kurssi,
+              tehtavat: kurssi.tehtavat.filter(tehtava => tehtava.id !== tehtavaId),
+            }
+          : kurssi
+      )
+    )
+  }
+
   const renderTehtava = (kurssiId: string) => ({ item }: { item: Tehtava }) => (
-    <TouchableOpacity
+    <View
       style={[
         styles.tehtavaCard,
         { backgroundColor: item.tehty ? '#2e7d32' : '#b71c1c' }, // green if done, red if not
       ]}
-      onPress={() => toggleTehtava(kurssiId, item.id)}
     >
-      <Text style={styles.tehtavaText}>
-        {item.nimi}: {item.tehty ? 'Tehty ✅' : 'Tee ❌'}
-      </Text>
-    </TouchableOpacity>
+      <TouchableOpacity style={{ flex: 1 }} onPress={() => toggleTehtava(kurssiId, item.id)}>
+        <Text style={styles.tehtavaText}>
+          {item.nimi}: {item.tehty ? 'Tehty ✅' : 'Ei tehty ❌'}
+        </Text>
+      </TouchableOpacity>
+      <Button title="Poista" color="#ff4444" onPress={() => poistaTehtava(kurssiId, item.id)} />
+    </View>
   )
 
   const renderKurssi = ({ item }: { item: Kurssi }) => {
@@ -108,9 +132,12 @@ const App = () => {
 
     return (
       <View style={styles.kurssiCard}>
-        <TouchableOpacity onPress={() => setOpenKurssiId(isOpen ? null : item.id)}>
-          <Text style={styles.kurssiTitle}>{item.nimi}</Text>
-        </TouchableOpacity>
+        <View style={styles.kurssiHeader}>
+          <TouchableOpacity onPress={() => setOpenKurssiId(isOpen ? null : item.id)}>
+            <Text style={styles.kurssiTitle}>{item.nimi}</Text>
+          </TouchableOpacity>
+          <Button title="Poista" color="#ff4444" onPress={() => poistaKurssi(item.id)} />
+        </View>
 
         {isOpen && (
           <>
@@ -195,12 +222,19 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 15,
   },
+  kurssiHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   kurssiTitle: {
     color: 'white',
     fontSize: 24,
     fontWeight: 'bold',
   },
   tehtavaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 10,
     borderRadius: 8,
     marginTop: 10,
