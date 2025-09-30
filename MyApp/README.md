@@ -42,6 +42,10 @@ npm install @react-native-picker/picker
 # yarn add @react-native-picker/picker
 ```
 
+```
+npm install @react-navigation/drawer
+```
+
 ## Get a fresh project
 
 When you're ready, run:
