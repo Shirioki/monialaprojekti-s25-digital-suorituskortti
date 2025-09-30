@@ -1,35 +1,29 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Drawer } from 'expo-router/drawer'
+import { TouchableOpacity, Text } from 'react-native'
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function DrawerLayout() {
   return (
-    <Tabs
+    <Drawer
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
+        headerStyle: { backgroundColor: '#1e1e1e' },
+        headerTintColor: 'white',
+        drawerStyle: { backgroundColor: '#1e1e1e' },
+        drawerActiveTintColor: 'white',
+        drawerInactiveTintColor: 'gray',
+      }}
+    >
+      <Drawer.Screen
         name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+        options={{ title: 'Home' }}
       />
-      <Tabs.Screen
+      <Drawer.Screen
         name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
+        options={{ title: 'Explore' }}
       />
-    </Tabs>
-  );
+      <Drawer.Screen
+        name="settings"
+        options={{ title: 'Settings' }}
+      />
+    </Drawer>
+  )
 }
