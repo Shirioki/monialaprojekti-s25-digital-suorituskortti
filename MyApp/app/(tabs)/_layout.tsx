@@ -24,6 +24,10 @@ export default function DrawerLayout() {
         name="settings"
         options={{ title: 'Settings' }}
       />
+            <Drawer.Screen
+        name="student"
+        options={{ title: 'Student' }}
+      />
     </Drawer>
   )
 }
