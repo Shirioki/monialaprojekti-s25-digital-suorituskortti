@@ -21,7 +21,6 @@ const App = () => {
       tehtavat: [
         { id: '1', nimi: 'Tehtävä 1', tehty: false },
         { id: '2', nimi: 'Tehtävä 2', tehty: true },
-        { id: '3', nimi: 'Tehtävä 3', tehty: false },
       ],
     },
     {
@@ -29,8 +28,7 @@ const App = () => {
       nimi: 'Kirurgia',
       tehtavat: [
         { id: '1', nimi: 'Tehtävä 1', tehty: false },
-        { id: '2', nimi: 'Tehtävä 2', tehty: false },
-        { id: '3', nimi: 'Tehtävä 3', tehty: true },
+        { id: '2', nimi: 'Tehtävä 2', tehty: true },
       ],
     },
   ])
@@ -92,9 +90,7 @@ const App = () => {
   // Delete kurssi
   const poistaKurssi = (kurssiId: string) => {
     setKurssit(prev => prev.filter(kurssi => kurssi.id !== kurssiId))
-    if (openKurssiId === kurssiId) {
-      setOpenKurssiId(null)
-    }
+    if (openKurssiId === kurssiId) setOpenKurssiId(null)
   }
 
   // Delete tehtävä
@@ -112,18 +108,15 @@ const App = () => {
   }
 
   const renderTehtava = (kurssiId: string) => ({ item }: { item: Tehtava }) => (
-    <View
-      style={[
-        styles.tehtavaCard,
-        { backgroundColor: item.tehty ? '#2e7d32' : '#b71c1c' }, // green if done, red if not
-      ]}
-    >
+    <View style={styles.tehtavaCard}>
       <TouchableOpacity style={{ flex: 1 }} onPress={() => toggleTehtava(kurssiId, item.id)}>
         <Text style={styles.tehtavaText}>
-          {item.nimi}: {item.tehty ? 'Tehty ✅' : 'Ei tehty ❌'}
+          {item.nimi} — {item.tehty ? 'Tehty ✅' : 'Ei tehty ❌'}
         </Text>
       </TouchableOpacity>
-      <Button title="Poista" color="#ff4444" onPress={() => poistaTehtava(kurssiId, item.id)} />
+      <TouchableOpacity style={styles.deleteButton} onPress={() => poistaTehtava(kurssiId, item.id)}>
+        <Text style={styles.deleteButtonText}>Poista</Text>
+      </TouchableOpacity>
     </View>
   )
 
@@ -132,12 +125,15 @@ const App = () => {
 
     return (
       <View style={styles.kurssiCard}>
-        <View style={styles.kurssiHeader}>
-          <TouchableOpacity onPress={() => setOpenKurssiId(isOpen ? null : item.id)}>
-            <Text style={styles.kurssiTitle}>{item.nimi}</Text>
+        <TouchableOpacity
+          onPress={() => setOpenKurssiId(isOpen ? null : item.id)}
+          style={styles.kurssiHeader}
+        >
+          <Text style={styles.kurssiTitle}>{item.nimi}</Text>
+          <TouchableOpacity onPress={() => poistaKurssi(item.id)} style={styles.deleteButtonSmall}>
+            <Text style={styles.deleteButtonText}>×</Text>
           </TouchableOpacity>
-          <Button title="Poista" color="#ff4444" onPress={() => poistaKurssi(item.id)} />
-        </View>
+        </TouchableOpacity>
 
         {isOpen && (
           <>
@@ -151,11 +147,12 @@ const App = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Uusi tehtävä"
-                placeholderTextColor="#aaa"
                 value={tehtavaNimi}
                 onChangeText={setTehtavaNimi}
               />
-              <Button title="Lisää tehtävä" onPress={lisaaTehtava} />
+              <TouchableOpacity style={styles.addButton} onPress={lisaaTehtava}>
+                <Text style={styles.addButtonText}>Lisää tehtävä</Text>
+              </TouchableOpacity>
             </View>
           </>
         )}
@@ -165,18 +162,18 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Digital Reports</Text>
+      <Text style={styles.title}>Opettajan hallintanäkymä</Text>
 
-      {/* Add kurssi form */}
       <View style={styles.form}>
         <TextInput
           style={styles.input}
           placeholder="Kurssin nimi"
-          placeholderTextColor="#aaa"
           value={kurssiNimi}
           onChangeText={setKurssiNimi}
         />
-        <Button title="Lisää kurssi" onPress={lisaaKurssi} />
+        <TouchableOpacity style={styles.addButton} onPress={lisaaKurssi}>
+          <Text style={styles.addButtonText}>Lisää kurssi</Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -194,53 +191,99 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#f0f0f0',
   },
   title: {
-    color: 'white',
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
+    color: '#222',
   },
   form: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
     marginBottom: 20,
-    backgroundColor: '#222',
-    padding: 15,
-    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
   },
   input: {
-    backgroundColor: '#333',
-    color: 'white',
+    backgroundColor: '#f7f7f7',
     padding: 10,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
     marginBottom: 10,
   },
-  kurssiCard: {
+  addButton: {
     backgroundColor: '#333',
-    borderRadius: 10,
-    padding: 15,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  kurssiCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
     marginBottom: 15,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   kurssiHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    borderBottomColor: '#e0e0e0',
+    borderBottomWidth: 1,
+    paddingBottom: 8,
+    marginBottom: 10,
   },
   kurssiTitle: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
   },
   tehtavaCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    justifyContent: 'space-between',
+    backgroundColor: '#fafafa',
     borderRadius: 8,
-    marginTop: 10,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   tehtavaText: {
-    color: 'white',
-    fontSize: 18,
+    fontSize: 16,
+    color: '#333',
+  },
+  deleteButton: {
+    backgroundColor: '#eee',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  deleteButtonSmall: {
+    backgroundColor: '#eee',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteButtonText: {
+    color: '#333',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 })
