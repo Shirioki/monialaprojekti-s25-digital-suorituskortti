@@ -72,7 +72,7 @@ export default function TaskDetailScreen() {
                     onPress: () => {
                         // Navigate back with updated data using router.replace
                         router.replace({
-                            pathname: '/(tabs)/h1',
+                            pathname: '/h1-tasks' as any,
                             params: {
                                 updatedTask: JSON.stringify({
                                     id: taskId,
