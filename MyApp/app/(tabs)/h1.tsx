@@ -1,11 +1,13 @@
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 
 interface Tehtava {
   id: string
   nimi: string
-  tehty: boolean
+  status: 'not_started' | 'submitted' | 'approved'
   suoritettuPvm?: string
+  itsearviointi?: string
 }
 
 interface Kurssi {
@@ -15,52 +17,152 @@ interface Kurssi {
 }
 
 const StudentView = () => {
+  const router = useRouter()
+  const params = useLocalSearchParams()
   const [kurssit, setKurssit] = useState<Kurssi[]>([
     {
       id: '1',
       nimi: 'H1 Syksy',
       tehtavat: [
-        { id: '1', nimi: 'Hampaiden tunnistus', tehty: true, suoritettuPvm: '29.9.2025' },
-        { id: '2', nimi: 'Käsi-instrumentteihin tutustuminen', tehty: false },
+        { id: '1', nimi: 'Hampaiden tunnistus', status: 'approved', suoritettuPvm: '29.9.2025', itsearviointi: 'Tehtävä sujui hyvin, opin tunnistamaan eri hampaat.' },
+        { id: '2', nimi: 'Käsi-instrumentteihin tutustuminen', status: 'not_started' },
       ],
     },
   ])
 
-  const toggleTehtava = (kurssiId: string, tehtavaId: string) => {
+  // Handle updated task data from task detail page
+  useEffect(() => {
+    if (params.updatedTask) {
+      try {
+        const updatedTaskData = JSON.parse(params.updatedTask as string)
+
+        // Find and update the matching task using task ID
+        setKurssit(prev =>
+          prev.map(kurssi => ({
+            ...kurssi,
+            tehtavat: kurssi.tehtavat.map(task =>
+              task.id === updatedTaskData.id
+                ? {
+                  ...task,
+                  status: updatedTaskData.status,
+                  suoritettuPvm: updatedTaskData.completionDate,
+                  itsearviointi: updatedTaskData.selfAssessment
+                }
+                : task
+            )
+          }))
+        )
+
+        // Clear the params to avoid re-processing
+        router.setParams({ updatedTask: undefined })
+      } catch (error) {
+        console.error('Error parsing updated task data:', error)
+      }
+    }
+  }, [params.updatedTask])
+
+  const updateTaskStatus = (kurssiId: string, tehtavaId: string, newStatus: 'not_started' | 'submitted' | 'approved', completionDate?: string, selfAssessment?: string) => {
     setKurssit(prev =>
       prev.map(kurssi =>
         kurssi.id === kurssiId
           ? {
-              ...kurssi,
-              tehtavat: kurssi.tehtavat.map(t =>
-                t.id === tehtavaId
-                  ? { ...t, tehty: !t.tehty, suoritettuPvm: !t.tehty ? new Date().toLocaleDateString('fi-FI') : undefined }
-                  : t
-              ),
-            }
+            ...kurssi,
+            tehtavat: kurssi.tehtavat.map(t =>
+              t.id === tehtavaId
+                ? {
+                  ...t,
+                  status: newStatus,
+                  suoritettuPvm: completionDate || t.suoritettuPvm,
+                  itsearviointi: selfAssessment || t.itsearviointi
+                }
+                : t
+            ),
+          }
           : kurssi
       )
     )
   }
 
+  const handleTaskPress = (task: Tehtava) => {
+    router.push({
+      pathname: '/task-detail',
+      params: {
+        taskId: task.id,
+        name: task.nimi,
+        status: task.status,
+        completionDate: task.suoritettuPvm || '',
+        selfAssessment: task.itsearviointi || ''
+      }
+    })
+  }
+
+  const handleStatusButtonPress = (kurssiId: string, task: Tehtava) => {
+    if (task.status === 'not_started') {
+      // Navigate to task detail page for new task
+      handleTaskPress(task)
+    }
+    // For submitted/approved tasks, clicking the status doesn't do anything
+    // They should click on the task name to view details
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'not_started':
+        return 'Tee'
+      case 'submitted':
+        return 'Odottaa hyväksyntää'
+      case 'approved':
+        return 'Hyväksytty'
+      default:
+        return 'Tee'
+    }
+  }
+
+  const getStatusButtonStyle = (status: string) => {
+    switch (status) {
+      case 'not_started':
+        return [styles.statusButton]
+      case 'submitted':
+        return [styles.statusButton, styles.statusButtonSubmitted]
+      case 'approved':
+        return [styles.statusButton, styles.statusButtonApproved]
+      default:
+        return [styles.statusButton]
+    }
+  }
+
+  const getStatusTextStyle = (status: string) => {
+    switch (status) {
+      case 'not_started':
+        return [styles.statusText]
+      case 'submitted':
+        return [styles.statusText, styles.statusTextSubmitted]
+      case 'approved':
+        return [styles.statusText, styles.statusTextApproved]
+      default:
+        return [styles.statusText]
+    }
+  }
+
   const renderTehtava = (kurssiId: string) => ({ item }: { item: Tehtava }) => (
     <View style={styles.tehtavaCard}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.tehtavaNimi}>{item.nimi}</Text>
-        {item.tehty && (
-          <>
-            <Text style={styles.suoritettu}>Suoritettu: {item.suoritettuPvm}</Text>
-            <Text style={styles.hyvaksyntatila}>Odottaa hyväksyntää</Text>
-          </>
+      <TouchableOpacity
+        style={{ flex: 1 }}
+        onPress={() => handleTaskPress(item)}
+      >
+        <Text style={[styles.tehtavaNimi, item.status !== 'not_started' && styles.tehtavaNimiClickable]}>{item.nimi}</Text>
+        {item.status !== 'not_started' && item.suoritettuPvm && (
+          <Text style={styles.suoritettu}>Suoritettu: {item.suoritettuPvm}</Text>
         )}
-      </View>
+      </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => toggleTehtava(kurssiId, item.id)}
-        style={[styles.statusButton, item.tehty && styles.statusButtonDone]}
+        onPress={() => handleStatusButtonPress(kurssiId, item)}
+        style={getStatusButtonStyle(item.status)}
+        disabled={item.status !== 'not_started'}
       >
-        <Text style={[styles.statusText, item.tehty && styles.statusTextDone]}>
-          {item.tehty ? 'Tehty' : 'Tee'}
+        <Text style={getStatusTextStyle(item.status)}>
+          {getStatusText(item.status)}
         </Text>
       </TouchableOpacity>
     </View>
@@ -134,6 +236,10 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 4,
   },
+  tehtavaNimiClickable: {
+    color: '#007AFF',
+    textDecorationLine: 'underline',
+  },
   suoritettu: {
     fontSize: 13,
     color: '#555',
@@ -151,11 +257,23 @@ const styles = StyleSheet.create({
   statusButtonDone: {
     backgroundColor: '#333',
   },
+  statusButtonSubmitted: {
+    backgroundColor: '#FFA500',
+  },
+  statusButtonApproved: {
+    backgroundColor: '#4CAF50',
+  },
   statusText: {
     color: '#333',
     fontWeight: '600',
   },
   statusTextDone: {
+    color: '#fff',
+  },
+  statusTextSubmitted: {
+    color: '#fff',
+  },
+  statusTextApproved: {
     color: '#fff',
   },
 })
