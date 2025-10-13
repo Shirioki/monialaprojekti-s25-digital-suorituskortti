@@ -10,21 +10,7 @@ interface Kurssi {
 interface Opiskelija {
   id: string
   nimi: string
-  edistys: number // 0-100 %
-}
-
-const opiskelijat: Record<string, Opiskelija[]> = {
-  '1': [
-    { id: '1', nimi: 'Matti Meikäläinen', edistys: 80 },
-    { id: '2', nimi: 'Maija Mallikas', edistys: 40 },
-  ],
-  '2': [
-    { id: '3', nimi: 'Teppo Testaaja', edistys: 60 },
-    { id: '4', nimi: 'Liisa Luova', edistys: 30 },
-  ],
-  '3': [
-    { id: '5', nimi: 'Jussi Juoksija', edistys: 90 },
-  ],
+  edistys: number
 }
 
 const OpettajaNakyma = () => {
@@ -34,8 +20,24 @@ const OpettajaNakyma = () => {
     { id: '2', nimi: 'Vuosikurssi 2024' },
     { id: '3', nimi: 'Vuosikurssi 2025' },
   ])
-
   const [kurssiNimi, setKurssiNimi] = useState('')
+  const [searchText, setSearchText] = useState('')
+  const [avattuKurssi, setAvattuKurssi] = useState<string | null>(null) // Track open course
+
+  // Mock opiskelijadata
+  const opiskelijat: Record<string, Opiskelija[]> = {
+    '1': [
+      { id: '1', nimi: 'Matti Meikäläinen', edistys: 80 },
+      { id: '2', nimi: 'Maija Mallikas', edistys: 40 },
+    ],
+    '2': [
+      { id: '3', nimi: 'Teppo Testaaja', edistys: 60 },
+      { id: '4', nimi: 'Liisa Luova', edistys: 30 },
+    ],
+    '3': [
+      { id: '5', nimi: 'Jussi Juoksija', edistys: 90 },
+    ],
+  }
 
   // Lisää uusi kurssi
   const lisaaKurssi = () => {
@@ -51,11 +53,12 @@ const OpettajaNakyma = () => {
   // Poista kurssi
   const poistaKurssi = (kurssiId: string) => {
     setKurssit(prev => prev.filter(k => k.id !== kurssiId))
+    if (avattuKurssi === kurssiId) setAvattuKurssi(null)
   }
 
+  // Renderöi opiskelija korttinäkymällä
   const renderOpiskelija = ({ item }: { item: Opiskelija }) => {
     const progressColor = item.edistys >= 50 ? '#4CAF50' : '#FFC107' // vihreä/keltainen
-  
     return (
       <View style={styles.opiskelijaCard}>
         <Text style={styles.opiskelijaNimi}>{item.nimi}</Text>
@@ -66,37 +69,51 @@ const OpettajaNakyma = () => {
     )
   }
 
-  // Renderöi yksittäinen kurssi
-  const renderKurssi = ({ item }: { item: Kurssi }) => (
-    <View style={styles.kurssiCard}>
-      <TouchableOpacity
-        onPress={() =>
-          router.push({
-            pathname: '/kurssi/[id]',
-            params: { id: item.id },
-          })
-        }
-        style={styles.kurssiHeader}
-      >
-        <Text style={styles.kurssiTitle}>{item.nimi}</Text>
-        <TouchableOpacity onPress={() => poistaKurssi(item.id)} style={styles.deleteButtonSmall}>
-          <Text style={styles.deleteButtonText}>×</Text>
+  // Renderöi kurssi
+  const renderKurssi = ({ item }: { item: Kurssi }) => {
+    const filteredOpiskelijat = opiskelijat[item.id]?.filter(o =>
+      o.nimi.toLowerCase().includes(searchText.toLowerCase())
+    ) || []
+
+    const isOpen = avattuKurssi === item.id
+
+    return (
+      <View style={styles.kurssiCard}>
+        <TouchableOpacity
+          onPress={() => setAvattuKurssi(isOpen ? null : item.id)}
+          style={styles.kurssiHeader}
+        >
+          <Text style={styles.kurssiTitle}>{item.nimi}</Text>
+          <TouchableOpacity onPress={() => poistaKurssi(item.id)} style={styles.deleteButtonSmall}>
+            <Text style={styles.deleteButtonText}>×</Text>
+          </TouchableOpacity>
         </TouchableOpacity>
-      </TouchableOpacity>
-  
-      {/* Opiskelijat */}
-      <FlatList
-        data={opiskelijat[item.id]}
-        renderItem={renderOpiskelija}
-        keyExtractor={o => o.id}
-      />
-    </View>
-  )
-  
+
+        {isOpen && (
+          <FlatList
+            data={filteredOpiskelijat}
+            renderItem={renderOpiskelija}
+            keyExtractor={o => o.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingTop: 10 }}
+          />
+        )}
+      </View>
+    )
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Opettajan hallintanäkymä</Text>
+
+      {/* Haku */}
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Etsi opiskelijaa..."
+        value={searchText}
+        onChangeText={setSearchText}
+      />
 
       {/* Lisää kurssi -lomake */}
       <View style={styles.form}>
@@ -133,8 +150,16 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     color: '#222',
+  },
+  searchInput: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 20,
   },
   form: {
     backgroundColor: '#fff',
@@ -198,11 +223,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   opiskelijaCard: {
-    marginTop: 8,
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 12,
+    marginRight: 10,
+    width: 160,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   opiskelijaNimi: {
     fontSize: 16,
-    marginBottom: 4,
+    fontWeight: '500',
+    marginBottom: 6,
   },
   progressBarBackground: {
     height: 8,
@@ -213,5 +247,5 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: 4,
-  },  
+  },
 })
