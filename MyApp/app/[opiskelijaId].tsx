@@ -1,13 +1,9 @@
-// app/[id].tsx
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 
-export const screenOptions = {
-  headerShown: false, // Tämä piilottaa navigointipalkin
-}
-
+// Kurssien ja tehtävien tyypit
 interface KurssiTehtava {
   id: string
   nimi: string
@@ -21,16 +17,22 @@ interface Oppiaine {
   expanded: boolean
 }
 
-export default function StudentCourseView() {
+const OpiskelijaKurssitView = () => {
   const router = useRouter()
-  const { id } = useLocalSearchParams<{ id: string }>()
-  
-  // Mockattu opiskelijadata (voit korvata myöhemmin tietokannasta)
-  const opiskelijaNimi = id === '1'
-    ? 'Matti Meikäläinen'
-    : id === '2'
-    ? 'Maija Mallikas'
-    : 'Tuntematon opiskelija'
+  const { opiskelijaId } = useLocalSearchParams() // Haetaan URL-parametri
+  const [opiskelijaNimi, setOpiskelijaNimi] = useState<string>('')
+
+  // Tämä voisi myöhemmin tulla tietokannasta, mutta pidetään yksinkertaisena:
+  const opiskelijat = [
+    { id: '1', nimi: 'Matti Meikäläinen' },
+    { id: '2', nimi: 'Maija Mallikas' },
+  ]
+
+  // Asetetaan nimi id:n perusteella
+  React.useEffect(() => {
+    const found = opiskelijat.find(o => o.id === opiskelijaId)
+    setOpiskelijaNimi(found ? found.nimi : 'Tuntematon')
+  }, [opiskelijaId])
 
   const [oppiaineet, setOppiaineet] = useState<Oppiaine[]>([
     {
@@ -38,23 +40,21 @@ export default function StudentCourseView() {
       nimi: 'Kariologia',
       expanded: false,
       tehtavat: [
-        { id: '1', nimi: 'H1 Syksy', progress: 50 },
+        { id: '1', nimi: 'H1 Syksy', progress: 60 },
         { id: '2', nimi: 'H1 Kevät', progress: 0 },
         { id: '3', nimi: 'H2 Syksy', progress: 0 },
         { id: '4', nimi: 'H2 Kevät', progress: 0 },
-        { id: '5', nimi: 'H3 Syksy', progress: 0 },
-        { id: '6', nimi: 'H3 Kevät', progress: 0 },
-      ],
+      ]
     },
     {
       id: '2',
       nimi: 'Kirurgia',
       expanded: false,
       tehtavat: [
-        { id: '8', nimi: 'H3 Aseptiikan harjoitus', progress: 0 },
-        { id: '9', nimi: 'H4 Puudutus-harjoitus', progress: 0 },
-      ],
-    },
+        { id: '5', nimi: 'H3 Aseptiikan ryhmäopetus', progress: 0 },
+        { id: '6', nimi: 'H3 Hampaan poistoharjoitus', progress: 0 },
+      ]
+    }
   ])
 
   const toggleOppiaine = (oppiaineId: string) => {
@@ -68,6 +68,7 @@ export default function StudentCourseView() {
   }
 
   const handleCoursePress = (tehtava: KurssiTehtava) => {
+    // Navigoi kurssin sisältösivulle
     if (tehtava.nimi === 'H1 Syksy') {
       router.push('/h1-tasks')
     }
@@ -106,14 +107,12 @@ export default function StudentCourseView() {
       </TouchableOpacity>
 
       {item.expanded && (
-        <View style={styles.tehtavaList}>
-          <FlatList
-            data={item.tehtavat}
-            renderItem={renderTehtava}
-            keyExtractor={t => t.id}
-            scrollEnabled={false}
-          />
-        </View>
+        <FlatList
+          data={item.tehtavat}
+          renderItem={renderTehtava}
+          keyExtractor={t => t.id}
+          scrollEnabled={false}
+        />
       )}
     </View>
   )
@@ -131,6 +130,9 @@ export default function StudentCourseView() {
   )
 }
 
+export default OpiskelijaKurssitView
+
+// 🎨 Tyylit
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -138,7 +140,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
@@ -164,9 +166,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#333',
-  },
-  tehtavaList: {
-    paddingBottom: 8,
   },
   tehtavaItem: {
     padding: 16,
