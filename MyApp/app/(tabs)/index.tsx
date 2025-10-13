@@ -39,7 +39,6 @@ const OpettajaNakyma = () => {
     ],
   }
 
-  // Lisää uusi kurssi
   const lisaaKurssi = () => {
     if (!kurssiNimi.trim()) return
     const uusiKurssi: Kurssi = {
@@ -50,30 +49,43 @@ const OpettajaNakyma = () => {
     setKurssiNimi('')
   }
 
-  // Poista kurssi
   const poistaKurssi = (kurssiId: string) => {
     setKurssit(prev => prev.filter(k => k.id !== kurssiId))
     if (avattuKurssi === kurssiId) setAvattuKurssi(null)
   }
 
-  // Renderöi opiskelija korttinäkymällä
+  // Renderöi opiskelija pystysuorassa listassa
   const renderOpiskelija = ({ item }: { item: Opiskelija }) => {
     const progressColor = item.edistys >= 50 ? '#4CAF50' : '#FFC107' // vihreä/keltainen
     return (
-      <View style={styles.opiskelijaCard}>
+      <TouchableOpacity
+        style={styles.opiskelijaCard}
+        onPress={() =>
+          router.push({
+            pathname: '/kurssi/[id]',
+            params: { id: item.id },
+          })
+        }
+      >
         <Text style={styles.opiskelijaNimi}>{item.nimi}</Text>
         <View style={styles.progressBarBackground}>
-          <View style={[styles.progressBarFill, { width: `${item.edistys}%`, backgroundColor: progressColor }]} />
+          <View
+            style={[
+              styles.progressBarFill,
+              { width: `${item.edistys}%`, backgroundColor: progressColor },
+            ]}
+          />
         </View>
-      </View>
+      </TouchableOpacity>
     )
   }
 
   // Renderöi kurssi
   const renderKurssi = ({ item }: { item: Kurssi }) => {
-    const filteredOpiskelijat = opiskelijat[item.id]?.filter(o =>
-      o.nimi.toLowerCase().includes(searchText.toLowerCase())
-    ) || []
+    const filteredOpiskelijat =
+      opiskelijat[item.id]?.filter(o =>
+        o.nimi.toLowerCase().includes(searchText.toLowerCase())
+      ) || []
 
     const isOpen = avattuKurssi === item.id
 
@@ -94,8 +106,7 @@ const OpettajaNakyma = () => {
             data={filteredOpiskelijat}
             renderItem={renderOpiskelija}
             keyExtractor={o => o.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingTop: 10 }}
           />
         )}
@@ -141,18 +152,8 @@ const OpettajaNakyma = () => {
 export default OpettajaNakyma
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#f0f0f0',
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
-    color: '#222',
-  },
+  container: { flex: 1, padding: 20, backgroundColor: '#f0f0f0' },
+  title: { fontSize: 26, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: '#222' },
   searchInput: {
     backgroundColor: '#fff',
     padding: 10,
@@ -171,24 +172,9 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
   },
-  input: {
-    backgroundColor: '#f7f7f7',
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginBottom: 10,
-  },
-  addButton: {
-    backgroundColor: '#333',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
+  input: { backgroundColor: '#f7f7f7', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', marginBottom: 10 },
+  addButton: { backgroundColor: '#333', borderRadius: 8, paddingVertical: 10, alignItems: 'center' },
+  addButtonText: { color: '#fff', fontWeight: '600' },
   kurssiCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -199,53 +185,21 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
-  kurssiHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  kurssiTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
-  },
-  deleteButtonSmall: {
-    backgroundColor: '#eee',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  deleteButtonText: {
-    color: '#333',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
+  kurssiHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  kurssiTitle: { fontSize: 20, fontWeight: '600', color: '#333' },
+  deleteButtonSmall: { backgroundColor: '#eee', width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  deleteButtonText: { color: '#333', fontWeight: 'bold', fontSize: 14 },
   opiskelijaCard: {
     backgroundColor: '#f9f9f9',
     padding: 12,
     borderRadius: 12,
-    marginRight: 10,
-    width: 160,
+    marginBottom: 10,
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
-  opiskelijaNimi: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 6,
-  },
-  progressBarBackground: {
-    height: 8,
-    backgroundColor: '#eee',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
+  opiskelijaNimi: { fontSize: 16, fontWeight: '500', marginBottom: 6 },
+  progressBarBackground: { height: 8, backgroundColor: '#eee', borderRadius: 4, overflow: 'hidden' },
+  progressBarFill: { height: '100%', borderRadius: 4 },
 })
