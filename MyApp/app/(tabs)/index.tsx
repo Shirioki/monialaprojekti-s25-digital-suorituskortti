@@ -54,18 +54,13 @@ const OpettajaNakyma = () => {
     if (avattuKurssi === kurssiId) setAvattuKurssi(null)
   }
 
-  // Renderöi opiskelija pystysuorassa listassa
+  // Renderöi opiskelija korttinäkymällä
   const renderOpiskelija = ({ item }: { item: Opiskelija }) => {
     const progressColor = item.edistys >= 50 ? '#4CAF50' : '#FFC107' // vihreä/keltainen
     return (
       <TouchableOpacity
         style={styles.opiskelijaCard}
-        onPress={() =>
-          router.push({
-            pathname: '/kurssi/[id]',
-            params: { id: item.id },
-          })
-        }
+        onPress={() => router.push(`/${item.id}`)} // 👈 AVAA opiskelijan oma sivu
       >
         <Text style={styles.opiskelijaNimi}>{item.nimi}</Text>
         <View style={styles.progressBarBackground}>
