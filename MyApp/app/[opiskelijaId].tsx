@@ -119,7 +119,7 @@ const OpiskelijaKurssitView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.headerTitle}>Oppilas: {opiskelijaNimi}</Text>
+      <Text style={styles.headerTitle}>Oppilas {opiskelijaNimi}</Text>
       <FlatList
         data={oppiaineet}
         renderItem={renderOppiaine}
