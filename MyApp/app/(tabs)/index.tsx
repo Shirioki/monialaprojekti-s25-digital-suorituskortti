@@ -1,169 +1,62 @@
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TextInput, Button, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TextInput, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
-
-interface Tehtava {
-  id: string
-  nimi: string
-  tehty: boolean
-}
+import { useRouter } from 'expo-router'
 
 interface Kurssi {
   id: string
   nimi: string
-  tehtavat: Tehtava[]
 }
 
-const App = () => {
+const OpettajaNakyma = () => {
+  const router = useRouter()
   const [kurssit, setKurssit] = useState<Kurssi[]>([
-    {
-      id: '1',
-      nimi: 'Kariologia',
-      tehtavat: [
-        { id: '1', nimi: 'Tehtävä 1', tehty: false },
-        { id: '2', nimi: 'Tehtävä 2', tehty: true },
-      ],
-    },
-    {
-      id: '2',
-      nimi: 'Kirurgia',
-      tehtavat: [
-        { id: '1', nimi: 'Tehtävä 1', tehty: false },
-        { id: '2', nimi: 'Tehtävä 2', tehty: true },
-      ],
-    },
+    { id: '1', nimi: 'Kariologia' },
+    { id: '2', nimi: 'Kirurgia' },
   ])
 
-  const [openKurssiId, setOpenKurssiId] = useState<string | null>(null)
   const [kurssiNimi, setKurssiNimi] = useState('')
-  const [tehtavaNimi, setTehtavaNimi] = useState('')
 
-  // Toggle tehtävä status
-  const toggleTehtava = (kurssiId: string, tehtavaId: string) => {
-    setKurssit(prev =>
-      prev.map(kurssi =>
-        kurssi.id === kurssiId
-          ? {
-              ...kurssi,
-              tehtavat: kurssi.tehtavat.map(tehtava =>
-                tehtava.id === tehtavaId
-                  ? { ...tehtava, tehty: !tehtava.tehty }
-                  : tehtava
-              ),
-            }
-          : kurssi
-      )
-    )
-  }
-
-  // Add new kurssi
+  // Lisää uusi kurssi
   const lisaaKurssi = () => {
     if (!kurssiNimi.trim()) return
     const uusiKurssi: Kurssi = {
       id: (kurssit.length + 1).toString(),
       nimi: kurssiNimi,
-      tehtavat: [],
     }
     setKurssit([...kurssit, uusiKurssi])
     setKurssiNimi('')
   }
 
-  // Add new tehtävä to currently open kurssi
-  const lisaaTehtava = () => {
-    if (!openKurssiId || !tehtavaNimi.trim()) return
-
-    setKurssit(prev =>
-      prev.map(kurssi =>
-        kurssi.id === openKurssiId
-          ? {
-              ...kurssi,
-              tehtavat: [
-                ...kurssi.tehtavat,
-                { id: (kurssi.tehtavat.length + 1).toString(), nimi: tehtavaNimi, tehty: false },
-              ],
-            }
-          : kurssi
-      )
-    )
-    setTehtavaNimi('')
-  }
-
-  // Delete kurssi
+  // Poista kurssi
   const poistaKurssi = (kurssiId: string) => {
-    setKurssit(prev => prev.filter(kurssi => kurssi.id !== kurssiId))
-    if (openKurssiId === kurssiId) setOpenKurssiId(null)
+    setKurssit(prev => prev.filter(k => k.id !== kurssiId))
   }
 
-  // Delete tehtävä
-  const poistaTehtava = (kurssiId: string, tehtavaId: string) => {
-    setKurssit(prev =>
-      prev.map(kurssi =>
-        kurssi.id === kurssiId
-          ? {
-              ...kurssi,
-              tehtavat: kurssi.tehtavat.filter(tehtava => tehtava.id !== tehtavaId),
-            }
-          : kurssi
-      )
-    )
-  }
-
-  const renderTehtava = (kurssiId: string) => ({ item }: { item: Tehtava }) => (
-    <View style={styles.tehtavaCard}>
-      <TouchableOpacity style={{ flex: 1 }} onPress={() => toggleTehtava(kurssiId, item.id)}>
-        <Text style={styles.tehtavaText}>
-          {item.nimi} — {item.tehty ? 'Tehty ✅' : 'Ei tehty ❌'}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.deleteButton} onPress={() => poistaTehtava(kurssiId, item.id)}>
-        <Text style={styles.deleteButtonText}>Poista</Text>
+  // Renderöi yksittäinen kurssi
+  const renderKurssi = ({ item }: { item: Kurssi }) => (
+    <View style={styles.kurssiCard}>
+      <TouchableOpacity
+        onPress={() =>
+          router.push({
+            pathname: '/kurssi/[id]',
+            params: { id: item.id },
+          })
+        }
+        style={styles.kurssiHeader}
+      >
+        <Text style={styles.kurssiTitle}>{item.nimi}</Text>
+        <TouchableOpacity onPress={() => poistaKurssi(item.id)} style={styles.deleteButtonSmall}>
+          <Text style={styles.deleteButtonText}>×</Text>
+        </TouchableOpacity>
       </TouchableOpacity>
     </View>
   )
-
-  const renderKurssi = ({ item }: { item: Kurssi }) => {
-    const isOpen = openKurssiId === item.id
-
-    return (
-      <View style={styles.kurssiCard}>
-        <TouchableOpacity
-          onPress={() => setOpenKurssiId(isOpen ? null : item.id)}
-          style={styles.kurssiHeader}
-        >
-          <Text style={styles.kurssiTitle}>{item.nimi}</Text>
-          <TouchableOpacity onPress={() => poistaKurssi(item.id)} style={styles.deleteButtonSmall}>
-            <Text style={styles.deleteButtonText}>×</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
-
-        {isOpen && (
-          <>
-            <FlatList
-              data={item.tehtavat}
-              renderItem={renderTehtava(item.id)}
-              keyExtractor={t => t.id}
-            />
-
-            <View style={styles.form}>
-              <TextInput
-                style={styles.input}
-                placeholder="Uusi tehtävä"
-                value={tehtavaNimi}
-                onChangeText={setTehtavaNimi}
-              />
-              <TouchableOpacity style={styles.addButton} onPress={lisaaTehtava}>
-                <Text style={styles.addButtonText}>Lisää tehtävä</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-      </View>
-    )
-  }
 
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Opettajan hallintanäkymä</Text>
 
+      {/* Lisää kurssi -lomake */}
       <View style={styles.form}>
         <TextInput
           style={styles.input}
@@ -176,6 +69,7 @@ const App = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Kurssilista */}
       <FlatList
         data={kurssit}
         renderItem={renderKurssi}
@@ -185,7 +79,7 @@ const App = () => {
   )
 }
 
-export default App
+export default OpettajaNakyma
 
 const styles = StyleSheet.create({
   container: {
@@ -242,36 +136,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomColor: '#e0e0e0',
-    borderBottomWidth: 1,
-    paddingBottom: 8,
-    marginBottom: 10,
   },
   kurssiTitle: {
     fontSize: 20,
     fontWeight: '600',
     color: '#333',
-  },
-  tehtavaCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fafafa',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  tehtavaText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  deleteButton: {
-    backgroundColor: '#eee',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
   },
   deleteButtonSmall: {
     backgroundColor: '#eee',
