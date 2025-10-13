@@ -7,11 +7,32 @@ interface Kurssi {
   nimi: string
 }
 
+interface Opiskelija {
+  id: string
+  nimi: string
+  edistys: number // 0-100 %
+}
+
+const opiskelijat: Record<string, Opiskelija[]> = {
+  '1': [
+    { id: '1', nimi: 'Matti Meikäläinen', edistys: 80 },
+    { id: '2', nimi: 'Maija Mallikas', edistys: 40 },
+  ],
+  '2': [
+    { id: '3', nimi: 'Teppo Testaaja', edistys: 60 },
+    { id: '4', nimi: 'Liisa Luova', edistys: 30 },
+  ],
+  '3': [
+    { id: '5', nimi: 'Jussi Juoksija', edistys: 90 },
+  ],
+}
+
 const OpettajaNakyma = () => {
   const router = useRouter()
   const [kurssit, setKurssit] = useState<Kurssi[]>([
-    { id: '1', nimi: 'Kariologia' },
-    { id: '2', nimi: 'Kirurgia' },
+    { id: '1', nimi: 'Vuosikurssi 2023' },
+    { id: '2', nimi: 'Vuosikurssi 2024' },
+    { id: '3', nimi: 'Vuosikurssi 2025' },
   ])
 
   const [kurssiNimi, setKurssiNimi] = useState('')
@@ -32,6 +53,19 @@ const OpettajaNakyma = () => {
     setKurssit(prev => prev.filter(k => k.id !== kurssiId))
   }
 
+  const renderOpiskelija = ({ item }: { item: Opiskelija }) => {
+    const progressColor = item.edistys >= 50 ? '#4CAF50' : '#FFC107' // vihreä/keltainen
+  
+    return (
+      <View style={styles.opiskelijaCard}>
+        <Text style={styles.opiskelijaNimi}>{item.nimi}</Text>
+        <View style={styles.progressBarBackground}>
+          <View style={[styles.progressBarFill, { width: `${item.edistys}%`, backgroundColor: progressColor }]} />
+        </View>
+      </View>
+    )
+  }
+
   // Renderöi yksittäinen kurssi
   const renderKurssi = ({ item }: { item: Kurssi }) => (
     <View style={styles.kurssiCard}>
@@ -49,8 +83,16 @@ const OpettajaNakyma = () => {
           <Text style={styles.deleteButtonText}>×</Text>
         </TouchableOpacity>
       </TouchableOpacity>
+  
+      {/* Opiskelijat */}
+      <FlatList
+        data={opiskelijat[item.id]}
+        renderItem={renderOpiskelija}
+        keyExtractor={o => o.id}
+      />
     </View>
   )
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -155,4 +197,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
+  opiskelijaCard: {
+    marginTop: 8,
+  },
+  opiskelijaNimi: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  progressBarBackground: {
+    height: 8,
+    backgroundColor: '#eee',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },  
 })
