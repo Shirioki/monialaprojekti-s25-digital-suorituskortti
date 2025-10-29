@@ -13,8 +13,8 @@ export default function DrawerLayout() {
       }}
     >
       <Drawer.Screen
-        name="index"
-        options={{ title: 'Home' }}
+        name="teacher"
+        options={{ title: 'Teacher' }}
       />
       <Drawer.Screen
         name="explore"
