@@ -22,7 +22,7 @@ const OpettajaNakyma = () => {
   ])
   const [kurssiNimi, setKurssiNimi] = useState('')
   const [searchText, setSearchText] = useState('')
-  const [avattuKurssi, setAvattuKurssi] = useState<string | null>(null) // Track open course
+  const [avattuKurssi, setAvattuKurssi] = useState<string | null>(null)
 
   // Mock opiskelijadata
   const opiskelijat: Record<string, Opiskelija[]> = {
@@ -39,6 +39,7 @@ const OpettajaNakyma = () => {
     ],
   }
 
+  // Lisää uusi kurssi
   const lisaaKurssi = () => {
     if (!kurssiNimi.trim()) return
     const uusiKurssi: Kurssi = {
@@ -49,6 +50,7 @@ const OpettajaNakyma = () => {
     setKurssiNimi('')
   }
 
+  // Poista kurssi
   const poistaKurssi = (kurssiId: string) => {
     setKurssit(prev => prev.filter(k => k.id !== kurssiId))
     if (avattuKurssi === kurssiId) setAvattuKurssi(null)
@@ -60,7 +62,7 @@ const OpettajaNakyma = () => {
     return (
       <TouchableOpacity
         style={styles.opiskelijaCard}
-        onPress={() => router.push(`/${item.id}`)} // 👈 AVAA opiskelijan oma sivu
+        onPress={() => router.push(`/${item.id}`)} // 👈 Navigoi opiskelijan sivulle
       >
         <Text style={styles.opiskelijaNimi}>{item.nimi}</Text>
         <View style={styles.progressBarBackground}>
@@ -75,7 +77,7 @@ const OpettajaNakyma = () => {
     )
   }
 
-  // Renderöi kurssi
+  // Renderöi kurssi ja sen opiskelijat
   const renderKurssi = ({ item }: { item: Kurssi }) => {
     const filteredOpiskelijat =
       opiskelijat[item.id]?.filter(o =>
@@ -113,6 +115,14 @@ const OpettajaNakyma = () => {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Opettajan hallintanäkymä</Text>
 
+      {/* Navigointi tehtävälistaan */}
+      <TouchableOpacity
+        style={styles.reviewButton}
+        onPress={() => router.push('/teacher-tasks')}
+      >
+        <Text style={styles.reviewButtonText}>📋 Näytä arvioitavat tehtävät</Text>
+      </TouchableOpacity>
+
       {/* Haku */}
       <TextInput
         style={styles.searchInput}
@@ -121,7 +131,7 @@ const OpettajaNakyma = () => {
         onChangeText={setSearchText}
       />
 
-      {/* Lisää kurssi -lomake */}
+      {/* Lisää kurssi */}
       <View style={styles.form}>
         <TextInput
           style={styles.input}
@@ -149,6 +159,21 @@ export default OpettajaNakyma
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#f0f0f0' },
   title: { fontSize: 26, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: '#222' },
+
+  // 👇 UUSI NAPPI TYYLI
+  reviewButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  reviewButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
   searchInput: {
     backgroundColor: '#fff',
     padding: 10,
@@ -167,8 +192,20 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
   },
-  input: { backgroundColor: '#f7f7f7', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#ddd', marginBottom: 10 },
-  addButton: { backgroundColor: '#333', borderRadius: 8, paddingVertical: 10, alignItems: 'center' },
+  input: {
+    backgroundColor: '#f7f7f7',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 10,
+  },
+  addButton: {
+    backgroundColor: '#333',
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
   addButtonText: { color: '#fff', fontWeight: '600' },
   kurssiCard: {
     backgroundColor: '#fff',
@@ -182,7 +219,14 @@ const styles = StyleSheet.create({
   },
   kurssiHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   kurssiTitle: { fontSize: 20, fontWeight: '600', color: '#333' },
-  deleteButtonSmall: { backgroundColor: '#eee', width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  deleteButtonSmall: {
+    backgroundColor: '#eee',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   deleteButtonText: { color: '#333', fontWeight: 'bold', fontSize: 14 },
   opiskelijaCard: {
     backgroundColor: '#f9f9f9',
