@@ -117,7 +117,7 @@ Nää vois olla **Phongin ja Tiituksen** hommia
 - Lokitietojen analytiikkaa voidaan hyödyntää järjestelmän kehittämisessä ja mahdollisten väärinkäytösten ennaltaehkäisyssä.
 - Tietoturvapoikkeamat dokumentoidaan ja käsitellään osana jatkuvaa riskienhallintaprosessia.
 - Järjestelmä tukee myös käyttäjän toimien aikaleimausta, mikä parantaa auditointimahdollisuuksia ja vastuiden jäljittämistä.
-  - Käyttöliittymä on suunniteltu responsiiviseksi, jotta se toimii sujuvasti eri laitteilla ja näytön ko'oilla.
+  - Käyttöliittymä on suunniteltu responsiiviseksi, jotta se toimii sujuvasti eri laitteilla ja eri kokoisilla näytöillä.
 - Skaalautuva arkkitehtuuri mahdollistaa järjestelmän laajentamisen uusille käyttäjäryhmille ja oppilaitoksille ilman merkittäviä muutoksia.
 - Käyttäjäpalautetta kerätään säännöllisesti, ja sen pohjalta tehdään parannuksia käytettävyyteen ja toiminnallisuuksiin.
 - Järjestelmä tukee monikielisyyttä, mikä edistää saavutettavuutta kansainvälisessä oppimisympäristössä.
