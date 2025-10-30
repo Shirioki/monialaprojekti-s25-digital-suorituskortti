@@ -20,14 +20,13 @@ Nykyiset fyysiset suorituskortit aiheuttavat ongelmia:
 Projektin tarkoituksena on kehittää digitaalinen järjestelmä, joka mahdollistaa reaaliaikaisen, turvallisen ja integroitavissa olevan tavan hallita suorituksia.
 
 ### 1.3 Määritelmät ja termit
-- **Opiskelijaprofiili**: Sovelluksessa luotu käyttäjätili, johon tallentuu kurssit ja suoritukset.  
-- **Tick box -lomake**: Yhtenäinen muokattava lomakepohja, jota kurssit käyttävät tehtävien arviointiin.
-- **Dropdown menu**: Dropdown-valikko (eli alasvetovalikko) on käyttöliittymäelementti, joka mahdollistaa käyttäjän valita yhden vaihtoehdon useista, ilman että kaikki vaihtoehdot vievät tilaa näytöllä. Se on erityisen hyödyllinen mobiilisovelluksissa, joissa tila on rajallinen ja käyttöliittymän selkeys on tärkeää. 
-- **Sisu**: Helsingin yliopiston opintotietojärjestelmä. Se tarjoaa työkalut opiskelijoiden, opettajien ja hallintohenkilöstön tarpeisiin. Sisu on suunniteltu tehostamaan opiskelijoiden opintopolkua ja tukemaan korkeakoulun hallintoa monipuolisilla opintojen seuranta- ja hallintatyökaluilla.
+- **Opiskelijaprofiili**: Sovelluksessa luotu käyttäjätili, johon tallentuu kurssit ja suoritukset. Opiskelijaprofiilin kautta käyttäjä voi myös päivittää omia tietojaan, kuten yhteystiedot ja opintojen tavoitteet. 
+- **Tick box -lomake**: Yhtenäinen muokattava lomakepohja, jota kurssit käyttävät tehtävien arviointiin.Tick box -lomake mahdollistaa nopean ja visuaalisen arvioinnin, mikä helpottaa sekä opettajan, että opiskelijan ymmärrystä tehtävän palautteesta.Tick box -lomakkeeseen voidaan lisätä kommenttikenttiä, jotka mahdollistavat yksityiskohtaisemman palautteen.
+- **Dropdown menu**: Dropdown-valikko (eli alasvetovalikko) on käyttöliittymäelementti, joka mahdollistaa käyttäjän valita yhden vaihtoehdon useista, ilman että kaikki vaihtoehdot vievät tilaa näytöllä. Se on erityisen hyödyllinen mobiilisovelluksissa, joissa tila on rajallinen ja käyttöliittymän selkeys on tärkeää. Dropdown-valikon käyttö vähentää kognitiivista kuormitusta, kun vaihtoehdot esitetään kompaktisti ja loogisesti. Dropdown-valikkoa voidaan käyttää myös lomakkeissa, joissa käyttäjän tulee valita esimerkiksi kurssin aikataulu tai opetusmuoto.
+- **Sisu**: Helsingin yliopiston opintotietojärjestelmä. Se tarjoaa työkalut opiskelijoiden, opettajien ja hallintohenkilöstön tarpeisiin. Sisu on suunniteltu tehostamaan opiskelijoiden opintopolkua ja tukemaan korkeakoulun hallintoa monipuolisilla opintojen seuranta- ja hallintatyökaluilla. Sisu tukee opiskelijan pitkäjänteistä suunnittelua tarjoamalla visuaalisia työkaluja opintojen aikatauluttamiseen.
 
  
 
-*(täydennettävä tarpeen mukaan)*
 
 ### 1.4 Viitteet
 - Projektisuunnitelma 2025  
@@ -61,11 +60,18 @@ Mahdollistaa opiskelijoiden suoritusten digitaalinen hallinta ja opettajien teke
 - Kaikki käyttäjien henkilötiedot käsitellään salattuna, ja järjestelmässä huomioidaan yleisimmät aplikaatio turvallisuus -suositukset sovellusturvallisuuden varmistamiseksi.
 - Lisäksi pilvipalveluntarjoajan (Firebase) sertifioinnit ja tietoturvavaatimukset otetaan huomioon.
 - Projektissa noudatetaan Helsingin yliopiston virallisia tietoturvaohjeita.  
-Tämä tarkoittaa, että sovelluksen kehityksessä ja käytössä huomioidaan yliopiston linjaukset tietojen luottamuksellisuudesta, eheydestä ja saatavuudesta. 
+Tämä tarkoittaa, että sovelluksen kehityksessä ja käytössä huomioidaan yliopiston linjaukset tietojen luottamuksellisuudesta, eheydestä ja saatavuudesta.
+- Tietojen säilytysaika on rajattu, ja vanhentuneet tiedot poistetaan automaattisesti tietosuojaperiaatteiden mukaisesti.
+- Sovelluksen kehityksessä hyödynnetään tietoturva-auditointeja ja ulkopuolisten asiantuntijoiden suorittamia testauksia.
+- Käyttäjille tarjotaan mahdollisuus tarkastella, muokata ja poistaa omia tietojaan sovelluksen asetuksista.
+- Tietosuojakäytännöt päivitetään säännöllisesti vastaamaan muuttuvaa lainsäädäntöä ja teknologista kehitystä.
+- Sovelluksen tietoliikenne on suojattu HTTPS-protokollalla, joka estää tietojen sieppauksen ja manipuloinnin siirron aikana.
+- Sovelluksen käyttöoikeudet on rajattu roolipohjaisesti, jotta vain valtuutetut henkilöt pääsevät käsittelemään arkaluontoisia tietoja.
+- Käyttäjien suostumus tietojen käsittelyyn kerätään selkeästi ja läpinäkyvästi ennen henkilötietojen tallentamista.
+- Tietosuojariskien arviointi on osa kehitysprosessia, ja mahdolliset haavoittuvuudet pyritään tunnistamaan jo varhaisessa vaiheessa.
+- Sovelluksessa hyödynnetään kaksivaiheista tunnistautumista lisäturvana käyttäjätileille.
 
- Tänne lissää 
 
----
 
 
 
