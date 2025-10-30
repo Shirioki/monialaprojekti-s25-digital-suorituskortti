@@ -108,9 +108,28 @@ Nää vois olla **Phongin ja Tiituksen** hommia
 - Tiedot pitää olla standardoidussa muodossa kuten CSV/REST-rajapinta.
 - Sovelluksessa pitää olla mahdollisuus tulevaisuudessa tukea integraatioita muihin Helsingin yliopiston järjestelmiin.
 
-### **Tietoturva:** roolipohjainen käyttöoikeus, autentikointi Firebase-tunnuksilla  ---- Tää olis sitä **Liisan** tonttia
-  -  Roolipohjainen käyttöoikeus varmistaa, että eri käyttäjäryhmät, opiskelijat, opettajat ja hallinto näkevät ja käsittelevät vain heille kuuluvia tietoja. Firebase-autentikointi tarjoaa turvallisen kirjautumisprosessin, joka tukee käyttäjien yksilöintiä ja tietojen suojaamista. Lisäksi järjestelmä tukee auditointia ja lokitietojen hallintaa, mikä mahdollistaa toiminnan jäljitettävyyden ja tietosuojaloukkausten hallinnan.
-Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen järjestelmä, joka tukee opiskelijoiden oppimista ja opettajien ohjaustyötä nykyaikaisessa, digitaalisessa ympäristössä.
+### **Tietoturva:** roolipohjainen käyttöoikeus, autentikointi Firebase-tunnuksilla 
+  -  Roolipohjainen käyttöoikeus varmistaa, että eri käyttäjäryhmät, opiskelijat, opettajat ja hallinto näkevät ja käsittelevät vain heille kuuluvia tietoja. Firebase-autentikointi tarjoaa turvallisen kirjautumisprosessin, joka tukee käyttäjien yksilöintiä ja tietojen suojaamista.
+  -  Lisäksi järjestelmä tukee auditointia ja lokitietojen hallintaa, mikä mahdollistaa toiminnan jäljitettävyyden ja tietosuojaloukkausten hallinnan.
+  -  Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen järjestelmä, joka tukee opiskelijoiden oppimista ja opettajien ohjaustyötä nykyaikaisessa, digitaalisessa ympäristössä.
+  -  Käyttöoikeuksien hallinta perustuu vähimmän oikeuden periaatteeseen, mikä minimoi tarpeettoman pääsyn arkaluontoisiin tietoihin.
+- Firebase tukee myös kertakirjautumista (SSO), mikä parantaa käyttökokemusta ja vähentää salasanojen hallintaan liittyviä riskejä.
+- Lokitietojen analytiikkaa voidaan hyödyntää järjestelmän kehittämisessä ja mahdollisten väärinkäytösten ennaltaehkäisyssä.
+- Tietoturvapoikkeamat dokumentoidaan ja käsitellään osana jatkuvaa riskienhallintaprosessia.
+- Järjestelmä tukee myös käyttäjän toimien aikaleimausta, mikä parantaa auditointimahdollisuuksia ja vastuiden jäljittämistä.
+  - Käyttöliittymä on suunniteltu responsiiviseksi, jotta se toimii sujuvasti eri laitteilla ja näytön ko'oilla.
+- Skaalautuva arkkitehtuuri mahdollistaa järjestelmän laajentamisen uusille käyttäjäryhmille ja oppilaitoksille ilman merkittäviä muutoksia.
+- Käyttäjäpalautetta kerätään säännöllisesti, ja sen pohjalta tehdään parannuksia käytettävyyteen ja toiminnallisuuksiin.
+- Järjestelmä tukee monikielisyyttä, mikä edistää saavutettavuutta kansainvälisessä oppimisympäristössä.
+- Käyttöönottoprosessi on vaiheistettu ja dokumentoitu, mikä helpottaa uusien käyttäjien perehdyttämistä.
+- Opettajat voivat seurata opiskelijoiden edistymistä reaaliaikaisesti ja tarjota kohdennettua ohjausta.
+- Järjestelmä tukee oppimisanalytiikkaa, jonka avulla voidaan tunnistaa opiskelijoiden vahvuuksia ja haasteita.
+- Kurssien sisällöt ja tehtävät voidaan personoida opiskelijaprofiilin perusteella, mikä tukee yksilöllistä oppimispolkua.
+- Opiskelijat voivat tarkastella omia suorituksiaan visuaalisessa muodossa, mikä lisää motivaatiota ja itseohjautuvuutta.
+- Opettajille tarjotaan työkaluja palautteen antamiseen ja arvioinnin dokumentointiin, mikä tukee pedagogista jatkuvuutta.
+
+
+
 
 
 ---
