@@ -25,13 +25,6 @@ Projektin tarkoituksena on kehittää digitaalinen järjestelmä, joka mahdollis
 - **Dropdown menu**: Dropdown-valikko (eli alasvetovalikko) on käyttöliittymäelementti, joka mahdollistaa käyttäjän valita yhden vaihtoehdon useista, ilman että kaikki vaihtoehdot vievät tilaa näytöllä. Se on erityisen hyödyllinen mobiilisovelluksissa, joissa tila on rajallinen ja käyttöliittymän selkeys on tärkeää. Dropdown-valikon käyttö vähentää kognitiivista kuormitusta, kun vaihtoehdot esitetään kompaktisti ja loogisesti. Dropdown-valikkoa voidaan käyttää myös lomakkeissa, joissa käyttäjän tulee valita esimerkiksi kurssin aikataulu tai opetusmuoto.
 - **Sisu**: Helsingin yliopiston opintotietojärjestelmä. Se tarjoaa työkalut opiskelijoiden, opettajien ja hallintohenkilöstön tarpeisiin. Sisu on suunniteltu tehostamaan opiskelijoiden opintopolkua ja tukemaan korkeakoulun hallintoa monipuolisilla opintojen seuranta- ja hallintatyökaluilla. Sisu tukee opiskelijan pitkäjänteistä suunnittelua tarjoamalla visuaalisia työkaluja opintojen aikatauluttamiseen.
 
- 
-
-
-### 1.4 Viitteet
-- Projektisuunnitelma 2025  
-- GDPR / Tietosuojalaki (EU 2016/679)  (**Tiitus?**)
-- Helsingin yliopiston tietoturvaohjeet  (**Tiitus?**) 
 
 ---
 
@@ -71,7 +64,10 @@ Tämä tarkoittaa, että sovelluksen kehityksessä ja käytössä huomioidaan yl
 - Tietosuojariskien arviointi on osa kehitysprosessia, ja mahdolliset haavoittuvuudet pyritään tunnistamaan jo varhaisessa vaiheessa.
 - Sovelluksessa hyödynnetään kaksivaiheista tunnistautumista lisäturvana käyttäjätileille.
 
-
+### 2.6 Viitteet
+- Projektisuunnitelma 2025
+- GDPR / Tietosuojalaki (EU 2016/679)
+- Helsingin yliopiston tietoturvaohjeet
 
 
 
@@ -128,7 +124,15 @@ Nää vois olla **Phongin ja Tiituksen** hommia
 - Opiskelijat voivat tarkastella omia suorituksiaan visuaalisessa muodossa, mikä lisää motivaatiota ja itseohjautuvuutta.
 - Opettajille tarjotaan työkaluja palautteen antamiseen ja arvioinnin dokumentointiin, mikä tukee pedagogista jatkuvuutta.
 
+### **Tietojen eheys ja varmuuskopiointi:**
+- Kaikki tiedot varmuuskopioidaan automaattisesti Firebase-palvelun pilvitallennukseen.
+- Järjestelmä tarkistaa tiedonsiirron eheyden ennen tallennusta.
+- Mahdolliset tiedonsiirtovirheet käsitellään automaattisesti, ja käyttäjälle ilmoitetaan tilanteesta.
 
+### **Luotettavuus ja ylläpidettävyys:**
+- Palvelun käyttökatkot minimoidaan hyödyntämällä Firebase-palvelun automaattista varmistusta ja palautusta.
+- Virhetilanteet lokitetaan automaattisesti, ja käyttäjälle näytetään selkeä virheilmoitus.
+- Käyttäjä voi raportoida ongelmia sovelluksen kautta.
 
 
 
@@ -423,19 +427,39 @@ Firebase-autentikointi sopii erinomaisesti projekteihin, kuten digitaalinen suor
 
 ---
 
-## 7 Laadunvarmistus
+## 7 Taitopajatoiminnallisuudet ja käytettävyystestauksen havainnot
+
+### 7.1 Käytettävyystestauksessa havaittiin erityistarpeita taitopajaympäristön käyttöön liittyen:
+
+- Sovellus on suunniteltava toimimaan myös hanskoilla käytettäessä. 
+- Tehtävien hyväksyntäprosessi on oltava nopea ja helposti hallittava mobiililaitteella, koska opettajat arvioivat suorituksia suoraan taitopajassa.
+- Osassa tehtävistä riittää pelkkä suorituksen kuittaus ja itsearviointi, kun taas toisissa vaaditaan useita välivaiheita ja opettajan arviota (esim. asteikko: Ei arviointia / Sujuu hyvin / Tarvitsee harjoitusta).
+- Opiskelijoiden eteneminen kurssilla voidaan rajata siten, että seuraavat suoritukset avautuvat vasta kun edelliset on hyväksytty.
+- Myöhässä oleville tehtäville lisätään symboli (esim. huutomerkki) selkeyttämään palautustilannetta.
+- Järjestelmä tukee QR-koodilla tapahtuvaa kuittauskirjautumista tulevaisuudessa, mikä korvaa nykyisen "lätkä"-menettelyn.
+- Opettajat voivat luoda ja kopioida korttipohjia (esim. H3-syksy ja kevät) ja lisätä niihin hammas- ja pintakohtaisia alasvetovalikoita.
+
+### 7.2 Tulevaisuuden kehityskohteet:
+
+- Mahdollisuus käyttää sovellusta myös selaimessa niille käyttäjille, jotka eivät halua asentaa mobiilisovellusta.
+- Tuntiopettajien työaikakirjausten lisääminen osaksi järjestelmää.
+- Järjestelmän laajennettavuus muihin yliopistoihin tai koulutusohjelmiin.
+
+---
+
+## 8 Laadunvarmistus
 - Prototyypin testaus sprinttien lopussa.  
 - Katselmointipalaverit viikoittain.  
 - Hyväksymiskriteerit sovitaan asiakkaan kanssa.  
 
 ---
 
-## 8 Liitteet
+## 9 Liitteet
 - [Sovelluksen wireframe](https://www.figma.com/design/kcA0t7G717CqYGmhIGFy5p/Monialaprojekti-WF?t=JuTxYux5t83AS9Hy-1) 
 
 ---
 
-## 9 Lähteet
+## 10 Lähteet
 - Projektisuunnitelma 2025  
-- GDPR-asetus  
-- Helsingin yliopiston tietoturvaohjeet  
+- [GDPR-asetus](https://eur-lex.europa.eu/FI/legal-content/summary/general-data-protection-regulation-gdpr.html)
+- [Helsingin yliopiston tietoturvaohjeet](https://www.helsinki.fi/fi/tietotekniikkakeskus/tietoturva-yliopistolla/tietoturva-ja-tietosuoja/yliopiston-tietoturvapolitiikka)
