@@ -20,19 +20,11 @@ Nykyiset fyysiset suorituskortit aiheuttavat ongelmia:
 Projektin tarkoituksena on kehittää digitaalinen järjestelmä, joka mahdollistaa reaaliaikaisen, turvallisen ja integroitavissa olevan tavan hallita suorituksia.
 
 ### 1.3 Määritelmät ja termit
-- **Opiskelijaprofiili**: Sovelluksessa luotu käyttäjätili, johon tallentuu kurssit ja suoritukset.  
-- **Tick box -lomake**: Yhtenäinen muokattava lomakepohja, jota kurssit käyttävät tehtävien arviointiin.
-- **Dropdown menu**: Dropdown-valikko (eli alasvetovalikko) on käyttöliittymäelementti, joka mahdollistaa käyttäjän valita yhden vaihtoehdon useista, ilman että kaikki vaihtoehdot vievät tilaa näytöllä. Se on erityisen hyödyllinen mobiilisovelluksissa, joissa tila on rajallinen ja käyttöliittymän selkeys on tärkeää. 
-- **Sisu**: Helsingin yliopiston opintotietojärjestelmä. Se tarjoaa työkalut opiskelijoiden, opettajien ja hallintohenkilöstön tarpeisiin. Sisu on suunniteltu tehostamaan opiskelijoiden opintopolkua ja tukemaan korkeakoulun hallintoa monipuolisilla opintojen seuranta- ja hallintatyökaluilla.
+- **Opiskelijaprofiili**: Sovelluksessa luotu käyttäjätili, johon tallentuu kurssit ja suoritukset. Opiskelijaprofiilin kautta käyttäjä voi myös päivittää omia tietojaan, kuten yhteystiedot ja opintojen tavoitteet. 
+- **Tick box -lomake**: Yhtenäinen muokattava lomakepohja, jota kurssit käyttävät tehtävien arviointiin.Tick box -lomake mahdollistaa nopean ja visuaalisen arvioinnin, mikä helpottaa sekä opettajan, että opiskelijan ymmärrystä tehtävän palautteesta.Tick box -lomakkeeseen voidaan lisätä kommenttikenttiä, jotka mahdollistavat yksityiskohtaisemman palautteen.
+- **Dropdown menu**: Dropdown-valikko (eli alasvetovalikko) on käyttöliittymäelementti, joka mahdollistaa käyttäjän valita yhden vaihtoehdon useista, ilman että kaikki vaihtoehdot vievät tilaa näytöllä. Se on erityisen hyödyllinen mobiilisovelluksissa, joissa tila on rajallinen ja käyttöliittymän selkeys on tärkeää. Dropdown-valikon käyttö vähentää kognitiivista kuormitusta, kun vaihtoehdot esitetään kompaktisti ja loogisesti. Dropdown-valikkoa voidaan käyttää myös lomakkeissa, joissa käyttäjän tulee valita esimerkiksi kurssin aikataulu tai opetusmuoto.
+- **Sisu**: Helsingin yliopiston opintotietojärjestelmä. Se tarjoaa työkalut opiskelijoiden, opettajien ja hallintohenkilöstön tarpeisiin. Sisu on suunniteltu tehostamaan opiskelijoiden opintopolkua ja tukemaan korkeakoulun hallintoa monipuolisilla opintojen seuranta- ja hallintatyökaluilla. Sisu tukee opiskelijan pitkäjänteistä suunnittelua tarjoamalla visuaalisia työkaluja opintojen aikatauluttamiseen.
 
- 
-
-*(täydennettävä tarpeen mukaan)*
-
-### 1.4 Viitteet
-- Projektisuunnitelma 2025  
-- GDPR / Tietosuojalaki (EU 2016/679)  (**Tiitus?**)
-- Helsingin yliopiston tietoturvaohjeet  (**Tiitus?**) 
 
 ---
 
@@ -61,11 +53,21 @@ Mahdollistaa opiskelijoiden suoritusten digitaalinen hallinta ja opettajien teke
 - Kaikki käyttäjien henkilötiedot käsitellään salattuna, ja järjestelmässä huomioidaan yleisimmät aplikaatio turvallisuus -suositukset sovellusturvallisuuden varmistamiseksi.
 - Lisäksi pilvipalveluntarjoajan (Firebase) sertifioinnit ja tietoturvavaatimukset otetaan huomioon.
 - Projektissa noudatetaan Helsingin yliopiston virallisia tietoturvaohjeita.  
-Tämä tarkoittaa, että sovelluksen kehityksessä ja käytössä huomioidaan yliopiston linjaukset tietojen luottamuksellisuudesta, eheydestä ja saatavuudesta. 
+Tämä tarkoittaa, että sovelluksen kehityksessä ja käytössä huomioidaan yliopiston linjaukset tietojen luottamuksellisuudesta, eheydestä ja saatavuudesta.
+- Tietojen säilytysaika on rajattu, ja vanhentuneet tiedot poistetaan automaattisesti tietosuojaperiaatteiden mukaisesti.
+- Sovelluksen kehityksessä hyödynnetään tietoturva-auditointeja ja ulkopuolisten asiantuntijoiden suorittamia testauksia.
+- Käyttäjille tarjotaan mahdollisuus tarkastella, muokata ja poistaa omia tietojaan sovelluksen asetuksista.
+- Tietosuojakäytännöt päivitetään säännöllisesti vastaamaan muuttuvaa lainsäädäntöä ja teknologista kehitystä.
+- Sovelluksen tietoliikenne on suojattu HTTPS-protokollalla, joka estää tietojen sieppauksen ja manipuloinnin siirron aikana.
+- Sovelluksen käyttöoikeudet on rajattu roolipohjaisesti, jotta vain valtuutetut henkilöt pääsevät käsittelemään arkaluontoisia tietoja.
+- Käyttäjien suostumus tietojen käsittelyyn kerätään selkeästi ja läpinäkyvästi ennen henkilötietojen tallentamista.
+- Tietosuojariskien arviointi on osa kehitysprosessia, ja mahdolliset haavoittuvuudet pyritään tunnistamaan jo varhaisessa vaiheessa.
+- Sovelluksessa hyödynnetään kaksivaiheista tunnistautumista lisäturvana käyttäjätileille.
 
- Tänne lissää 
-
----
+### 2.6 Viitteet
+- Projektisuunnitelma 2025
+- GDPR / Tietosuojalaki (EU 2016/679)
+- Helsingin yliopiston tietoturvaohjeet
 
 
 
@@ -102,9 +104,36 @@ Nää vois olla **Phongin ja Tiituksen** hommia
 - Tiedot pitää olla standardoidussa muodossa kuten CSV/REST-rajapinta.
 - Sovelluksessa pitää olla mahdollisuus tulevaisuudessa tukea integraatioita muihin Helsingin yliopiston järjestelmiin.
 
-### **Tietoturva:** roolipohjainen käyttöoikeus, autentikointi Firebase-tunnuksilla  ---- Tää olis sitä **Liisan** tonttia
-  -  Roolipohjainen käyttöoikeus varmistaa, että eri käyttäjäryhmät, opiskelijat, opettajat ja hallinto näkevät ja käsittelevät vain heille kuuluvia tietoja. Firebase-autentikointi tarjoaa turvallisen kirjautumisprosessin, joka tukee käyttäjien yksilöintiä ja tietojen suojaamista. Lisäksi järjestelmä tukee auditointia ja lokitietojen hallintaa, mikä mahdollistaa toiminnan jäljitettävyyden ja tietosuojaloukkausten hallinnan.
-Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen järjestelmä, joka tukee opiskelijoiden oppimista ja opettajien ohjaustyötä nykyaikaisessa, digitaalisessa ympäristössä.
+### **Tietoturva:** roolipohjainen käyttöoikeus, autentikointi Firebase-tunnuksilla 
+  -  Roolipohjainen käyttöoikeus varmistaa, että eri käyttäjäryhmät, opiskelijat, opettajat ja hallinto näkevät ja käsittelevät vain heille kuuluvia tietoja. Firebase-autentikointi tarjoaa turvallisen kirjautumisprosessin, joka tukee käyttäjien yksilöintiä ja tietojen suojaamista.
+  -  Lisäksi järjestelmä tukee auditointia ja lokitietojen hallintaa, mikä mahdollistaa toiminnan jäljitettävyyden ja tietosuojaloukkausten hallinnan.
+  -  Tavoitteena on kehittää helppokäyttöinen, skaalautuva ja tietoturvallinen järjestelmä, joka tukee opiskelijoiden oppimista ja opettajien ohjaustyötä nykyaikaisessa, digitaalisessa ympäristössä.
+  -  Käyttöoikeuksien hallinta perustuu vähimmän oikeuden periaatteeseen, mikä minimoi tarpeettoman pääsyn arkaluontoisiin tietoihin.
+- Firebase tukee myös kertakirjautumista (SSO), mikä parantaa käyttökokemusta ja vähentää salasanojen hallintaan liittyviä riskejä.
+- Lokitietojen analytiikkaa voidaan hyödyntää järjestelmän kehittämisessä ja mahdollisten väärinkäytösten ennaltaehkäisyssä.
+- Tietoturvapoikkeamat dokumentoidaan ja käsitellään osana jatkuvaa riskienhallintaprosessia.
+- Järjestelmä tukee myös käyttäjän toimien aikaleimausta, mikä parantaa auditointimahdollisuuksia ja vastuiden jäljittämistä.
+  - Käyttöliittymä on suunniteltu responsiiviseksi, jotta se toimii sujuvasti eri laitteilla ja eri kokoisilla näytöillä.
+- Skaalautuva arkkitehtuuri mahdollistaa järjestelmän laajentamisen uusille käyttäjäryhmille ja oppilaitoksille ilman merkittäviä muutoksia.
+- Käyttäjäpalautetta kerätään säännöllisesti, ja sen pohjalta tehdään parannuksia käytettävyyteen ja toiminnallisuuksiin.
+- Järjestelmä tukee monikielisyyttä, mikä edistää saavutettavuutta kansainvälisessä oppimisympäristössä.
+- Käyttöönottoprosessi on vaiheistettu ja dokumentoitu, mikä helpottaa uusien käyttäjien perehdyttämistä.
+- Opettajat voivat seurata opiskelijoiden edistymistä reaaliaikaisesti ja tarjota kohdennettua ohjausta.
+- Järjestelmä tukee oppimisanalytiikkaa, jonka avulla voidaan tunnistaa opiskelijoiden vahvuuksia ja haasteita.
+- Kurssien sisällöt ja tehtävät voidaan personoida opiskelijaprofiilin perusteella, mikä tukee yksilöllistä oppimispolkua.
+- Opiskelijat voivat tarkastella omia suorituksiaan visuaalisessa muodossa, mikä lisää motivaatiota ja itseohjautuvuutta.
+- Opettajille tarjotaan työkaluja palautteen antamiseen ja arvioinnin dokumentointiin, mikä tukee pedagogista jatkuvuutta.
+
+### **Tietojen eheys ja varmuuskopiointi:**
+- Kaikki tiedot varmuuskopioidaan automaattisesti Firebase-palvelun pilvitallennukseen.
+- Järjestelmä tarkistaa tiedonsiirron eheyden ennen tallennusta.
+- Mahdolliset tiedonsiirtovirheet käsitellään automaattisesti, ja käyttäjälle ilmoitetaan tilanteesta.
+
+### **Luotettavuus ja ylläpidettävyys:**
+- Palvelun käyttökatkot minimoidaan hyödyntämällä Firebase-palvelun automaattista varmistusta ja palautusta.
+- Virhetilanteet lokitetaan automaattisesti, ja käyttäjälle näytetään selkeä virheilmoitus.
+- Käyttäjä voi raportoida ongelmia sovelluksen kautta.
+
 
 
 ---
@@ -398,19 +427,39 @@ Firebase-autentikointi sopii erinomaisesti projekteihin, kuten digitaalinen suor
 
 ---
 
-## 7 Laadunvarmistus
+## 7 Taitopajatoiminnallisuudet ja käytettävyystestauksen havainnot
+
+### 7.1 Käytettävyystestauksessa havaittiin erityistarpeita taitopajaympäristön käyttöön liittyen:
+
+- Sovellus on suunniteltava toimimaan myös hanskoilla käytettäessä. 
+- Tehtävien hyväksyntäprosessi on oltava nopea ja helposti hallittava mobiililaitteella, koska opettajat arvioivat suorituksia suoraan taitopajassa.
+- Osassa tehtävistä riittää pelkkä suorituksen kuittaus ja itsearviointi, kun taas toisissa vaaditaan useita välivaiheita ja opettajan arviota (esim. asteikko: Ei arviointia / Sujuu hyvin / Tarvitsee harjoitusta).
+- Opiskelijoiden eteneminen kurssilla voidaan rajata siten, että seuraavat suoritukset avautuvat vasta kun edelliset on hyväksytty.
+- Myöhässä oleville tehtäville lisätään symboli (esim. huutomerkki) selkeyttämään palautustilannetta.
+- Järjestelmä tukee QR-koodilla tapahtuvaa kuittauskirjautumista tulevaisuudessa, mikä korvaa nykyisen "lätkä"-menettelyn.
+- Opettajat voivat luoda ja kopioida korttipohjia (esim. H3-syksy ja kevät) ja lisätä niihin hammas- ja pintakohtaisia alasvetovalikoita.
+
+### 7.2 Tulevaisuuden kehityskohteet:
+
+- Mahdollisuus käyttää sovellusta myös selaimessa niille käyttäjille, jotka eivät halua asentaa mobiilisovellusta.
+- Tuntiopettajien työaikakirjausten lisääminen osaksi järjestelmää.
+- Järjestelmän laajennettavuus muihin yliopistoihin tai koulutusohjelmiin.
+
+---
+
+## 8 Laadunvarmistus
 - Prototyypin testaus sprinttien lopussa.  
 - Katselmointipalaverit viikoittain.  
 - Hyväksymiskriteerit sovitaan asiakkaan kanssa.  
 
 ---
 
-## 8 Liitteet
+## 9 Liitteet
 - [Sovelluksen wireframe](https://www.figma.com/design/kcA0t7G717CqYGmhIGFy5p/Monialaprojekti-WF?t=JuTxYux5t83AS9Hy-1) 
 
 ---
 
-## 9 Lähteet
+## 10 Lähteet
 - Projektisuunnitelma 2025  
-- GDPR-asetus  
-- Helsingin yliopiston tietoturvaohjeet  
+- [GDPR-asetus](https://eur-lex.europa.eu/FI/legal-content/summary/general-data-protection-regulation-gdpr.html)
+- [Helsingin yliopiston tietoturvaohjeet](https://www.helsinki.fi/fi/tietotekniikkakeskus/tietoturva-yliopistolla/tietoturva-ja-tietosuoja/yliopiston-tietoturvapolitiikka)
