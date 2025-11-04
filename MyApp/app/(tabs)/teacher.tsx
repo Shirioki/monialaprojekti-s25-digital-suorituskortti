@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TextInput, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TextInput, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
+import { AuthService } from '../../utils/auth'
 
 interface Kurssi {
   id: string
@@ -42,15 +43,38 @@ const OpettajaNakyma = () => {
   // Lisää uusi kurssi
   const lisaaKurssi = () => {
     if (!kurssiNimi.trim()) return
+
     const uusiKurssi: Kurssi = {
-      id: (kurssit.length + 1).toString(),
+      id: Date.now().toString(),
       nimi: kurssiNimi,
     }
+
     setKurssit([...kurssit, uusiKurssi])
     setKurssiNimi('')
   }
 
-  // Poista kurssi
+  const handleLogout = async () => {
+    Alert.alert(
+      'Kirjaudu ulos',
+      'Haluatko varmasti kirjautua ulos?',
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Kirjaudu ulos',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AuthService.logout()
+              router.replace('/')
+            } catch (error) {
+              console.error('Logout error:', error)
+              Alert.alert('Virhe', 'Uloskirjautumisessa tapahtui virhe')
+            }
+          }
+        }
+      ]
+    )
+  }  // Poista kurssi
   const poistaKurssi = (kurssiId: string) => {
     setKurssit(prev => prev.filter(k => k.id !== kurssiId))
     if (avattuKurssi === kurssiId) setAvattuKurssi(null)
@@ -113,7 +137,12 @@ const OpettajaNakyma = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Opettajan hallintanäkymä</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Opettajan hallintanäkymä</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>🚪 Kirjaudu ulos</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Navigointi tehtävälistaan */}
       <TouchableOpacity
@@ -158,7 +187,10 @@ export default OpettajaNakyma
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#f0f0f0' },
-  title: { fontSize: 26, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: '#222' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#222', flex: 1 },
+  logoutButton: { backgroundColor: '#dc3545', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
+  logoutButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 
   // 👇 UUSI NAPPI TYYLI
   reviewButton: {

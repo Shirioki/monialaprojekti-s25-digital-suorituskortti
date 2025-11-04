@@ -1,18 +1,55 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
+import { AuthService, UserData } from '../../utils/auth'
 
 export default function LoginScreen() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleLogin = () => {
-    // Tässä kohtaa lisätään myöhemmin kirjautumislogiikka (API / Firebase jne.)
-    if (email && password) {
-      router.push('/teacher') // Esimerkkireitti opettajanäkymään
-    } else {
-      alert('Täytä sähköposti ja salasana')
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Virhe', 'Täytä sähköposti ja salasana')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      // TODO: Replace this with actual API call to your backend
+      // For now, we'll simulate authentication with simple email check
+      const isTeacher = email.includes('teacher') || email.includes('opettaja')
+      const isStudent = email.includes('student') || email.includes('opiskelija')
+
+      if (isTeacher || isStudent) {
+        // Simulate successful login
+        const userData: UserData = {
+          id: email.split('@')[0], // Simple ID generation
+          name: email.split('@')[0].replace(/[._-]/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()),
+          email: email,
+          role: isTeacher ? 'teacher' : 'student'
+        }
+
+        const mockToken = `mock-token-${Date.now()}` // In real app, this comes from your backend
+
+        await AuthService.login(mockToken, userData)
+
+        // Navigate to appropriate screen based on role
+        if (userData.role === 'teacher') {
+          router.replace('/(tabs)/teacher')
+        } else {
+          router.replace('/(tabs)/student')
+        }
+      } else {
+        Alert.alert('Virhe', 'Väärä sähköposti tai salasana. Kokeile sähköpostia joka sisältää "teacher" tai "student".')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      Alert.alert('Virhe', 'Kirjautumisessa tapahtui virhe. Yritä uudelleen.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -56,8 +93,14 @@ export default function LoginScreen() {
             />
 
             {/* Kirjaudu sisään -painike */}
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Kirjaudu sisään</Text>
+            <TouchableOpacity
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              <Text style={styles.buttonText}>
+                {isLoading ? 'Kirjaudutaan sisään...' : 'Kirjaudu sisään'}
+              </Text>
             </TouchableOpacity>
 
             {/* Linkki ongelmatilanteisiin */}
@@ -134,6 +177,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#999',
+    opacity: 0.7,
   },
   buttonText: {
     color: '#fff',

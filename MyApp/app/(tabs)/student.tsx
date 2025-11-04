@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { AuthService } from '../../utils/auth'
 
 interface KurssiTehtava {
   id: string
@@ -57,14 +58,31 @@ const StudentView = () => {
     )
   }
 
-  const handleCoursePress = (tehtava: KurssiTehtava) => {
-    // Navigate to specific course page (e.g., H1 tasks)
-    if (tehtava.nimi === 'H1 Syksy') {
-      router.push({
-        pathname: '/h1-tasks' as any // TypeScript workaround for dynamic routes
-      })
-    }
-    // Add more specific routes for other courses as needed
+  const handleCoursePress = (course: KurssiTehtava) => {
+    router.push('/h1-tasks')
+  }
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Kirjaudu ulos',
+      'Haluatko varmasti kirjautua ulos?',
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Kirjaudu ulos',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AuthService.logout()
+              router.replace('/')
+            } catch (error) {
+              console.error('Logout error:', error)
+              Alert.alert('Virhe', 'Uloskirjautumisessa tapahtui virhe')
+            }
+          }
+        }
+      ]
+    )
   }
 
   const renderProgressBar = (progress: number) => (
@@ -114,7 +132,12 @@ const StudentView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.headerTitle}>Tervetuloa Taitopaja Appiin!</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Tervetuloa Juuri Appiin!</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>🚪 Kirjaudu ulos</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={oppiaineet}
         renderItem={renderOppiaine}
@@ -133,12 +156,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     padding: 16,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
+    flex: 1,
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   oppiaineCard: {
     backgroundColor: '#fff',
