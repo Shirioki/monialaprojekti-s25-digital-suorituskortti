@@ -1,12 +1,12 @@
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Modal } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 
 interface KurssiTehtava {
   id: string
   nimi: string
-  progress?: number // Progress percentage for visual indicator
+  progress?: number
 }
 
 interface Oppiaine {
@@ -18,6 +18,7 @@ interface Oppiaine {
 
 const StudentView = () => {
   const router = useRouter()
+  const [menuVisible, setMenuVisible] = useState(false)
   const [oppiaineet, setOppiaineet] = useState<Oppiaine[]>([
     {
       id: '1',
@@ -31,96 +32,219 @@ const StudentView = () => {
         { id: '5', nimi: 'H3 Syksy', progress: 0 },
         { id: '6', nimi: 'H3 Kevät', progress: 0 },
         { id: '7', nimi: 'Mini-OSCE', progress: 0 },
-      ]
+      ],
     },
     {
       id: '2',
       nimi: 'Kirurgia',
       expanded: false,
       tehtavat: [
-        { id: '8', nimi: 'H3 Aseptiikan ryhmäopetus', progress: 0 },
-        { id: '9', nimi: 'H3 Puudutus-harjoitus', progress: 0 },
-        { id: '10', nimi: 'H3 Hampaan poistoharjoitus', progress: 0 },
-        { id: '11', nimi: 'H3 Ompelu-harjoitus', progress: 0 },
-        { id: '12', nimi: 'H4 Leikkaus-harjoitus', progress: 0 },
-      ]
-    }
+        { id: '8', nimi: 'H1 Syksy', progress: 25 },
+        { id: '9', nimi: 'H1 Kevät', progress: 0 },
+      ],
+    },
+    {
+      id: '3',
+      nimi: 'Endodontia',
+      expanded: false,
+      tehtavat: [
+        { id: '10', nimi: 'H1 Syksy', progress: 75 },
+        { id: '11', nimi: 'H1 Kevät', progress: 0 },
+      ],
+    },
   ])
 
-  const toggleOppiaine = (oppiaineId: string) => {
-    setOppiaineet(prev =>
-      prev.map(oppiaine =>
-        oppiaine.id === oppiaineId
+  const toggleOppiaine = (id: string) => {
+    setOppiaineet(
+      oppiaineet.map((oppiaine) =>
+        oppiaine.id === id
           ? { ...oppiaine, expanded: !oppiaine.expanded }
           : oppiaine
       )
     )
   }
 
-  const handleCoursePress = (tehtava: KurssiTehtava) => {
-    // Navigate to specific course page (e.g., H1 tasks)
-    if (tehtava.nimi === 'H1 Syksy') {
-      router.push({
-        pathname: '/h1-tasks' as any // TypeScript workaround for dynamic routes
-      })
-    }
-    // Add more specific routes for other courses as needed
+  const getProgressColor = (progress: number = 0) => {
+    if (progress >= 70) return '#4CAF50'
+    if (progress >= 40) return '#FFA500'
+    if (progress > 0) return '#F44336'
+    return '#e0e0e0'
   }
 
-  const renderProgressBar = (progress: number) => (
-    <View style={styles.progressContainer}>
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${progress}%` }]} />
-      </View>
-    </View>
-  )
+  // Menu items for student navigation
+  const menuItems = [
+    { 
+      id: '1', 
+      title: 'Opiskelijan kotisivu', 
+      icon: 'home-outline', 
+      route: '/(tabs)/student',
+      description: 'Palaa etusivulle'
+    },
+    { 
+      id: '2', 
+      title: 'Opettajan näkymä', 
+      icon: 'person-outline', 
+      route: '/(tabs)/teacher',
+      description: 'Vaihda opettajaksi'
+    },
+    { 
+      id: '3', 
+      title: 'Tehtävälistaus', 
+      icon: 'list-outline', 
+      route: '/h1-tasks',
+      description: 'Näytä kaikki tehtävät'
+    },
+    { 
+      id: '4', 
+      title: 'Oma edistyminen', 
+      icon: 'stats-chart-outline', 
+      route: '/(tabs)/student',
+      description: 'Tarkastele tilastoja'
+    },
+    { 
+      id: '5', 
+      title: 'Asetukset', 
+      icon: 'settings-outline', 
+      route: '/(tabs)/settings',
+      description: 'Sovelluksen asetukset'
+    },
+    { 
+      id: '6', 
+      title: 'Kirjaudu ulos', 
+      icon: 'log-out-outline', 
+      route: '/login',
+      description: 'Poistu sovelluksesta'
+    },
+  ]
 
-  const renderTehtava = ({ item }: { item: KurssiTehtava }) => (
-    <TouchableOpacity
-      style={styles.tehtavaItem}
-      onPress={() => handleCoursePress(item)}
-    >
-      <Text style={styles.tehtavaNimi}>{item.nimi}</Text>
-      {renderProgressBar(item.progress || 0)}
-    </TouchableOpacity>
-  )
+  const handleMenuItemPress = (route: string) => {
+    setMenuVisible(false)
+    router.push(route as any)
+  }
 
-  const renderOppiaine = ({ item }: { item: Oppiaine }) => (
-    <View style={styles.oppiaineCard}>
-      <TouchableOpacity
-        style={styles.oppiaineHeader}
-        onPress={() => toggleOppiaine(item.id)}
-      >
-        <Text style={styles.oppiaineTitle}>{item.nimi}</Text>
-        <Ionicons
-          name={item.expanded ? "chevron-up" : "chevron-down"}
-          size={24}
-          color="#333"
-        />
-      </TouchableOpacity>
-
-      {item.expanded && (
-        <View style={styles.tehtavaList}>
-          <FlatList
-            data={item.tehtavat}
-            renderItem={renderTehtava}
-            keyExtractor={t => t.id}
-            scrollEnabled={false}
-          />
-        </View>
-      )}
-    </View>
-  )
+  const handleSettingsPress = () => {
+    router.push('/(tabs)/settings' as any)
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.headerTitle}>Tervetuloa Taitopaja Appiin!</Text>
-      <FlatList
-        data={oppiaineet}
-        renderItem={renderOppiaine}
-        keyExtractor={item => item.id}
-        showsVerticalScrollIndicator={false}
-      />
+      {/* Header with functional navigation */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => setMenuVisible(true)}>
+          <Ionicons name="menu" size={28} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Opintojeni syksy</Text>
+        <TouchableOpacity onPress={handleSettingsPress}>
+          <Ionicons name="settings-outline" size={24} color="#333" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Side Menu Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={menuVisible}
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setMenuVisible(false)}
+        >
+          <View style={styles.menuContainer} onStartShouldSetResponder={() => true}>
+            <View style={styles.menuHeader}>
+              <View>
+                <Text style={styles.menuTitle}>Valikko</Text>
+                <Text style={styles.menuSubtitle}>Navigoi sovelluksessa</Text>
+              </View>
+              <TouchableOpacity onPress={() => setMenuVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.menuItems}>
+              {menuItems.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.menuItem}
+                  onPress={() => handleMenuItemPress(item.route)}
+                >
+                  <View style={styles.menuItemIconContainer}>
+                    <Ionicons name={item.icon as any} size={24} color="#007AFF" />
+                  </View>
+                  <View style={styles.menuItemContent}>
+                    <Text style={styles.menuItemText}>{item.title}</Text>
+                    <Text style={styles.menuItemDescription}>{item.description}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#999" />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.menuFooter}>
+              <Text style={styles.menuFooterText}>Hammaslääketieteen sovellus v1.0</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
+          <Text style={styles.sectionTitle}>Oppiaineet</Text>
+
+          {oppiaineet.map((oppiaine) => (
+            <View key={oppiaine.id} style={styles.oppiaineCard}>
+              <TouchableOpacity
+                style={styles.oppiaineHeader}
+                onPress={() => toggleOppiaine(oppiaine.id)}
+              >
+                <View style={styles.oppiaineInfo}>
+                  <Ionicons
+                    name={oppiaine.expanded ? 'chevron-down' : 'chevron-forward'}
+                    size={20}
+                    color="#666"
+                  />
+                  <Text style={styles.oppiaineNimi}>{oppiaine.nimi}</Text>
+                </View>
+              </TouchableOpacity>
+
+              {oppiaine.expanded && (
+                <View style={styles.tehtavaList}>
+                  {oppiaine.tehtavat.map((tehtava) => {
+                    const progress = tehtava.progress ?? 0
+                    return (
+                      <TouchableOpacity
+                        key={tehtava.id}
+                        style={styles.tehtavaItem}
+                        onPress={() => router.push('/h1-tasks' as any)}
+                      >
+                        <View style={styles.tehtavaInfo}>
+                          <Text style={styles.tehtavaNimi}>{tehtava.nimi}</Text>
+                          <View style={styles.progressBarContainer}>
+                            <View
+                              style={[
+                                styles.progressBar,
+                                {
+                                  width: `${progress}%`,
+                                  backgroundColor: getProgressColor(progress),
+                                },
+                              ]}
+                            />
+                          </View>
+                          <Text style={styles.progressText}>
+                            {progress}% suoritettu
+                          </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color="#999" />
+                      </TouchableOpacity>
+                    )
+                  })}
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
@@ -131,62 +255,167 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    padding: 16,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  oppiaineCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  oppiaineHeader: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
   },
-  oppiaineTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
     color: '#333',
   },
-  tehtavaList: {
-    paddingBottom: 8,
+  // Menu Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  tehtavaItem: {
+  menuContainer: {
+    width: '80%',
+    height: '100%',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 5,
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#f8f9fa',
+  },
+  menuTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  menuSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 4,
+  },
+  menuItems: {
+    flex: 1,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  menuItemIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  menuItemContent: {
+    flex: 1,
+  },
+  menuItemText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  menuItemDescription: {
+    fontSize: 12,
+    color: '#666',
+  },
+  menuFooter: {
     padding: 16,
     borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  menuFooterText: {
+    fontSize: 12,
+    color: '#999',
+  },
+  content: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 16,
+  },
+  oppiaineCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  oppiaineHeader: {
+    padding: 16,
+  },
+  oppiaineInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  oppiaineNimi: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 8,
+  },
+  tehtavaList: {
+    borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
+    paddingTop: 8,
+  },
+  tehtavaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f5f5f5',
+  },
+  tehtavaInfo: {
+    flex: 1,
   },
   tehtavaNimi: {
     fontSize: 16,
     fontWeight: '500',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  progressContainer: {
-    marginTop: 4,
-  },
-  progressBar: {
+  progressBarContainer: {
     height: 6,
     backgroundColor: '#e0e0e0',
     borderRadius: 3,
     overflow: 'hidden',
+    marginBottom: 4,
   },
-  progressFill: {
+  progressBar: {
     height: '100%',
-    backgroundColor: '#007AFF',
     borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666',
   },
 })

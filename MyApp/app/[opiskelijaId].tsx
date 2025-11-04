@@ -1,195 +1,256 @@
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 
-// Kurssien ja tehtävien tyypit
-interface KurssiTehtava {
+interface CompletedTask {
   id: string
   nimi: string
-  progress?: number
+  oppiaine: string
+  suoritettu: string
+  status: 'approved' | 'submitted' | 'needs_corrections'
 }
 
-interface Oppiaine {
-  id: string
-  nimi: string
-  tehtavat: KurssiTehtava[]
-  expanded: boolean
-}
-
-const OpiskelijaKurssitView = () => {
+export default function StudentDetailScreen() {
   const router = useRouter()
-  const { opiskelijaId } = useLocalSearchParams() // Haetaan URL-parametri
-  const [opiskelijaNimi, setOpiskelijaNimi] = useState<string>('')
+  const params = useLocalSearchParams()
+  const studentId = params.id as string || '1'
 
-  // Tämä voisi myöhemmin tulla tietokannasta, mutta pidetään yksinkertaisena:
-  const opiskelijat = [
-    { id: '1', nimi: 'Matti Meikäläinen' },
-    { id: '2', nimi: 'Maija Mallikas' },
-  ]
+  // Mock data - should come from backend
+  const studentName = 'Matti Meikäläinen'
+  const studentEmail = 'matti.meikalainen@helsinki.fi'
+  const overallProgress = 65
 
-  // Asetetaan nimi id:n perusteella
-  React.useEffect(() => {
-    const found = opiskelijat.find(o => o.id === opiskelijaId)
-    setOpiskelijaNimi(found ? found.nimi : 'Tuntematon')
-  }, [opiskelijaId])
-
-  const [oppiaineet, setOppiaineet] = useState<Oppiaine[]>([
+  const completedTasks: CompletedTask[] = [
     {
       id: '1',
-      nimi: 'Kariologia',
-      expanded: false,
-      tehtavat: [
-        { id: '1', nimi: 'H1 Syksy', progress: 60 },
-        { id: '2', nimi: 'H1 Kevät', progress: 0 },
-        { id: '3', nimi: 'H2 Syksy', progress: 0 },
-        { id: '4', nimi: 'H2 Kevät', progress: 0 },
-      ]
+      nimi: 'Hampaiden tunnistus',
+      oppiaine: 'Kariologia',
+      suoritettu: '29.9.2025',
+      status: 'approved',
     },
     {
       id: '2',
-      nimi: 'Kirurgia',
-      expanded: false,
-      tehtavat: [
-        { id: '5', nimi: 'H3 Aseptiikan ryhmäopetus', progress: 0 },
-        { id: '6', nimi: 'H3 Hampaan poistoharjoitus', progress: 0 },
-      ]
-    }
-  ])
+      nimi: 'Käsi-instrumentteihin tutustuminen',
+      oppiaine: 'Kariologia',
+      suoritettu: '28.9.2025',
+      status: 'submitted',
+    },
+    {
+      id: '3',
+      nimi: 'Suun tarkastus',
+      oppiaine: 'Kirurgia',
+      suoritettu: '25.9.2025',
+      status: 'approved',
+    },
+  ]
 
-  const toggleOppiaine = (oppiaineId: string) => {
-    setOppiaineet(prev =>
-      prev.map(oppiaine =>
-        oppiaine.id === oppiaineId
-          ? { ...oppiaine, expanded: !oppiaine.expanded }
-          : oppiaine
-      )
-    )
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return { text: 'Hyväksytty', style: styles.statusApproved }
+      case 'submitted':
+        return { text: 'Odottaa', style: styles.statusSubmitted }
+      case 'needs_corrections':
+        return { text: 'Korjattava', style: styles.statusNeedsCorrection }
+      default:
+        return { text: '', style: {} }
+    }
   }
 
-  const handleCoursePress = (tehtava: KurssiTehtava) => {
-    // Navigoi kurssin sisältösivulle
-    if (tehtava.nimi === 'H1 Syksy') {
-      router.push('/h1-tasks')
-    }
+  const getProgressColor = (progress: number) => {
+    if (progress >= 70) return '#4CAF50'
+    if (progress >= 40) return '#FFA500'
+    return '#F44336'
   }
-
-  const renderProgressBar = (progress: number) => (
-    <View style={styles.progressContainer}>
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${progress}%` }]} />
-      </View>
-    </View>
-  )
-
-  const renderTehtava = ({ item }: { item: KurssiTehtava }) => (
-    <TouchableOpacity
-      style={styles.tehtavaItem}
-      onPress={() => handleCoursePress(item)}
-    >
-      <Text style={styles.tehtavaNimi}>{item.nimi}</Text>
-      {renderProgressBar(item.progress || 0)}
-    </TouchableOpacity>
-  )
-
-  const renderOppiaine = ({ item }: { item: Oppiaine }) => (
-    <View style={styles.oppiaineCard}>
-      <TouchableOpacity
-        style={styles.oppiaineHeader}
-        onPress={() => toggleOppiaine(item.id)}
-      >
-        <Text style={styles.oppiaineTitle}>{item.nimi}</Text>
-        <Ionicons
-          name={item.expanded ? 'chevron-up' : 'chevron-down'}
-          size={24}
-          color="#333"
-        />
-      </TouchableOpacity>
-
-      {item.expanded && (
-        <FlatList
-          data={item.tehtavat}
-          renderItem={renderTehtava}
-          keyExtractor={t => t.id}
-          scrollEnabled={false}
-        />
-      )}
-    </View>
-  )
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.headerTitle}>Oppilas {opiskelijaNimi}</Text>
-      <FlatList
-        data={oppiaineet}
-        renderItem={renderOppiaine}
-        keyExtractor={item => item.id}
-        showsVerticalScrollIndicator={false}
-      />
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Opiskelijan tiedot</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Student Info Card */}
+        <View style={styles.infoCard}>
+          <View style={styles.avatarContainer}>
+            <Ionicons name="person-circle-outline" size={80} color="#007AFF" />
+          </View>
+          <Text style={styles.studentName}>{studentName}</Text>
+          <Text style={styles.studentEmail}>{studentEmail}</Text>
+
+          {/* Overall Progress */}
+          <View style={styles.progressSection}>
+            <Text style={styles.progressLabel}>Kokonaisedistyminen</Text>
+            <View style={styles.progressBarContainer}>
+              <View
+                style={[
+                  styles.progressBar,
+                  {
+                    width: `${overallProgress}%`,
+                    backgroundColor: getProgressColor(overallProgress),
+                  },
+                ]}
+              />
+            </View>
+            <Text style={styles.progressText}>{overallProgress}%</Text>
+          </View>
+        </View>
+
+        {/* Completed Tasks */}
+        <Text style={styles.sectionTitle}>Suoritetut tehtävät</Text>
+        {completedTasks.map((task) => {
+          const badge = getStatusBadge(task.status)
+          return (
+            <View key={task.id} style={styles.taskCard}>
+              <View style={styles.taskInfo}>
+                <Text style={styles.taskName}>{task.nimi}</Text>
+                <Text style={styles.taskSubject}>{task.oppiaine}</Text>
+                <Text style={styles.taskDate}>Suoritettu: {task.suoritettu}</Text>
+              </View>
+              <View style={[styles.statusBadge, badge.style]}>
+                <Text style={styles.statusText}>{badge.text}</Text>
+              </View>
+            </View>
+          )
+        })}
+      </ScrollView>
     </SafeAreaView>
   )
 }
 
-export default OpiskelijaKurssitView
-
-// 🎨 Tyylit
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    padding: 16,
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  oppiaineCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  oppiaineHeader: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
   },
-  oppiaineTitle: {
+  headerTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#333',
   },
-  tehtavaItem: {
+  content: {
     padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
   },
-  tehtavaNimi: {
+  infoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  avatarContainer: {
+    marginBottom: 16,
+  },
+  studentName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 4,
+  },
+  studentEmail: {
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 20,
+  },
+  progressSection: {
+    width: '100%',
+    marginTop: 16,
+  },
+  progressLabel: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#333',
     marginBottom: 8,
   },
-  progressContainer: {
-    marginTop: 4,
+  progressBarContainer: {
+    height: 10,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginBottom: 8,
   },
   progressBar: {
-    height: 6,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
     height: '100%',
-    backgroundColor: '#007AFF',
-    borderRadius: 3,
+    borderRadius: 5,
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'right',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 16,
+  },
+  taskCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  taskInfo: {
+    marginBottom: 12,
+  },
+  taskName: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  taskSubject: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  taskDate: {
+    fontSize: 13,
+    color: '#888',
+  },
+  statusBadge: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  statusApproved: {
+    backgroundColor: '#4CAF50',
+  },
+  statusSubmitted: {
+    backgroundColor: '#FFA500',
+  },
+  statusNeedsCorrection: {
+    backgroundColor: '#F44336',
+  },
+  statusText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#fff',
   },
 })

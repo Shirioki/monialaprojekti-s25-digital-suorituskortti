@@ -1,33 +1,61 @@
-import { Drawer } from 'expo-router/drawer'
-import { TouchableOpacity, Text } from 'react-native'
+import { Tabs } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 
-export default function DrawerLayout() {
+export default function TabsLayout() {
   return (
-    <Drawer
+    <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: '#1e1e1e' },
-        headerTintColor: 'white',
-        drawerStyle: { backgroundColor: '#1e1e1e' },
-        drawerActiveTintColor: 'white',
-        drawerInactiveTintColor: 'gray',
+        headerShown: false,
+        tabBarActiveTintColor: '#007AFF',
+        tabBarInactiveTintColor: '#999',
+        tabBarStyle: {
+          backgroundColor: '#1a1a1a',
+          borderTopWidth: 0,
+          height: 60,
+          paddingBottom: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
       }}
     >
-      <Drawer.Screen
+      <Tabs.Screen
         name="teacher"
-        options={{ title: 'Teacher' }}
+        options={{
+          title: 'Teacher',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
       />
-      <Drawer.Screen
-        name="explore"
-        options={{ title: 'Explore' }}
-      />
-      <Drawer.Screen
-        name="login"
-        options={{ title: 'Login' }}
-      />
-            <Drawer.Screen
+      <Tabs.Screen
         name="student"
-        options={{ title: 'Student' }}
+        options={{
+          title: 'Student',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="school" size={size} color={color} />
+          ),
+        }}
       />
-    </Drawer>
+      <Tabs.Screen
+        name="h1"
+        options={{
+          title: 'h1',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="list" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'settings',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="compass" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
   )
 }

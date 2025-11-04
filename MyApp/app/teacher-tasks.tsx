@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native'
 import React, { useState } from 'react'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 
@@ -14,8 +14,7 @@ interface Task {
 
 export default function TeacherTasksScreen() {
   const router = useRouter()
-
-  // Mock data – nämä tiedot tulisivat oikeasti tietokannasta
+  
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: '1',
@@ -30,86 +29,81 @@ export default function TeacherTasksScreen() {
       nimi: 'Käsi-instrumentteihin tutustuminen',
       opiskelija: 'Maija Mallikas',
       completionDate: '28.9.2025',
-      status: 'needs_corrections',
+      status: 'submitted',
       selfAssessment: 'En ollut varma kaikkien instrumenttien käyttötarkoituksista.',
     },
     {
       id: '3',
-      nimi: 'H3 Puudutusharjoitus',
+      nimi: 'Suun tarkastus',
       opiskelija: 'Teppo Testaaja',
-      completionDate: '25.9.2025',
+      completionDate: '27.9.2025',
       status: 'approved',
-      selfAssessment: 'Tehtävä meni hyvin ja opin puuduttamaan turvallisesti.',
+      selfAssessment: 'Harjoittelin tarkastusta useaan otteeseen.',
     },
   ])
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'submitted':
-        return '#FFA500' // oranssi
-      case 'approved':
-        return '#4CAF50' // vihreä
-      case 'needs_corrections':
-        return '#F44336' // punainen
-      default:
-        return '#999'
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'submitted':
-        return 'Odottaa arviointia'
-      case 'approved':
-        return 'Hyväksytty'
-      case 'needs_corrections':
-        return 'Vaatii korjauksia'
-      default:
-        return 'Tuntematon tila'
-    }
-  }
-
-  const renderItem = ({ item }: { item: Task }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        router.push({
-          pathname: '/teacher-task-review',
-          params: {
-            name: item.nimi,
-            student: item.opiskelija,
-            completionDate: item.completionDate,
-            selfAssessment: item.selfAssessment,
-          },
-        })
+  const handleTaskPress = (task: Task) => {
+    router.push({
+      pathname: '/teacher-task-review',
+      params: {
+        name: task.nimi,
+        student: task.opiskelija,
+        completionDate: task.completionDate,
+        selfAssessment: task.selfAssessment,
       }
-    >
-      <View style={styles.cardContent}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.taskTitle}>{item.nimi}</Text>
-          <Text style={styles.studentName}>{item.opiskelija}</Text>
-          <Text style={styles.dateText}>Suoritettu: {item.completionDate}</Text>
-        </View>
+    } as any)
+  }
 
-        <View
-          style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}
-        >
-          <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-        </View>
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'submitted':
+        return { text: 'Odottaa arviointia', style: styles.statusSubmitted }
+      case 'approved':
+        return { text: 'Hyväksytty', style: styles.statusApproved }
+      case 'needs_corrections':
+        return { text: 'Korjattava', style: styles.statusNeedsCorrection }
+      default:
+        return { text: 'Tuntematon', style: styles.statusSubmitted }
+    }
+  }
 
-        <Ionicons name="chevron-forward" size={22} color="#666" />
-      </View>
-    </TouchableOpacity>
-  )
+  const renderTask = ({ item }: { item: Task }) => {
+    const badge = getStatusBadge(item.status)
+    return (
+      <TouchableOpacity
+        style={styles.taskCard}
+        onPress={() => handleTaskPress(item)}
+      >
+        <View style={styles.taskInfo}>
+          <Text style={styles.taskName}>{item.nimi}</Text>
+          <Text style={styles.studentName}>Opiskelija: {item.opiskelija}</Text>
+          <Text style={styles.completionDate}>Suoritettu: {item.completionDate}</Text>
+        </View>
+        <View style={[styles.statusBadge, badge.style]}>
+          <Text style={styles.statusText}>{badge.text}</Text>
+        </View>
+      </TouchableOpacity>
+    )
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Arvioitavat tehtävät</Text>
+      {/* Header with Navigation */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Arvioitavat tehtävät</Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/explore' as any)}>
+          <Ionicons name="settings-outline" size={24} color="#333" />
+        </TouchableOpacity>
+      </View>
+
       <FlatList
         data={tasks}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        renderItem={renderTask}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
       />
     </SafeAreaView>
   )
@@ -119,55 +113,71 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    padding: 16,
   },
   header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  card: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
+  },
+  listContent: {
+    padding: 16,
+  },
+  taskCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 12,
-    padding: 14,
     shadowColor: '#000',
     shadowOpacity: 0.05,
-    shadowRadius: 3,
+    shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  taskInfo: {
+    marginBottom: 12,
   },
-  taskTitle: {
-    fontSize: 18,
+  taskName: {
+    fontSize: 17,
     fontWeight: '600',
-    color: '#222',
+    color: '#333',
+    marginBottom: 6,
   },
   studentName: {
-    fontSize: 15,
-    color: '#555',
-    marginTop: 2,
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
   },
-  dateText: {
+  completionDate: {
     fontSize: 13,
     color: '#888',
-    marginTop: 2,
   },
   statusBadge: {
-    borderRadius: 8,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
     alignSelf: 'flex-start',
-    marginRight: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  statusSubmitted: {
+    backgroundColor: '#FFA500',
+  },
+  statusApproved: {
+    backgroundColor: '#4CAF50',
+  },
+  statusNeedsCorrection: {
+    backgroundColor: '#F44336',
   },
   statusText: {
-    color: '#fff',
-    fontWeight: '600',
     fontSize: 13,
+    fontWeight: '600',
+    color: '#fff',
   },
 })

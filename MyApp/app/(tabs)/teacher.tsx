@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TextInput, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
+import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ScrollView, Modal } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 
 interface Kurssi {
   id: string
@@ -13,7 +14,7 @@ interface Opiskelija {
   edistys: number
 }
 
-const OpettajaNakyma = () => {
+const TeacherDashboard = () => {
   const router = useRouter()
   const [kurssit, setKurssit] = useState<Kurssi[]>([
     { id: '1', nimi: 'Vuosikurssi 2023' },
@@ -23,8 +24,8 @@ const OpettajaNakyma = () => {
   const [kurssiNimi, setKurssiNimi] = useState('')
   const [searchText, setSearchText] = useState('')
   const [avattuKurssi, setAvattuKurssi] = useState<string | null>(null)
+  const [menuVisible, setMenuVisible] = useState(false)
 
-  // Mock opiskelijadata
   const opiskelijat: Record<string, Opiskelija[]> = {
     '1': [
       { id: '1', nimi: 'Matti Meikäläinen', edistys: 80 },
@@ -35,210 +36,484 @@ const OpettajaNakyma = () => {
       { id: '4', nimi: 'Liisa Luova', edistys: 30 },
     ],
     '3': [
-      { id: '5', nimi: 'Jussi Juoksija', edistys: 90 },
+      { id: '5', nimi: 'Juha Järjestelmällinen', edistys: 90 },
     ],
   }
 
-  // Lisää uusi kurssi
   const lisaaKurssi = () => {
-    if (!kurssiNimi.trim()) return
-    const uusiKurssi: Kurssi = {
-      id: (kurssit.length + 1).toString(),
-      nimi: kurssiNimi,
+    if (kurssiNimi.trim()) {
+      const newCourse = {
+        id: Date.now().toString(),
+        nimi: kurssiNimi,
+      }
+      setKurssit([...kurssit, newCourse])
+      setKurssiNimi('')
     }
-    setKurssit([...kurssit, uusiKurssi])
-    setKurssiNimi('')
   }
 
-  // Poista kurssi
-  const poistaKurssi = (kurssiId: string) => {
-    setKurssit(prev => prev.filter(k => k.id !== kurssiId))
-    if (avattuKurssi === kurssiId) setAvattuKurssi(null)
+  const poistaKurssi = (id: string) => {
+    setKurssit(kurssit.filter(k => k.id !== id))
+    if (avattuKurssi === id) setAvattuKurssi(null)
   }
 
-  // Renderöi opiskelija korttinäkymällä
-  const renderOpiskelija = ({ item }: { item: Opiskelija }) => {
-    const progressColor = item.edistys >= 50 ? '#4CAF50' : '#FFC107' // vihreä/keltainen
-    return (
-      <TouchableOpacity
-        style={styles.opiskelijaCard}
-        onPress={() => router.push(`/${item.id}`)} // 👈 Navigoi opiskelijan sivulle
-      >
-        <Text style={styles.opiskelijaNimi}>{item.nimi}</Text>
-        <View style={styles.progressBarBackground}>
-          <View
-            style={[
-              styles.progressBarFill,
-              { width: `${item.edistys}%`, backgroundColor: progressColor },
-            ]}
-          />
-        </View>
-      </TouchableOpacity>
+  const toggleKurssi = (id: string) => {
+    setAvattuKurssi(avattuKurssi === id ? null : id)
+  }
+
+  const getProgressColor = (progress: number) => {
+    if (progress >= 70) return '#4CAF50'
+    if (progress >= 40) return '#FFA500'
+    return '#F44336'
+  }
+
+  const filteredOpiskelijat = (kurssiId: string) => {
+    const students = opiskelijat[kurssiId] || []
+    if (!searchText) return students
+    return students.filter(o => 
+      o.nimi.toLowerCase().includes(searchText.toLowerCase())
     )
   }
 
-  // Renderöi kurssi ja sen opiskelijat
-  const renderKurssi = ({ item }: { item: Kurssi }) => {
-    const filteredOpiskelijat =
-      opiskelijat[item.id]?.filter(o =>
-        o.nimi.toLowerCase().includes(searchText.toLowerCase())
-      ) || []
+  // Menu items with navigation
+  const menuItems = [
+    { 
+      id: '1', 
+      title: 'Opettajan kotisivu', 
+      icon: 'home-outline', 
+      route: '/(tabs)/teacher',
+      description: 'Palaa etusivulle'
+    },
+    { 
+      id: '2', 
+      title: 'Opiskelijan näkymä', 
+      icon: 'school-outline', 
+      route: '/(tabs)/student',
+      description: 'Vaihda opiskelijaksi'
+    },
+    { 
+      id: '3', 
+      title: 'Arvioitavat tehtävät', 
+      icon: 'document-text-outline', 
+      route: '/teacher-tasks',
+      description: 'Näytä odottavat tehtävät'
+    },
+    { 
+      id: '5', 
+      title: 'Asetukset', 
+      icon: 'settings-outline', 
+      route: '/(tabs)/settings',
+      description: 'Sovelluksen asetukset'
+    },
+    { 
+      id: '6', 
+      title: 'Kirjaudu ulos', 
+      icon: 'log-out-outline', 
+      route: '/login',
+      description: 'Poistu sovelluksesta'
+    },
+  ]
 
-    const isOpen = avattuKurssi === item.id
+  const handleMenuItemPress = (route: string) => {
+    setMenuVisible(false)
+    router.push(route as any)
+  }
 
-    return (
-      <View style={styles.kurssiCard}>
-        <TouchableOpacity
-          onPress={() => setAvattuKurssi(isOpen ? null : item.id)}
-          style={styles.kurssiHeader}
-        >
-          <Text style={styles.kurssiTitle}>{item.nimi}</Text>
-          <TouchableOpacity onPress={() => poistaKurssi(item.id)} style={styles.deleteButtonSmall}>
-            <Text style={styles.deleteButtonText}>×</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
+  const handleStudentPress = (opiskelijaId: string) => {
+    router.push({
+      pathname: '/[opiskelijaId]',
+      params: { opiskelijaId }
+    } as any)
+  }
 
-        {isOpen && (
-          <FlatList
-            data={filteredOpiskelijat}
-            renderItem={renderOpiskelija}
-            keyExtractor={o => o.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingTop: 10 }}
-          />
-        )}
-      </View>
-    )
+  // Settings/Options handler
+  const handleSettingsPress = () => {
+    router.push('/(tabs)/settings' as any)
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Opettajan hallintanäkymä</Text>
-
-      {/* Navigointi tehtävälistaan */}
-      <TouchableOpacity
-        style={styles.reviewButton}
-        onPress={() => router.push('/teacher-tasks')}
-      >
-        <Text style={styles.reviewButtonText}>📋 Näytä arvioitavat tehtävät</Text>
-      </TouchableOpacity>
-
-      {/* Haku */}
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Etsi opiskelijaa..."
-        value={searchText}
-        onChangeText={setSearchText}
-      />
-
-      {/* Lisää kurssi */}
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="Kurssin nimi"
-          value={kurssiNimi}
-          onChangeText={setKurssiNimi}
-        />
-        <TouchableOpacity style={styles.addButton} onPress={lisaaKurssi}>
-          <Text style={styles.addButtonText}>Lisää kurssi</Text>
+      {/* Header with functional navigation */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => setMenuVisible(true)}>
+          <Ionicons name="menu" size={28} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Kotisivu</Text>
+        <TouchableOpacity onPress={handleSettingsPress}>
+          <Ionicons name="settings-outline" size={24} color="#333" />
         </TouchableOpacity>
       </View>
 
-      {/* Kurssilista */}
-      <FlatList
-        data={kurssit}
-        renderItem={renderKurssi}
-        keyExtractor={k => k.id}
-      />
+      {/* Side Menu Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={menuVisible}
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setMenuVisible(false)}
+        >
+          <View style={styles.menuContainer} onStartShouldSetResponder={() => true}>
+            <View style={styles.menuHeader}>
+              <View>
+                <Text style={styles.menuTitle}>Valikko</Text>
+                <Text style={styles.menuSubtitle}>Navigoi sovelluksessa</Text>
+              </View>
+              <TouchableOpacity onPress={() => setMenuVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.menuItems}>
+              {menuItems.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.menuItem}
+                  onPress={() => handleMenuItemPress(item.route)}
+                >
+                  <View style={styles.menuItemIconContainer}>
+                    <Ionicons name={item.icon as any} size={24} color="#007AFF" />
+                  </View>
+                  <View style={styles.menuItemContent}>
+                    <Text style={styles.menuItemText}>{item.title}</Text>
+                    <Text style={styles.menuItemDescription}>{item.description}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#999" />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.menuFooter}>
+              <Text style={styles.menuFooterText}>Hammaslääketieteen sovellus v1.0</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Kurssit Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Kurssit</Text>
+          
+          {/* Course List */}
+          {kurssit.map((kurssi) => (
+            <View key={kurssi.id} style={styles.kurssiCard}>
+              <TouchableOpacity 
+                style={styles.kurssiHeader}
+                onPress={() => toggleKurssi(kurssi.id)}
+              >
+                <View style={styles.kurssiInfo}>
+                  <Ionicons 
+                    name={avattuKurssi === kurssi.id ? "chevron-down" : "chevron-forward"} 
+                    size={20} 
+                    color="#666" 
+                  />
+                  <Text style={styles.kurssiNimi}>{kurssi.nimi}</Text>
+                </View>
+                <TouchableOpacity onPress={() => poistaKurssi(kurssi.id)}>
+                  <Ionicons name="trash-outline" size={20} color="#F44336" />
+                </TouchableOpacity>
+              </TouchableOpacity>
+
+              {/* Expanded Student List */}
+              {avattuKurssi === kurssi.id && (
+                <View style={styles.opiskelijaList}>
+                  {/* Search */}
+                  <View style={styles.searchContainer}>
+                    <Ionicons name="search" size={18} color="#999" />
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Etsi opiskelija..."
+                      value={searchText}
+                      onChangeText={setSearchText}
+                    />
+                  </View>
+
+                  {/* Students */}
+                  {filteredOpiskelijat(kurssi.id).map((opiskelija) => (
+                    <TouchableOpacity
+                      key={opiskelija.id}
+                      style={styles.opiskelijaItem}
+                      onPress={() => handleStudentPress(opiskelija.id)}
+                    >
+                      <View style={styles.opiskelijaInfo}>
+                        <Text style={styles.opiskelijaNimi}>{opiskelija.nimi}</Text>
+                        <View style={styles.progressBarContainer}>
+                          <View 
+                            style={[
+                              styles.progressBar, 
+                              { 
+                                width: `${opiskelija.edistys}%`,
+                                backgroundColor: getProgressColor(opiskelija.edistys)
+                              }
+                            ]} 
+                          />
+                        </View>
+                        <Text style={styles.progressText}>{opiskelija.edistys}%</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#999" />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          ))}
+
+          {/* Add New Course */}
+          <View style={styles.addCourseContainer}>
+            <TextInput
+              style={styles.addCourseInput}
+              placeholder="Uusi kurssi"
+              value={kurssiNimi}
+              onChangeText={setKurssiNimi}
+            />
+            <TouchableOpacity style={styles.addButton} onPress={lisaaKurssi}>
+              <Ionicons name="add" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Actions Section */}
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={() => router.push('/teacher-tasks' as any)}
+          >
+            <Ionicons name="document-text-outline" size={24} color="#fff" />
+            <Text style={styles.actionButtonText}>Arvioitavat tehtävät</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   )
 }
 
-export default OpettajaNakyma
+export default TeacherDashboard
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f0f0f0' },
-  title: { fontSize: 26, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: '#222' },
-
-  // 👇 UUSI NAPPI TYYLI
-  reviewButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    borderRadius: 10,
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
+  },
+  // Menu Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  menuContainer: {
+    width: '80%',
+    height: '100%',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 5,
+  },
+  menuHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#f8f9fa',
+  },
+  menuTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  menuSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 4,
+  },
+  menuItems: {
+    flex: 1,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  menuItemIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  menuItemContent: {
+    flex: 1,
+  },
+  menuItemText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  menuItemDescription: {
+    fontSize: 12,
+    color: '#666',
+  },
+  menuFooter: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  menuFooterText: {
+    fontSize: 12,
+    color: '#999',
+  },
+  section: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
     marginBottom: 16,
   },
-  reviewButtonText: {
+  kurssiCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  kurssiHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  kurssiInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  kurssiNimi: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 8,
+  },
+  opiskelijaList: {
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    paddingTop: 12,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingLeft: 8,
+    fontSize: 15,
+  },
+  opiskelijaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f5f5f5',
+  },
+  opiskelijaInfo: {
+    flex: 1,
+  },
+  opiskelijaNimi: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 6,
+  },
+  progressBarContainer: {
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  addCourseContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  addCourseInput: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginRight: 8,
+  },
+  addButton: {
+    backgroundColor: '#007AFF',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButton: {
+    backgroundColor: '#000',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  actionButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-
-  searchInput: {
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginBottom: 20,
-  },
-  form: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  input: {
-    backgroundColor: '#f7f7f7',
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginBottom: 10,
-  },
-  addButton: {
-    backgroundColor: '#333',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  addButtonText: { color: '#fff', fontWeight: '600' },
-  kurssiCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 15,
-    padding: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  kurssiHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  kurssiTitle: { fontSize: 20, fontWeight: '600', color: '#333' },
-  deleteButtonSmall: {
-    backgroundColor: '#eee',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  deleteButtonText: { color: '#333', fontWeight: 'bold', fontSize: 14 },
-  opiskelijaCard: {
-    backgroundColor: '#f9f9f9',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  opiskelijaNimi: { fontSize: 16, fontWeight: '500', marginBottom: 6 },
-  progressBarBackground: { height: 8, backgroundColor: '#eee', borderRadius: 4, overflow: 'hidden' },
-  progressBarFill: { height: '100%', borderRadius: 4 },
 })
