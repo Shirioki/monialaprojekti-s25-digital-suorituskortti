@@ -140,6 +140,7 @@ export default function TaskDetailScreen() {
                                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                                     onChange={handleDateChange}
                                     maximumDate={new Date()}
+                                    textColor='#222'
                                 />
                             )}
                         </View>
