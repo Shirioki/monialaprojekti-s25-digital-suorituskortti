@@ -75,13 +75,12 @@ Tämä tarkoittaa, että sovelluksen kehityksessä ja käytössä huomioidaan yl
 ## 3 Toiminnalliset vaatimukset
 
 Esimerkkejä, täydennettävä:
-
+ Opiskelijaan liittyvät vaatimukset
 - **REQ-1:** Opiskelija voi luoda profiilin sähköpostilla.  
 - **REQ-2:** Opiskelija voi liittyä kurssille opettajan antamalla kurssikoodilla.
-- Opiskelijaan liittyvät vaatimukset
-  - **REQ-3:** Opiskelija voi tarkastella omia kurssitietojaan (esim. kurssin nimi, opettaja, aikataulu).
+- **REQ-3:** Opiskelija voi tarkastella omia kurssitietojaan (esim. kurssin nimi, opettaja, aikataulu).
 - **REQ-4:** Opiskelija voi lähettää tehtäviä kurssialustalle määräaikaan mennessä.
-  - **REQ-5:** Opiskelija voi nähdä palautteen ja arvosanat opettajalta.
+- **REQ-5:** Opiskelija voi nähdä palautteen ja arvosanat opettajalta.
 - **REQ-6:** Opiskelija voi muokata omaa profiiliaan (esim. nimi, kuva, salasana).
 - **REQ-7:** Opiskelija voi keskustella kurssin opettajan kanssa viestitoiminnon kautta.
 - **REQ-8:** Opiskelija voi poistua kurssilta halutessaan.
