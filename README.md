@@ -77,7 +77,23 @@ Tämä tarkoittaa, että sovelluksen kehityksessä ja käytössä huomioidaan yl
 Esimerkkejä, täydennettävä:
 
 - **REQ-1:** Opiskelija voi luoda profiilin sähköpostilla.  
-- **REQ-2:** Opiskelija voi liittyä kurssille opettajan antamalla kurssikoodilla.  
+- **REQ-2:** Opiskelija voi liittyä kurssille opettajan antamalla kurssikoodilla.
+- Opiskelijaan liittyvät vaatimukset
+•	REQ-3: Opiskelija voi tarkastella omia kurssitietojaan (esim. kurssin nimi, opettaja, aikataulu).
+•	REQ-4: Opiskelija voi lähettää tehtäviä kurssialustalle määräaikaan mennessä.
+•	REQ-5: Opiskelija voi nähdä palautteen ja arvosanat opettajalta.
+•	REQ-6: Opiskelija voi muokata omaa profiiliaan (esim. nimi, kuva, salasana).
+•	REQ-7: Opiskelija voi keskustella kurssin opettajan kanssa viestitoiminnon kautta.
+•	REQ-8: Opiskelija voi poistua kurssilta halutessaan.
+
+Opettajaan liittyvät vaatimukset
+•	REQ-9: Opettaja voi luoda uuden kurssin ja määrittää kurssikoodin.
+•	REQ-10: Opettaja voi hyväksyä tai hylätä opiskelijoiden liittymispyynnöt.
+•	REQ-11: Opettaja voi lisätä kurssille tehtäviä ja määrittää palautuspäivän.
+•	REQ-12: Opettaja voi arvioida opiskelijoiden tehtävät ja antaa palautetta.
+•	REQ-13: Opettaja voi lähettää ilmoituksia kurssin osallistujille.
+•	REQ-14: Opettaja voi tarkastella kurssin osallistujalistaa ja opiskelijoiden edistymistä.
+ 
 
 Tämä voisi olla sitä **Iineksen** hommaa
 
