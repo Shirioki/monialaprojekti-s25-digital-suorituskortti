@@ -291,3 +291,85 @@ export const getTaskConversation = async (taskId: string): Promise<ConversationM
         return [];
     }
 };
+
+// Progress calculation functions
+export const calculateTaskProgress = (status: string): number => {
+    switch (status) {
+        case 'not_started':
+            return 0;
+        case 'submitted':
+            return 50;
+        case 'approved':
+            return 100;
+        case 'needs_corrections':
+            return 25;
+        default:
+            return 0;
+    }
+};
+
+export const calculateCourseProgress = async (courseId: string = 'h1'): Promise<number> => {
+    try {
+        const tasks = await getTasks();
+        if (tasks.length === 0) return 0;
+
+        const totalProgress = tasks.reduce((sum, task) => sum + calculateTaskProgress(task.status), 0);
+        return Math.round(totalProgress / tasks.length);
+    } catch (error) {
+        console.error('Error calculating course progress:', error);
+        return 0;
+    }
+};
+
+export interface CourseProgress {
+    courseId: string;
+    courseName: string;
+    progress: number;
+    taskCount: number;
+    completedTasks: number;
+}
+
+export const getAllCoursesProgress = async (): Promise<CourseProgress[]> => {
+    try {
+        const tasks = await getTasks();
+
+        // For now, we'll simulate multiple courses with the same task set
+        // In a real app, you'd filter tasks by course/subject
+        const h1Progress = await calculateCourseProgress();
+        const completedTasks = tasks.filter(task => task.status === 'approved').length;
+
+        return [
+            {
+                courseId: 'h1-kariologia',
+                courseName: 'H1 Syksy',
+                progress: h1Progress,
+                taskCount: tasks.length,
+                completedTasks: completedTasks
+            },
+            {
+                courseId: 'h1-kevat-kariologia',
+                courseName: 'H1 Kevät',
+                progress: 0, // No tasks yet
+                taskCount: 0,
+                completedTasks: 0
+            },
+            {
+                courseId: 'h1-kirurgia',
+                courseName: 'H1 Syksy',
+                progress: Math.round(h1Progress * 0.5), // Simulate different progress
+                taskCount: tasks.length,
+                completedTasks: Math.round(completedTasks * 0.5)
+            },
+            {
+                courseId: 'h1-endodontia',
+                courseName: 'H1 Syksy',
+                progress: Math.round(h1Progress * 0.75), // Simulate different progress
+                taskCount: tasks.length,
+                completedTasks: Math.round(completedTasks * 0.75)
+            }
+        ];
+    } catch (error) {
+        console.error('Error getting all courses progress:', error);
+        return [];
+    }
+};
