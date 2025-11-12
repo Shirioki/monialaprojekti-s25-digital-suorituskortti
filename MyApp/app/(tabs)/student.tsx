@@ -252,6 +252,36 @@ const StudentView = () => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
+          {/* Student Profile Section - styled like [opiskelijaId] */}
+          <View style={styles.profileSection}>
+            <View style={styles.profileCard}>
+              <View style={styles.avatarContainer}>
+                <Ionicons name="person-circle-outline" size={80} color="#007AFF" />
+              </View>
+              <Text style={styles.studentName}>Matti Opiskelija</Text>
+              <Text style={styles.studentEmail}>matti.opiskelija@helsinki.fi</Text>
+
+              {/* Overall Progress */}
+              <View style={styles.progressSection}>
+                <Text style={styles.progressLabel}>Kokonaisedistyminen</Text>
+                <View style={styles.progressBarContainer}>
+                  <View
+                    style={[
+                      styles.progressBar,
+                      {
+                        width: `${coursesProgress.length > 0 ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length : 0}%`,
+                        backgroundColor: getProgressColor(coursesProgress.length > 0 ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length : 0),
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.progressText}>
+                  {coursesProgress.length > 0 ? Math.round(coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length) : 0}%
+                </Text>
+              </View>
+            </View>
+          </View>
+
           <Text style={styles.sectionTitle}>Oppiaineet</Text>
 
           {oppiaineet.map((oppiaine) => (
@@ -465,21 +495,6 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 6,
   },
-  progressBarContainer: {
-    height: 6,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 4,
-  },
-  progressBar: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#666',
-  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -488,5 +503,59 @@ const styles = StyleSheet.create({
   refreshButton: {
     padding: 4,
     borderRadius: 6,
+  },
+  profileSection: {
+    marginBottom: 24,
+  },
+  profileCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  avatarContainer: {
+    marginBottom: 16,
+  },
+  studentName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 4,
+  },
+  studentEmail: {
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 20,
+  },
+  progressSection: {
+    width: '100%',
+    marginTop: 16,
+  },
+  progressLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  progressBarContainer: {
+    height: 10,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressBar: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'right',
   },
 })

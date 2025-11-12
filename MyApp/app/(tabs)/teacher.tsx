@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ScrollView, Modal } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { getTasks } from '../../utils/taskManager'
 
 interface Kurssi {
   id: string
@@ -21,10 +22,32 @@ const TeacherDashboard = () => {
     { id: '2', nimi: 'Vuosikurssi 2024' },
     { id: '3', nimi: 'Vuosikurssi 2025' },
   ])
-  const [kurssiNimi, setKurssiNimi] = useState('')
   const [searchText, setSearchText] = useState('')
   const [avattuKurssi, setAvattuKurssi] = useState<string | null>(null)
   const [menuVisible, setMenuVisible] = useState(false)
+  const [unreviewedTasksCount, setUnreviewedTasksCount] = useState(0)
+
+  // Load unreviewed tasks count
+  useEffect(() => {
+    loadUnreviewedTasks()
+  }, [])
+
+  // Refresh unreviewed tasks when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUnreviewedTasks()
+    }, [])
+  )
+
+  const loadUnreviewedTasks = async () => {
+    try {
+      const tasks = await getTasks()
+      const unreviewedCount = tasks.filter(task => task.status === 'submitted').length
+      setUnreviewedTasksCount(unreviewedCount)
+    } catch (error) {
+      console.error('Error loading unreviewed tasks:', error)
+    }
+  }
 
   const opiskelijat: Record<string, Opiskelija[]> = {
     '1': [
@@ -40,22 +63,6 @@ const TeacherDashboard = () => {
     ],
   }
 
-  const lisaaKurssi = () => {
-    if (kurssiNimi.trim()) {
-      const newCourse = {
-        id: Date.now().toString(),
-        nimi: kurssiNimi,
-      }
-      setKurssit([...kurssit, newCourse])
-      setKurssiNimi('')
-    }
-  }
-
-  const poistaKurssi = (id: string) => {
-    setKurssit(kurssit.filter(k => k.id !== id))
-    if (avattuKurssi === id) setAvattuKurssi(null)
-  }
-
   const toggleKurssi = (id: string) => {
     setAvattuKurssi(avattuKurssi === id ? null : id)
   }
@@ -69,45 +76,45 @@ const TeacherDashboard = () => {
   const filteredOpiskelijat = (kurssiId: string) => {
     const students = opiskelijat[kurssiId] || []
     if (!searchText) return students
-    return students.filter(o => 
+    return students.filter(o =>
       o.nimi.toLowerCase().includes(searchText.toLowerCase())
     )
   }
 
   // Menu items with navigation
   const menuItems = [
-    { 
-      id: '1', 
-      title: 'Opettajan kotisivu', 
-      icon: 'home-outline', 
+    {
+      id: '1',
+      title: 'Opettajan kotisivu',
+      icon: 'home-outline',
       route: '/(tabs)/teacher',
       description: 'Palaa etusivulle'
     },
-    { 
-      id: '2', 
-      title: 'Opiskelijan näkymä', 
-      icon: 'school-outline', 
+    {
+      id: '2',
+      title: 'Opiskelijan näkymä',
+      icon: 'school-outline',
       route: '/(tabs)/student',
       description: 'Vaihda opiskelijaksi'
     },
-    { 
-      id: '3', 
-      title: 'Arvioitavat tehtävät', 
-      icon: 'document-text-outline', 
+    {
+      id: '3',
+      title: 'Arvioitavat tehtävät',
+      icon: 'document-text-outline',
       route: '/teacher-tasks',
       description: 'Näytä odottavat tehtävät'
     },
-    { 
-      id: '5', 
-      title: 'Asetukset', 
-      icon: 'settings-outline', 
+    {
+      id: '5',
+      title: 'Asetukset',
+      icon: 'settings-outline',
       route: '/(tabs)/settings',
       description: 'Sovelluksen asetukset'
     },
-    { 
-      id: '6', 
-      title: 'Kirjaudu ulos', 
-      icon: 'log-out-outline', 
+    {
+      id: '6',
+      title: 'Kirjaudu ulos',
+      icon: 'log-out-outline',
       route: '/login',
       description: 'Poistu sovelluksesta'
     },
@@ -150,9 +157,9 @@ const TeacherDashboard = () => {
         visible={menuVisible}
         onRequestClose={() => setMenuVisible(false)}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1} 
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
           onPress={() => setMenuVisible(false)}
         >
           <View style={styles.menuContainer} onStartShouldSetResponder={() => true}>
@@ -193,28 +200,59 @@ const TeacherDashboard = () => {
       </Modal>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Teacher Profile Section */}
+        <View style={styles.profileSection}>
+          <View style={styles.profileCard}>
+            <View style={styles.avatarContainer}>
+              <Ionicons name="person-circle-outline" size={80} color="#007AFF" />
+            </View>
+            <Text style={styles.teacherName}>Dr. Anna Opettaja</Text>
+            <Text style={styles.teacherEmail}>anna.opettaja@helsinki.fi</Text>
+            <Text style={styles.teacherTitle}>Hammaslääketieteen lehtori</Text>
+
+            {/* Overall Teaching Stats */}
+            <View style={styles.statsSection}>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>{kurssit.length}</Text>
+                <Text style={styles.statLabel}>Kurssia</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>
+                  {Object.values(opiskelijat).flat().length}
+                </Text>
+                <Text style={styles.statLabel}>Opiskelijaa</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>
+                  {unreviewedTasksCount}
+                </Text>
+                <Text style={styles.statLabel}>Arvioitavaa{'\n'}tehtävää</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Kurssit Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Kurssit</Text>
-          
+
           {/* Course List */}
           {kurssit.map((kurssi) => (
             <View key={kurssi.id} style={styles.kurssiCard}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.kurssiHeader}
                 onPress={() => toggleKurssi(kurssi.id)}
               >
                 <View style={styles.kurssiInfo}>
-                  <Ionicons 
-                    name={avattuKurssi === kurssi.id ? "chevron-down" : "chevron-forward"} 
-                    size={20} 
-                    color="#666" 
+                  <Ionicons
+                    name={avattuKurssi === kurssi.id ? "chevron-down" : "chevron-forward"}
+                    size={20}
+                    color="#666"
                   />
                   <Text style={styles.kurssiNimi}>{kurssi.nimi}</Text>
                 </View>
-                <TouchableOpacity onPress={() => poistaKurssi(kurssi.id)}>
-                  <Ionicons name="trash-outline" size={20} color="#F44336" />
-                </TouchableOpacity>
               </TouchableOpacity>
 
               {/* Expanded Student List */}
@@ -241,14 +279,14 @@ const TeacherDashboard = () => {
                       <View style={styles.opiskelijaInfo}>
                         <Text style={styles.opiskelijaNimi}>{opiskelija.nimi}</Text>
                         <View style={styles.progressBarContainer}>
-                          <View 
+                          <View
                             style={[
-                              styles.progressBar, 
-                              { 
+                              styles.progressBar,
+                              {
                                 width: `${opiskelija.edistys}%`,
                                 backgroundColor: getProgressColor(opiskelija.edistys)
                               }
-                            ]} 
+                            ]}
                           />
                         </View>
                         <Text style={styles.progressText}>{opiskelija.edistys}%</Text>
@@ -260,24 +298,11 @@ const TeacherDashboard = () => {
               )}
             </View>
           ))}
-
-          {/* Add New Course */}
-          <View style={styles.addCourseContainer}>
-            <TextInput
-              style={styles.addCourseInput}
-              placeholder="Uusi kurssi"
-              value={kurssiNimi}
-              onChangeText={setKurssiNimi}
-            />
-            <TouchableOpacity style={styles.addButton} onPress={lisaaKurssi}>
-              <Ionicons name="add" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Actions Section */}
         <View style={styles.section}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => router.push('/teacher-tasks' as any)}
           >
@@ -478,30 +503,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
   },
-  addCourseContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  addCourseInput: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginRight: 8,
-  },
-  addButton: {
-    backgroundColor: '#007AFF',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   actionButton: {
     backgroundColor: '#000',
     flexDirection: 'row',
@@ -515,5 +516,64 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  profileSection: {
+    padding: 16,
+    paddingBottom: 8,
+  },
+  profileCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  avatarContainer: {
+    marginBottom: 16,
+  },
+  teacherName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 4,
+  },
+  teacherEmail: {
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 4,
+  },
+  teacherTitle: {
+    fontSize: 14,
+    color: '#888',
+    marginBottom: 20,
+  },
+  statsSection: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-around',
+    marginTop: 16,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#007AFF',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+  },
+  statDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: '#e0e0e0',
   },
 })
