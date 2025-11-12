@@ -26,6 +26,7 @@ export default function TaskDetailScreen() {
     const existingSelfAssessment = params.selfAssessment as string || ''
     const existingTeacherFeedback = params.teacherFeedback as string || ''
     const existingTeacherFeedbackDate = params.teacherFeedbackDate as string || ''
+    const approverName = params.approverName as string || ''
 
     // Load conversation history
     const loadConversation = async () => {
@@ -220,6 +221,9 @@ export default function TaskDetailScreen() {
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>Opettajan arviointi</Text>
                         <Text style={styles.teacherDate}>{existingTeacherFeedbackDate}</Text>
+                        {taskStatus === 'approved' && approverName && (
+                            <Text style={styles.approverName}>Hyväksyjä: {approverName}</Text>
+                        )}
                         <Text style={styles.teacherFeedback}>{existingTeacherFeedback}</Text>
                     </View>
                 )}
@@ -458,6 +462,13 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#333',
         lineHeight: 24,
+    },
+    approverName: {
+        fontSize: 14,
+        color: '#4CAF50',
+        fontWeight: '500',
+        marginTop: 4,
+        marginBottom: 8,
     },
     approvalButton: {
         backgroundColor: '#007AFF',

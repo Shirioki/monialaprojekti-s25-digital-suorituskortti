@@ -16,6 +16,7 @@ export interface Task {
     itsearviointi?: string;
     opettajanPalaute?: string;
     palautePvm?: string;
+    hyvaksyja?: string; // Name of the teacher who approved the task
     opiskelija?: string; // For teacher view
     conversation?: ConversationMessage[]; // New conversation history
 }
@@ -188,18 +189,26 @@ export const reviewTask = async (
     taskId: string,
     studentId: string,
     decision: 'approved' | 'needs_corrections',
-    teacherFeedback: string
+    teacherFeedback: string,
+    teacherName?: string
 ): Promise<void> => {
     try {
         const now = new Date();
         const feedbackDate = `${now.toLocaleDateString('fi-FI')} ${now.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}`;
 
         // Update task
-        await updateTask(taskId, {
+        const updateData: any = {
             status: decision,
             opettajanPalaute: teacherFeedback,
             palautePvm: feedbackDate
-        });
+        };
+
+        // If approving and teacher name is provided, store the approver
+        if (decision === 'approved' && teacherName) {
+            updateData.hyvaksyja = teacherName;
+        }
+
+        await updateTask(taskId, updateData);
 
         // Add teacher conversation message
         await addConversationMessage(
@@ -333,8 +342,7 @@ export const getAllCoursesProgress = async (): Promise<CourseProgress[]> => {
     try {
         const tasks = await getTasks();
 
-        // For now, we'll simulate multiple courses with the same task set
-        // In a real app, you'd filter tasks by course/subject
+        // Only calculate progress for Kariologia courses
         const h1Progress = await calculateCourseProgress();
         const completedTasks = tasks.filter(task => task.status === 'approved').length;
 
@@ -352,21 +360,8 @@ export const getAllCoursesProgress = async (): Promise<CourseProgress[]> => {
                 progress: 0, // No tasks yet
                 taskCount: 0,
                 completedTasks: 0
-            },
-            {
-                courseId: 'h1-kirurgia',
-                courseName: 'H1 Syksy',
-                progress: Math.round(h1Progress * 0.5), // Simulate different progress
-                taskCount: tasks.length,
-                completedTasks: Math.round(completedTasks * 0.5)
-            },
-            {
-                courseId: 'h1-endodontia',
-                courseName: 'H1 Syksy',
-                progress: Math.round(h1Progress * 0.75), // Simulate different progress
-                taskCount: tasks.length,
-                completedTasks: Math.round(completedTasks * 0.75)
             }
+            // Kirurgia and Endodontia courses removed - no tasks available
         ];
     } catch (error) {
         console.error('Error getting all courses progress:', error);

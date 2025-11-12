@@ -70,27 +70,13 @@ const StudentView = () => {
           id: '2',
           nimi: 'Kirurgia',
           expanded: false,
-          tehtavat: [
-            {
-              id: '8',
-              nimi: progressData.find(p => p.courseId === 'h1-kirurgia')?.courseName || 'H1 Syksy',
-              progress: progressData.find(p => p.courseId === 'h1-kirurgia')?.progress || 0
-            },
-            { id: '9', nimi: 'H1 Kevät', progress: 0 },
-          ],
+          tehtavat: [], // Ei tehtäviä Kirurgialle
         },
         {
           id: '3',
           nimi: 'Endodontia',
           expanded: false,
-          tehtavat: [
-            {
-              id: '10',
-              nimi: progressData.find(p => p.courseId === 'h1-endodontia')?.courseName || 'H1 Syksy',
-              progress: progressData.find(p => p.courseId === 'h1-endodontia')?.progress || 0
-            },
-            { id: '11', nimi: 'H1 Kevät', progress: 0 },
-          ],
+          tehtavat: [], // Ei tehtäviä Endodontialle
         },
       ]
 
@@ -302,35 +288,47 @@ const StudentView = () => {
 
               {oppiaine.expanded && (
                 <View style={styles.tehtavaList}>
-                  {oppiaine.tehtavat.map((tehtava) => {
-                    const progress = tehtava.progress ?? 0
-                    return (
-                      <TouchableOpacity
-                        key={tehtava.id}
-                        style={styles.tehtavaItem}
-                        onPress={() => router.push('/h1-tasks' as any)}
-                      >
-                        <View style={styles.tehtavaInfo}>
-                          <Text style={styles.tehtavaNimi}>{tehtava.nimi}</Text>
-                          <View style={styles.progressBarContainer}>
-                            <View
-                              style={[
-                                styles.progressBar,
-                                {
-                                  width: `${progress}%`,
-                                  backgroundColor: getProgressColor(progress),
-                                },
-                              ]}
-                            />
+                  {/* Näytetään tehtävät vain Kariologialle */}
+                  {oppiaine.id === '1' && oppiaine.tehtavat.length > 0 ? (
+                    oppiaine.tehtavat.map((tehtava) => {
+                      const progress = tehtava.progress ?? 0
+
+                      return (
+                        <TouchableOpacity
+                          key={tehtava.id}
+                          style={styles.tehtavaItem}
+                          onPress={() => router.push('/h1-tasks' as any)}
+                        >
+                          <View style={styles.tehtavaInfo}>
+                            <Text style={styles.tehtavaNimi}>{tehtava.nimi}</Text>
+                            <View style={styles.progressBarContainer}>
+                              <View
+                                style={[
+                                  styles.progressBar,
+                                  {
+                                    width: `${progress}%`,
+                                    backgroundColor: getProgressColor(progress),
+                                  },
+                                ]}
+                              />
+                            </View>
+                            <Text style={styles.progressText}>
+                              {progress}% suoritettu
+                            </Text>
                           </View>
-                          <Text style={styles.progressText}>
-                            {progress}% suoritettu
-                          </Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color="#999" />
-                      </TouchableOpacity>
-                    )
-                  })}
+                          <Ionicons name="chevron-forward" size={20} color="#999" />
+                        </TouchableOpacity>
+                      )
+                    })
+                  ) : oppiaine.id !== '1' ? (
+                    <View style={[styles.tehtavaItem, styles.tehtavaItemDisabled]}>
+                      <View style={styles.tehtavaInfo}>
+                        <Text style={[styles.tehtavaNimi, styles.tehtavaDisabled]}>
+                          Tehtäviä ei ole vielä saatavilla
+                        </Text>
+                      </View>
+                    </View>
+                  ) : null}
                 </View>
               )}
             </View>
@@ -503,6 +501,12 @@ const styles = StyleSheet.create({
   refreshButton: {
     padding: 4,
     borderRadius: 6,
+  },
+  tehtavaItemDisabled: {
+    opacity: 0.6,
+  },
+  tehtavaDisabled: {
+    color: '#999',
   },
   profileSection: {
     marginBottom: 24,

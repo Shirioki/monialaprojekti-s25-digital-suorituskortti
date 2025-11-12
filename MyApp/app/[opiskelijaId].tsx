@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { getTasks, calculateCourseProgress } from '../utils/taskManager'
 
 interface CompletedTask {
   id: string
@@ -9,41 +10,107 @@ interface CompletedTask {
   oppiaine: string
   suoritettu: string
   status: 'approved' | 'submitted' | 'needs_corrections'
+  itsearviointi?: string
+  palautePvm?: string
+  hyvaksyja?: string
 }
 
 export default function StudentDetailScreen() {
   const router = useRouter()
   const params = useLocalSearchParams()
-  const studentId = params.id as string || '1'
+  const studentId = params.opiskelijaId as string || '1'
 
-  // Mock data - should come from backend
-  const studentName = 'Matti Meikäläinen'
-  const studentEmail = 'matti.meikalainen@helsinki.fi'
-  const overallProgress = 65
+  const [studentData, setStudentData] = useState({
+    name: '',
+    email: '',
+    progress: 0
+  })
+  const [tasks, setTasks] = useState<CompletedTask[]>([])
 
-  const completedTasks: CompletedTask[] = [
-    {
-      id: '1',
-      nimi: 'Hampaiden tunnistus',
-      oppiaine: 'Kariologia',
-      suoritettu: '29.9.2025',
-      status: 'approved',
-    },
-    {
-      id: '2',
-      nimi: 'Käsi-instrumentteihin tutustuminen',
-      oppiaine: 'Kariologia',
-      suoritettu: '28.9.2025',
-      status: 'submitted',
-    },
-    {
-      id: '3',
-      nimi: 'Suun tarkastus',
-      oppiaine: 'Kirurgia',
-      suoritettu: '25.9.2025',
-      status: 'approved',
-    },
-  ]
+  // Student data mapping
+  const studentDatabase = {
+    '1': { name: 'Matti Meikäläinen', email: 'matti.meikalainen@helsinki.fi' },
+    '2': { name: 'Maija Mallikas', email: 'maija.mallikas@helsinki.fi' },
+    '3': { name: 'Teppo Testaaja', email: 'teppo.testaaja@helsinki.fi' },
+    '4': { name: 'Liisa Luova', email: 'liisa.luova@helsinki.fi' },
+    '5': { name: 'Matti Opiskelija', email: 'matti.opiskelija@helsinki.fi' }, // This is our main student
+    '6': { name: 'Juha Järjestelmällinen', email: 'juha.jarjestelmalinen@helsinki.fi' },
+  }
+
+  const loadStudentData = async () => {
+    try {
+      // Get student info from our database
+      const student = studentDatabase[studentId as keyof typeof studentDatabase]
+      if (!student) {
+        // Default fallback
+        setStudentData({
+          name: 'Opiskelija',
+          email: 'opiskelija@helsinki.fi',
+          progress: 0
+        })
+        return
+      }
+
+      // For Matti Opiskelija (id: 5), load real task data
+      if (studentId === '5') {
+        const realTasks = await getTasks()
+        const progress = await calculateCourseProgress()
+
+        // Convert real tasks to completed tasks format with additional details
+        const completedTasks: CompletedTask[] = realTasks
+          .filter(task => task.status !== 'not_started')
+          .map(task => ({
+            id: task.id,
+            nimi: task.nimi,
+            oppiaine: 'Kariologia',
+            suoritettu: task.suoritettuPvm || 'Ei päivämäärää',
+            status: task.status === 'approved' ? 'approved' :
+              task.status === 'submitted' ? 'submitted' : 'needs_corrections',
+            itsearviointi: task.itsearviointi || 'Ei itsearviointia annettu',
+            palautePvm: task.palautePvm,
+            hyvaksyja: task.hyvaksyja
+          }))
+
+        setTasks(completedTasks)
+        setStudentData({
+          name: student.name,
+          email: student.email,
+          progress: progress
+        })
+      } else {
+        // For other students, use mock data
+        setStudentData({
+          name: student.name,
+          email: student.email,
+          progress: Math.floor(Math.random() * 100) // Random progress for demo
+        })
+
+        // Mock some tasks for other students
+        setTasks([
+          {
+            id: '1',
+            nimi: 'Esimerkkitehtävä',
+            oppiaine: 'Kariologia',
+            suoritettu: '15.10.2025',
+            status: 'approved',
+          }
+        ])
+      }
+    } catch (error) {
+      console.error('Error loading student data:', error)
+    }
+  }
+
+  useEffect(() => {
+    loadStudentData()
+  }, [studentId])
+
+  // Refresh data when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      loadStudentData()
+    }, [studentId])
+  )
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -81,8 +148,8 @@ export default function StudentDetailScreen() {
           <View style={styles.avatarContainer}>
             <Ionicons name="person-circle-outline" size={80} color="#007AFF" />
           </View>
-          <Text style={styles.studentName}>{studentName}</Text>
-          <Text style={styles.studentEmail}>{studentEmail}</Text>
+          <Text style={styles.studentName}>{studentData.name}</Text>
+          <Text style={styles.studentEmail}>{studentData.email}</Text>
 
           {/* Overall Progress */}
           <View style={styles.progressSection}>
@@ -92,31 +159,57 @@ export default function StudentDetailScreen() {
                 style={[
                   styles.progressBar,
                   {
-                    width: `${overallProgress}%`,
-                    backgroundColor: getProgressColor(overallProgress),
+                    width: `${studentData.progress}%`,
+                    backgroundColor: getProgressColor(studentData.progress),
                   },
                 ]}
               />
             </View>
-            <Text style={styles.progressText}>{overallProgress}%</Text>
+            <Text style={styles.progressText}>{studentData.progress}%</Text>
           </View>
         </View>
 
         {/* Completed Tasks */}
         <Text style={styles.sectionTitle}>Suoritetut tehtävät</Text>
-        {completedTasks.map((task) => {
+        {tasks.map((task) => {
           const badge = getStatusBadge(task.status)
           return (
-            <View key={task.id} style={styles.taskCard}>
-              <View style={styles.taskInfo}>
-                <Text style={styles.taskName}>{task.nimi}</Text>
-                <Text style={styles.taskSubject}>{task.oppiaine}</Text>
-                <Text style={styles.taskDate}>Suoritettu: {task.suoritettu}</Text>
+            <TouchableOpacity
+              key={task.id}
+              style={styles.taskCard}
+              onPress={() => {
+                router.push({
+                  pathname: '/teacher-task-review',
+                  params: {
+                    taskId: task.id,
+                    name: task.nimi,
+                    student: studentData.name,
+                    studentId: studentId,
+                    completionDate: task.suoritettu,
+                    selfAssessment: task.itsearviointi || 'Ei itsearviointia annettu',
+                    submissionDate: task.palautePvm || task.suoritettu, // Use feedback date if available, otherwise completion date
+                    taskStatus: task.status // Pass current task status
+                  }
+                })
+              }}
+            >
+              <View style={styles.taskRow}>
+                <View style={styles.taskInfo}>
+                  <Text style={styles.taskName}>{task.nimi}</Text>
+                  <Text style={styles.taskSubject}>{task.oppiaine}</Text>
+                  <Text style={styles.taskDate}>Suoritettu: {task.suoritettu}</Text>
+                  {task.status === 'approved' && task.hyvaksyja && (
+                    <Text style={styles.approverInfo}>Hyväksyjä: {task.hyvaksyja}</Text>
+                  )}
+                </View>
+                <View style={styles.taskActions}>
+                  <View style={[styles.statusBadge, badge.style]}>
+                    <Text style={styles.statusText}>{badge.text}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#999" style={styles.chevron} />
+                </View>
               </View>
-              <View style={[styles.statusBadge, badge.style]}>
-                <Text style={styles.statusText}>{badge.text}</Text>
-              </View>
-            </View>
+            </TouchableOpacity>
           )
         })}
       </ScrollView>
@@ -215,8 +308,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
+  taskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   taskInfo: {
-    marginBottom: 12,
+    flex: 1,
+  },
+  taskActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   taskName: {
     fontSize: 17,
@@ -232,6 +334,12 @@ const styles = StyleSheet.create({
   taskDate: {
     fontSize: 13,
     color: '#888',
+  },
+  approverInfo: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '500',
+    marginTop: 2,
   },
   statusBadge: {
     alignSelf: 'flex-start',
@@ -252,5 +360,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#fff',
+  },
+  chevron: {
+    marginLeft: 8,
   },
 })

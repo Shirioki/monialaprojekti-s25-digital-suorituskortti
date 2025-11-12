@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ScrollView, Modal } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { getTasks } from '../../utils/taskManager'
+import { getTasks, calculateCourseProgress } from '../../utils/taskManager'
 
 interface Kurssi {
   id: string
@@ -26,6 +26,7 @@ const TeacherDashboard = () => {
   const [avattuKurssi, setAvattuKurssi] = useState<string | null>(null)
   const [menuVisible, setMenuVisible] = useState(false)
   const [unreviewedTasksCount, setUnreviewedTasksCount] = useState(0)
+  const [mattiProgress, setMattiProgress] = useState(0)
 
   // Load unreviewed tasks count
   useEffect(() => {
@@ -44,6 +45,10 @@ const TeacherDashboard = () => {
       const tasks = await getTasks()
       const unreviewedCount = tasks.filter(task => task.status === 'submitted').length
       setUnreviewedTasksCount(unreviewedCount)
+
+      // Calculate Matti's progress from real task data
+      const progress = await calculateCourseProgress()
+      setMattiProgress(progress)
     } catch (error) {
       console.error('Error loading unreviewed tasks:', error)
     }
@@ -59,7 +64,8 @@ const TeacherDashboard = () => {
       { id: '4', nimi: 'Liisa Luova', edistys: 30 },
     ],
     '3': [
-      { id: '5', nimi: 'Juha Järjestelmällinen', edistys: 90 },
+      { id: '5', nimi: 'Matti Opiskelija', edistys: mattiProgress },
+      { id: '6', nimi: 'Juha Järjestelmällinen', edistys: 90 },
     ],
   }
 

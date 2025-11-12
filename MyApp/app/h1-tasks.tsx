@@ -63,7 +63,8 @@ const H1TasksView = () => {
         completionDate: task.suoritettuPvm || '',
         selfAssessment: task.itsearviointi || '',
         teacherFeedback: task.opettajanPalaute || '',
-        teacherFeedbackDate: task.palautePvm || ''
+        teacherFeedbackDate: task.palautePvm || '',
+        approverName: task.hyvaksyja || ''
       }
     } as any)
   }
@@ -107,6 +108,9 @@ const H1TasksView = () => {
         <Text style={styles.tehtavaNimi}>{item.nimi}</Text>
         {item.suoritettuPvm && (
           <Text style={styles.suoritettu}>Suoritettu: {item.suoritettuPvm}</Text>
+        )}
+        {item.status === 'approved' && item.hyvaksyja && (
+          <Text style={styles.hyvaksyja}>Hyväksyjä: {item.hyvaksyja}</Text>
         )}
       </View>
       <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
@@ -193,6 +197,12 @@ const styles = StyleSheet.create({
   suoritettu: {
     fontSize: 13,
     color: '#666',
+  },
+  hyvaksyja: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '500',
+    marginTop: 2,
   },
   statusBadge: {
     paddingVertical: 6,

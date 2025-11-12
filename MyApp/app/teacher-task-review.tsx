@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, SafeAreaView } from 'react-native'
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { reviewTask, getTaskConversation, ConversationMessage } from '../utils/taskManager'
+import { reviewTask, getTaskConversation, ConversationMessage, getTaskById, Task } from '../utils/taskManager'
 
 export default function TeacherTaskReview() {
   const router = useRouter()
@@ -19,29 +19,49 @@ export default function TeacherTaskReview() {
   const [teacherFeedback, setTeacherFeedback] = useState('')
   const [conversation, setConversation] = useState<ConversationMessage[]>([])
   const [isConversationExpanded, setIsConversationExpanded] = useState(true)
+  const [currentTask, setCurrentTask] = useState<Task | null>(null)
+  const [isReadOnly, setIsReadOnly] = useState(false)
 
-  // Load conversation history
-  const loadConversation = async () => {
+  // Load conversation history and task data
+  const loadTaskData = async () => {
     if (taskId) {
       const conv = await getTaskConversation(taskId)
       setConversation(conv)
+
+      const task = await getTaskById(taskId)
+      setCurrentTask(task || null)
+
+      // Set read-only mode if task is approved
+      const readOnly = task?.status === 'approved'
+      setIsReadOnly(readOnly)
+
+      // Pre-fill teacher feedback if available and in read-only mode
+      if (readOnly && task?.opettajanPalaute) {
+        setTeacherFeedback(task.opettajanPalaute)
+      }
     }
   }
 
   useFocusEffect(
     React.useCallback(() => {
-      loadConversation()
+      loadTaskData()
     }, [taskId])
   )
 
   const handleDecision = async (decision: 'approved' | 'needs_corrections') => {
+    // Prevent actions in read-only mode
+    if (isReadOnly) {
+      Alert.alert('Tehtävä on jo arvioitu', 'Tämä tehtävä on jo hyväksytty eikä sitä voi enää muokata.')
+      return
+    }
+
     if (!teacherFeedback.trim() && decision === 'needs_corrections') {
       Alert.alert('Puuttuva palaute', 'Anna palaute ennen korjausten vaatimista.')
       return
     }
 
     try {
-      await reviewTask(taskId, studentId, decision, teacherFeedback)
+      await reviewTask(taskId, studentId, decision, teacherFeedback, 'Dr. Leena Opettaja') // Using a default teacher name
 
       const message =
         decision === 'approved'
@@ -68,7 +88,9 @@ export default function TeacherTaskReview() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Arviointi</Text>
+        <Text style={styles.headerTitle}>
+          {isReadOnly ? 'Arviointi (Hyväksytty)' : 'Arviointi'}
+        </Text>
         <TouchableOpacity onPress={() => router.push('/(tabs)/explore' as any)}>
           <Ionicons name="settings-outline" size={24} color="#333" />
         </TouchableOpacity>
@@ -80,6 +102,22 @@ export default function TeacherTaskReview() {
         <Text style={styles.subtitle}>Suoritettu: {completionDate}</Text>
         {submissionDate && (
           <Text style={styles.subtitle}>Lähetetty: {submissionDate}</Text>
+        )}
+
+        {/* Status Indicator */}
+        {isReadOnly && (
+          <View style={styles.statusCard}>
+            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+            <View style={styles.statusContent}>
+              <Text style={styles.statusText}>Tehtävä on hyväksytty</Text>
+              {currentTask?.hyvaksyja && (
+                <Text style={styles.approverText}>Hyväksyjä: {currentTask.hyvaksyja}</Text>
+              )}
+              {currentTask?.palautePvm && (
+                <Text style={styles.statusDate}>Hyväksytty: {currentTask.palautePvm}</Text>
+              )}
+            </View>
+          </View>
         )}
 
         {/* Student Self Assessment */}
@@ -136,33 +174,39 @@ export default function TeacherTaskReview() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Opettajan palaute</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, isReadOnly && styles.inputReadOnly]}
             multiline
-            placeholder="Kirjoita palaute opiskelijalle..."
+            placeholder={isReadOnly ? "" : "Kirjoita palaute opiskelijalle..."}
             value={teacherFeedback}
-            onChangeText={setTeacherFeedback}
+            onChangeText={isReadOnly ? undefined : setTeacherFeedback}
             textAlignVertical="top"
+            editable={!isReadOnly}
           />
+          {isReadOnly && !teacherFeedback && (
+            <Text style={styles.noFeedbackText}>Ei palautetta annettu</Text>
+          )}
         </View>
 
-        {/* Decision Buttons */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.button, styles.approveButton]}
-            onPress={() => handleDecision('approved')}
-          >
-            <Ionicons name="checkmark-circle" size={20} color="#fff" />
-            <Text style={styles.buttonText}>Hyväksy</Text>
-          </TouchableOpacity>
+        {/* Decision Buttons - only show if not read-only */}
+        {!isReadOnly && (
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.button, styles.approveButton]}
+              onPress={() => handleDecision('approved')}
+            >
+              <Ionicons name="checkmark-circle" size={20} color="#fff" />
+              <Text style={styles.buttonText}>Hyväksy</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.button, styles.rejectButton]}
-            onPress={() => handleDecision('needs_corrections')}
-          >
-            <Ionicons name="close-circle" size={20} color="#fff" />
-            <Text style={styles.buttonText}>Vaadi korjauksia</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[styles.button, styles.rejectButton]}
+              onPress={() => handleDecision('needs_corrections')}
+            >
+              <Ionicons name="close-circle" size={20} color="#fff" />
+              <Text style={styles.buttonText}>Vaadi korjauksia</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   )
@@ -309,5 +353,46 @@ const styles = StyleSheet.create({
     color: '#FF6B6B',
     fontWeight: '600',
     marginTop: 4,
+  },
+  statusCard: {
+    backgroundColor: '#e8f5e8',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  statusContent: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  statusText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2e7d2e',
+  },
+  approverText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#2e7d2e',
+    marginTop: 2,
+  },
+  statusDate: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  inputReadOnly: {
+    backgroundColor: '#f5f5f5',
+    color: '#666',
+  },
+  noFeedbackText: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    padding: 20,
   },
 })
