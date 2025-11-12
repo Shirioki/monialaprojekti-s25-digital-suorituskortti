@@ -1,55 +1,50 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-
-interface Task {
-  id: string
-  nimi: string
-  opiskelija: string
-  completionDate: string
-  status: 'submitted' | 'approved' | 'needs_corrections'
-  selfAssessment: string
-}
+import { TaskSubmission, getPendingSubmissions, getTasks, Task } from '../utils/taskManager'
 
 export default function TeacherTasksScreen() {
   const router = useRouter()
-  
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: '1',
-      nimi: 'Hampaiden tunnistus',
-      opiskelija: 'Matti Meikäläinen',
-      completionDate: '29.9.2025',
-      status: 'submitted',
-      selfAssessment: 'Tehtävä sujui hyvin, opin tunnistamaan eri hampaat.',
-    },
-    {
-      id: '2',
-      nimi: 'Käsi-instrumentteihin tutustuminen',
-      opiskelija: 'Maija Mallikas',
-      completionDate: '28.9.2025',
-      status: 'submitted',
-      selfAssessment: 'En ollut varma kaikkien instrumenttien käyttötarkoituksista.',
-    },
-    {
-      id: '3',
-      nimi: 'Suun tarkastus',
-      opiskelija: 'Teppo Testaaja',
-      completionDate: '27.9.2025',
-      status: 'approved',
-      selfAssessment: 'Harjoittelin tarkastusta useaan otteeseen.',
-    },
-  ])
 
-  const handleTaskPress = (task: Task) => {
+  const [submissions, setSubmissions] = useState<(TaskSubmission & { taskName: string })[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
+
+  const loadSubmissions = async () => {
+    const pendingSubmissions = await getPendingSubmissions()
+    const allTasks = await getTasks()
+
+    // Enrich submissions with task names
+    const enrichedSubmissions: (TaskSubmission & { taskName: string })[] = pendingSubmissions.map(submission => {
+      const task = allTasks.find(t => t.id === submission.taskId)
+      return {
+        ...submission,
+        taskName: task?.nimi || 'Tuntematon tehtävä'
+      }
+    })
+
+    setSubmissions(enrichedSubmissions)
+    setTasks(allTasks)
+  }
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadSubmissions()
+    }, [])
+  )
+
+  const handleTaskPress = (submission: TaskSubmission) => {
+    const task = tasks.find(t => t.id === submission.taskId)
     router.push({
       pathname: '/teacher-task-review',
       params: {
-        name: task.nimi,
-        student: task.opiskelija,
-        completionDate: task.completionDate,
-        selfAssessment: task.selfAssessment,
+        taskId: submission.taskId,
+        name: task?.nimi || 'Tuntematon tehtävä',
+        student: submission.studentName,
+        studentId: submission.studentId,
+        completionDate: submission.completionDate,
+        selfAssessment: submission.selfAssessment,
+        submissionDate: submission.submissionDate
       }
     } as any)
   }
@@ -67,7 +62,7 @@ export default function TeacherTasksScreen() {
     }
   }
 
-  const renderTask = ({ item }: { item: Task }) => {
+  const renderTask = ({ item }: { item: TaskSubmission & { taskName: string } }) => {
     const badge = getStatusBadge(item.status)
     return (
       <TouchableOpacity
@@ -75,8 +70,8 @@ export default function TeacherTasksScreen() {
         onPress={() => handleTaskPress(item)}
       >
         <View style={styles.taskInfo}>
-          <Text style={styles.taskName}>{item.nimi}</Text>
-          <Text style={styles.studentName}>Opiskelija: {item.opiskelija}</Text>
+          <Text style={styles.taskName}>{item.taskName}</Text>
+          <Text style={styles.studentName}>Opiskelija: {item.studentName}</Text>
           <Text style={styles.completionDate}>Suoritettu: {item.completionDate}</Text>
         </View>
         <View style={[styles.statusBadge, badge.style]}>
@@ -100,9 +95,9 @@ export default function TeacherTasksScreen() {
       </View>
 
       <FlatList
-        data={tasks}
+        data={submissions}
         renderItem={renderTask}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => `${item.taskId}-${item.studentId}`}
         contentContainerStyle={styles.listContent}
       />
     </SafeAreaView>

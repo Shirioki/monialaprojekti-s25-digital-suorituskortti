@@ -1,38 +1,64 @@
 import React, { useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, SafeAreaView } from 'react-native'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { reviewTask, getTaskConversation, ConversationMessage } from '../utils/taskManager'
 
 export default function TeacherTaskReview() {
   const router = useRouter()
   const params = useLocalSearchParams()
-  
+
+  const taskId = params.taskId as string || ''
   const taskName = params.name as string || 'Tehtävä'
   const studentName = params.student as string || 'Oppilas'
+  const studentId = params.studentId as string || '1'
   const completionDate = params.completionDate as string || 'Ei ilmoitettu'
   const selfAssessment = params.selfAssessment as string || 'Ei itsearviointia'
-  
-  const [teacherFeedback, setTeacherFeedback] = useState('')
+  const submissionDate = params.submissionDate as string || ''
 
-  const handleDecision = (decision: 'approved' | 'needs_corrections') => {
+  const [teacherFeedback, setTeacherFeedback] = useState('')
+  const [conversation, setConversation] = useState<ConversationMessage[]>([])
+  const [isConversationExpanded, setIsConversationExpanded] = useState(true)
+
+  // Load conversation history
+  const loadConversation = async () => {
+    if (taskId) {
+      const conv = await getTaskConversation(taskId)
+      setConversation(conv)
+    }
+  }
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadConversation()
+    }, [taskId])
+  )
+
+  const handleDecision = async (decision: 'approved' | 'needs_corrections') => {
     if (!teacherFeedback.trim() && decision === 'needs_corrections') {
       Alert.alert('Puuttuva palaute', 'Anna palaute ennen korjausten vaatimista.')
       return
     }
 
-    const message =
-      decision === 'approved'
-        ? `Tehtävä "${taskName}" on hyväksytty.`
-        : `Tehtävä "${taskName}" palautettiin korjattavaksi.`
+    try {
+      await reviewTask(taskId, studentId, decision, teacherFeedback)
 
-    Alert.alert('Päätös tallennettu', message, [
-      {
-        text: 'OK',
-        onPress: () => {
-          router.back()
+      const message =
+        decision === 'approved'
+          ? `Tehtävä "${taskName}" on hyväksytty.`
+          : `Tehtävä "${taskName}" palautettiin korjattavaksi.`
+
+      Alert.alert('Päätös tallennettu', message, [
+        {
+          text: 'OK',
+          onPress: () => {
+            router.back()
+          },
         },
-      },
-    ])
+      ])
+    } catch (error) {
+      Alert.alert('Virhe', 'Arvioinnin tallentaminen epäonnistui. Yritä uudelleen.')
+    }
   }
 
   return (
@@ -52,12 +78,59 @@ export default function TeacherTaskReview() {
         <Text style={styles.taskTitle}>{taskName}</Text>
         <Text style={styles.subtitle}>Opiskelija: {studentName}</Text>
         <Text style={styles.subtitle}>Suoritettu: {completionDate}</Text>
+        {submissionDate && (
+          <Text style={styles.subtitle}>Lähetetty: {submissionDate}</Text>
+        )}
 
         {/* Student Self Assessment */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Opiskelijan itsearviointi</Text>
           <Text style={styles.text}>{selfAssessment}</Text>
         </View>
+
+        {/* Conversation History */}
+        {conversation.length > 0 && (
+          <View style={styles.card}>
+            <TouchableOpacity
+              onPress={() => setIsConversationExpanded(!isConversationExpanded)}
+              style={styles.cardHeader}
+            >
+              <Text style={styles.cardTitle}>Keskusteluhistoria ({conversation.length})</Text>
+              <Ionicons
+                name={isConversationExpanded ? "chevron-up" : "chevron-down"}
+                size={20}
+                color="#666"
+              />
+            </TouchableOpacity>
+
+            {isConversationExpanded && (
+              <View style={styles.conversationContainer}>
+                {conversation.map((message) => (
+                  <View
+                    key={message.id}
+                    style={[
+                      styles.messageContainer,
+                      message.sender === 'student'
+                        ? styles.studentMessage
+                        : styles.teacherMessage
+                    ]}
+                  >
+                    <View style={styles.messageHeader}>
+                      <Text style={styles.messageSender}>
+                        {message.sender === 'student' ? 'Opiskelija' : 'Opettaja'}
+                      </Text>
+                      <Text style={styles.messageTime}>{message.timestamp}</Text>
+                    </View>
+                    <Text style={styles.messageText}>{message.message}</Text>
+                    {message.type === 'resubmission' && (
+                      <Text style={styles.messageType}>Korjaus</Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Teacher Feedback */}
         <View style={styles.card}>
@@ -188,5 +261,53 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  conversationContainer: {
+    marginTop: 12,
+  },
+  messageContainer: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+  },
+  studentMessage: {
+    backgroundColor: '#e3f2fd',
+    borderLeftColor: '#2196F3',
+  },
+  teacherMessage: {
+    backgroundColor: '#f3e5f5',
+    borderLeftColor: '#9c27b0',
+  },
+  messageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  messageSender: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  messageTime: {
+    fontSize: 12,
+    color: '#666',
+  },
+  messageText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  messageType: {
+    fontSize: 12,
+    color: '#FF6B6B',
+    fontWeight: '600',
+    marginTop: 4,
   },
 })

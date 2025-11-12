@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform } from 'react-native'
 import React, { useState } from 'react'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import { submitTask, updateTask, getTaskConversation, ConversationMessage } from '../utils/taskManager'
 
 export default function TaskDetailScreen() {
     const router = useRouter()
@@ -13,6 +14,9 @@ export default function TaskDetailScreen() {
     const [completionDate, setCompletionDate] = useState(new Date())
     const [showDatePicker, setShowDatePicker] = useState(false)
     const [hasTeacherFeedback, setHasTeacherFeedback] = useState(false)
+    const [conversation, setConversation] = useState<ConversationMessage[]>([])
+    const [isConversationExpanded, setIsConversationExpanded] = useState(false)
+    const [newComment, setNewComment] = useState('')
 
     // Parse params
     const taskId = params.taskId as string || ''
@@ -20,6 +24,22 @@ export default function TaskDetailScreen() {
     const taskStatus = params.status as string || 'not_started'
     const existingCompletionDate = params.completionDate as string || ''
     const existingSelfAssessment = params.selfAssessment as string || ''
+    const existingTeacherFeedback = params.teacherFeedback as string || ''
+    const existingTeacherFeedbackDate = params.teacherFeedbackDate as string || ''
+
+    // Load conversation history
+    const loadConversation = async () => {
+        if (taskId) {
+            const conv = await getTaskConversation(taskId)
+            setConversation(conv)
+        }
+    }
+
+    useFocusEffect(
+        React.useCallback(() => {
+            loadConversation()
+        }, [taskId])
+    )
 
     // Set initial completion date, self assessment and teacher feedback status
     React.useEffect(() => {
@@ -42,8 +62,8 @@ export default function TaskDetailScreen() {
             setSelfAssessment(existingSelfAssessment)
         }
 
-        // Set teacher feedback status (only for approved tasks)
-        setHasTeacherFeedback(taskStatus === 'approved')
+        // Set teacher feedback status
+        setHasTeacherFeedback(taskStatus === 'approved' || taskStatus === 'needs_corrections')
     }, [taskStatus, existingCompletionDate, existingSelfAssessment])
 
     const formatDate = (date: Date): string => {
@@ -57,41 +77,60 @@ export default function TaskDetailScreen() {
         }
     }
 
-    const handleApprovalRequest = () => {
+    const handleApprovalRequest = async () => {
         if (!selfAssessment.trim()) {
             Alert.alert('Puuttuvat tiedot', 'Kirjoita itsearviointi ennen hyväksyntäpyyntöä.')
             return
         }
 
-        Alert.alert(
-            'Hyväksyntäpyyntö lähetetty',
-            `Tehtävä "${taskName}" on merkitty suoritetuksi ${formatDate(completionDate)}. Opettaja saa ilmoituksen tehtävän tarkistusta varten.`,
-            [
-                {
-                    text: 'OK',
-                    onPress: () => {
-                        // Navigate back with updated data using router.replace
-                        router.replace({
-                            pathname: '/h1-tasks' as any,
-                            params: {
-                                updatedTask: JSON.stringify({
-                                    id: taskId,
-                                    name: taskName,
-                                    status: 'submitted',
-                                    completionDate: formatDate(completionDate),
-                                    selfAssessment: selfAssessment
-                                })
-                            }
-                        })
+        try {
+            await submitTask(taskId, formatDate(completionDate), selfAssessment)
+
+            Alert.alert(
+                'Hyväksyntäpyyntö lähetetty',
+                `Tehtävä "${taskName}" on merkitty suoritetuksi ${formatDate(completionDate)}. Opettaja saa ilmoituksen tehtävän tarkistusta varten.`,
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => {
+                            router.replace('/h1-tasks')
+                        }
                     }
-                }
-            ]
-        )
+                ]
+            )
+        } catch (error) {
+            Alert.alert('Virhe', 'Tehtävän lähettäminen epäonnistui. Yritä uudelleen.')
+        }
     }
 
-    // Mock teacher feedback for approved tasks
-    const teacherFeedback = taskStatus === 'approved' ? 'Korjattavaa kohdissa 2 ja 4.' : ''
-    const teacherFeedbackDate = taskStatus === 'approved' ? '29.9.2025 8:15' : ''
+    const handleResubmit = async () => {
+        const commentToSubmit = newComment.trim() || selfAssessment.trim();
+
+        if (!commentToSubmit) {
+            Alert.alert('Puuttuvat tiedot', 'Kirjoita korjattu itsearviointi tai uusi kommentti ennen uudelleenlähettämistä.')
+            return
+        }
+
+        try {
+            // Use the new comment if provided, otherwise use the updated self-assessment
+            await submitTask(taskId, formatDate(completionDate), commentToSubmit)
+
+            Alert.alert(
+                'Tehtävä lähetetty uudelleen',
+                `Korjattu tehtävä "${taskName}" on lähetetty opettajalle.`,
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => {
+                            router.replace('/h1-tasks')
+                        }
+                    }
+                ]
+            )
+        } catch (error) {
+            Alert.alert('Virhe', 'Tehtävän lähettäminen epäonnistui. Yritä uudelleen.')
+        }
+    }
 
     return (
         <View style={styles.container}>
@@ -171,7 +210,7 @@ export default function TaskDetailScreen() {
                                 multiline
                                 numberOfLines={6}
                                 textAlignVertical="top"
-                                editable={taskStatus === 'not_started'}
+                                editable={taskStatus === 'not_started' || taskStatus === 'needs_corrections'}
                             />
                         </View>
                     )}
@@ -184,11 +223,71 @@ export default function TaskDetailScreen() {
                 </View>
 
                 {/* Teacher Assessment Card - Only show if has feedback */}
-                {hasTeacherFeedback && teacherFeedback && (
+                {hasTeacherFeedback && existingTeacherFeedback && (
                     <View style={styles.card}>
                         <Text style={styles.cardTitle}>Opettajan arviointi</Text>
-                        <Text style={styles.teacherDate}>{teacherFeedbackDate}</Text>
-                        <Text style={styles.teacherFeedback}>{teacherFeedback}</Text>
+                        <Text style={styles.teacherDate}>{existingTeacherFeedbackDate}</Text>
+                        <Text style={styles.teacherFeedback}>{existingTeacherFeedback}</Text>
+                    </View>
+                )}
+
+                {/* Conversation History - Show if there's conversation */}
+                {conversation.length > 0 && (
+                    <View style={styles.card}>
+                        <TouchableOpacity
+                            onPress={() => setIsConversationExpanded(!isConversationExpanded)}
+                            style={styles.cardHeader}
+                        >
+                            <Text style={styles.cardTitle}>Keskustelu ({conversation.length})</Text>
+                            <Ionicons
+                                name={isConversationExpanded ? "chevron-up" : "chevron-down"}
+                                size={20}
+                                color="#666"
+                            />
+                        </TouchableOpacity>
+
+                        {isConversationExpanded && (
+                            <View style={styles.conversationContainer}>
+                                {conversation.map((message) => (
+                                    <View
+                                        key={message.id}
+                                        style={[
+                                            styles.messageContainer,
+                                            message.sender === 'student'
+                                                ? styles.studentMessage
+                                                : styles.teacherMessage
+                                        ]}
+                                    >
+                                        <View style={styles.messageHeader}>
+                                            <Text style={styles.messageSender}>
+                                                {message.sender === 'student' ? 'Opiskelija' : 'Opettaja'}
+                                            </Text>
+                                            <Text style={styles.messageTime}>{message.timestamp}</Text>
+                                        </View>
+                                        <Text style={styles.messageText}>{message.message}</Text>
+                                        {message.type === 'resubmission' && (
+                                            <Text style={styles.messageType}>Korjaus</Text>
+                                        )}
+                                    </View>
+                                ))}
+                            </View>
+                        )}
+                    </View>
+                )}
+
+                {/* New Comment Section for Corrections */}
+                {taskStatus === 'needs_corrections' && (
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>Uusi kommentti</Text>
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Kirjoita uusi kommentti korjauksista..."
+                            value={newComment}
+                            onChangeText={setNewComment}
+                            multiline
+                            numberOfLines={4}
+                            textAlignVertical="top"
+                        />
                     </View>
                 )}
 
@@ -202,6 +301,12 @@ export default function TaskDetailScreen() {
                 {taskStatus === 'approved' && (
                     <View style={styles.statusCard}>
                         <Text style={styles.statusTextApproved}>Tehtävä on hyväksytty</Text>
+                    </View>
+                )}
+
+                {taskStatus === 'needs_corrections' && (
+                    <View style={styles.statusCard}>
+                        <Text style={styles.statusTextNeedsCorrections}>Tehtävä palautettu korjattavaksi</Text>
                     </View>
                 )}
 
@@ -220,6 +325,25 @@ export default function TaskDetailScreen() {
                             (!selfAssessment.trim() || !completionDate) && styles.approvalButtonTextDisabled
                         ]}>
                             Pyydä hyväksyntää
+                        </Text>
+                    </TouchableOpacity>
+                )}
+
+                {/* Resubmit Button - Only show for tasks that need corrections */}
+                {taskStatus === 'needs_corrections' && (
+                    <TouchableOpacity
+                        style={[
+                            styles.approvalButton,
+                            (!selfAssessment.trim() || !completionDate) && styles.approvalButtonDisabled
+                        ]}
+                        onPress={handleResubmit}
+                        disabled={!selfAssessment.trim() || !completionDate}
+                    >
+                        <Text style={[
+                            styles.approvalButtonText,
+                            (!selfAssessment.trim() || !completionDate) && styles.approvalButtonTextDisabled
+                        ]}>
+                            Lähetä korjattu versio
                         </Text>
                     </TouchableOpacity>
                 )}
@@ -404,5 +528,53 @@ const styles = StyleSheet.create({
         color: '#4CAF50',
         fontWeight: '600',
         textAlign: 'center',
+    },
+    statusTextNeedsCorrections: {
+        fontSize: 16,
+        color: '#FF6B6B',
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    conversationContainer: {
+        marginTop: 12,
+    },
+    messageContainer: {
+        marginBottom: 12,
+        padding: 12,
+        borderRadius: 8,
+        borderLeftWidth: 4,
+    },
+    studentMessage: {
+        backgroundColor: '#e3f2fd',
+        borderLeftColor: '#2196F3',
+    },
+    teacherMessage: {
+        backgroundColor: '#f3e5f5',
+        borderLeftColor: '#9c27b0',
+    },
+    messageHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+    messageSender: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+    },
+    messageTime: {
+        fontSize: 12,
+        color: '#666',
+    },
+    messageText: {
+        fontSize: 14,
+        color: '#333',
+        lineHeight: 20,
+    },
+    messageType: {
+        fontSize: 12,
+        color: '#FF6B6B',
+        fontWeight: '600',
+        marginTop: 4,
     },
 })

@@ -1,6 +1,10 @@
 import { Stack } from 'expo-router'
+import { useAppLifecycle } from '../utils/appLifecycle'
 
 export default function RootLayout() {
+  // Initialize app data and handle lifecycle
+  useAppLifecycle()
+
   return (
     <Stack
       screenOptions={{

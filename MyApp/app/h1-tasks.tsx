@@ -1,50 +1,51 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert } from 'react-native'
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-
-interface Tehtava {
-  id: string
-  nimi: string
-  status: 'not_started' | 'submitted' | 'approved'
-  suoritettuPvm?: string
-  itsearviointi?: string
-}
+import { Task, getTasks, clearAllDataAndReset } from '../utils/taskManager'
 
 const H1TasksView = () => {
   const router = useRouter()
   const params = useLocalSearchParams()
-  
-  const [tehtavat, setTehtavat] = useState<Tehtava[]>([
-    { 
-      id: '1', 
-      nimi: 'Hampaiden tunnistus', 
-      status: 'approved', 
-      suoritettuPvm: '29.9.2025', 
-      itsearviointi: 'Tehtävä sujui hyvin, opin tunnistamaan eri hampaat.' 
-    },
-    { id: '2', nimi: 'Käsi-instrumentteihin tutustuminen', status: 'submitted', suoritettuPvm: '28.9.2025' },
-    { id: '3', nimi: 'Suun tarkastus', status: 'not_started' },
-    { id: '4', nimi: 'Röntgenkuvien tulkinta', status: 'not_started' },
-    { id: '5', nimi: 'Anestesia', status: 'not_started' },
-  ])
+
+  const [tehtavat, setTehtavat] = useState<Task[]>([])
+
+  const loadTasks = async () => {
+    // Only get tasks, don't initialize (initialization should happen at app level)
+    const tasks = await getTasks()
+    setTehtavat(tasks)
+  }
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadTasks()
+    }, [])
+  )
+
+  const handleResetData = async () => {
+    Alert.alert(
+      'Reset Data',
+      'This will clear all data and reset to defaults. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            await clearAllDataAndReset()
+            loadTasks() // Reload the fresh data
+            Alert.alert('Success', 'Data has been reset to defaults')
+          }
+        }
+      ]
+    )
+  }
 
   useEffect(() => {
     if (params.updatedTask) {
       try {
         const updatedTaskData = JSON.parse(params.updatedTask as string)
-        setTehtavat(prev =>
-          prev.map(task =>
-            task.id === updatedTaskData.id
-              ? {
-                  ...task,
-                  status: updatedTaskData.status,
-                  suoritettuPvm: updatedTaskData.completionDate,
-                  itsearviointi: updatedTaskData.selfAssessment
-                }
-              : task
-          )
-        )
+        loadTasks() // Reload all tasks from storage
         router.setParams({ updatedTask: undefined })
       } catch (error) {
         console.error('Error parsing updated task data:', error)
@@ -52,7 +53,7 @@ const H1TasksView = () => {
     }
   }, [params.updatedTask])
 
-  const handleTaskPress = (task: Tehtava) => {
+  const handleTaskPress = (task: Task) => {
     router.push({
       pathname: '/task-detail',
       params: {
@@ -60,7 +61,9 @@ const H1TasksView = () => {
         name: task.nimi,
         status: task.status,
         completionDate: task.suoritettuPvm || '',
-        selfAssessment: task.itsearviointi || ''
+        selfAssessment: task.itsearviointi || '',
+        teacherFeedback: task.opettajanPalaute || '',
+        teacherFeedbackDate: task.palautePvm || ''
       }
     } as any)
   }
@@ -73,6 +76,8 @@ const H1TasksView = () => {
         return 'Odottaa'
       case 'approved':
         return 'Hyväksytty'
+      case 'needs_corrections':
+        return 'Korjattava'
       default:
         return 'Aloita'
     }
@@ -86,12 +91,14 @@ const H1TasksView = () => {
         return styles.statusSubmitted
       case 'approved':
         return styles.statusApproved
+      case 'needs_corrections':
+        return styles.statusNeedsCorrections
       default:
         return styles.statusNotStarted
     }
   }
 
-  const renderTehtava = ({ item }: { item: Tehtava }) => (
+  const renderTehtava = ({ item }: { item: Task }) => (
     <TouchableOpacity
       style={styles.tehtavaCard}
       onPress={() => handleTaskPress(item)}
@@ -116,9 +123,14 @@ const H1TasksView = () => {
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>H1 Syksy</Text>
-        <TouchableOpacity onPress={() => router.push('/(tabs)/explore' as any)}>
-          <Ionicons name="settings-outline" size={24} color="#333" />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={handleResetData} style={styles.resetButton}>
+            <Ionicons name="refresh-circle" size={24} color="#FF6B6B" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/explore' as any)}>
+            <Ionicons name="settings-outline" size={24} color="#333" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -196,9 +208,20 @@ const styles = StyleSheet.create({
   statusApproved: {
     backgroundColor: '#4CAF50',
   },
+  statusNeedsCorrections: {
+    backgroundColor: '#FF6B6B',
+  },
   statusText: {
     fontSize: 13,
     fontWeight: '600',
     color: '#fff',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  resetButton: {
+    padding: 4,
   },
 })
