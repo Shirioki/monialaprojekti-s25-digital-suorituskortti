@@ -93,7 +93,7 @@ export default function TaskDetailScreen() {
                     {
                         text: 'OK',
                         onPress: () => {
-                            router.replace('/h1-tasks')
+                            router.back()
                         }
                     }
                 ]
@@ -122,7 +122,7 @@ export default function TaskDetailScreen() {
                     {
                         text: 'OK',
                         onPress: () => {
-                            router.replace('/h1-tasks')
+                            router.back()
                         }
                     }
                 ]
@@ -139,13 +139,6 @@ export default function TaskDetailScreen() {
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="chevron-back" size={24} color="#fff" />
                 </TouchableOpacity>
-                <View style={styles.headerContent}>
-                    <View style={styles.hamburger}>
-                        <View style={styles.line} />
-                        <View style={styles.line} />
-                        <View style={styles.line} />
-                    </View>
-                </View>
             </View>
 
             <ScrollView style={styles.content}>
@@ -367,19 +360,6 @@ const styles = StyleSheet.create({
     },
     backButton: {
         marginRight: 16,
-    },
-    headerContent: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    hamburger: {
-        alignItems: 'center',
-    },
-    line: {
-        width: 25,
-        height: 3,
-        backgroundColor: '#fff',
-        marginVertical: 2,
     },
     content: {
         flex: 1,
