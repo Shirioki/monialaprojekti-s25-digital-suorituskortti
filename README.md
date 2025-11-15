@@ -92,6 +92,18 @@ Opettajaan liittyvät vaatimukset
 - **REQ-12:** Opettaja voi arvioida opiskelijoiden tehtävät ja antaa palautetta.
 - **REQ-13:** Opettaja voi lähettää ilmoituksia kurssin osallistujille.
 - **REQ-14:** Opettaja voi tarkastella kurssin osallistujalistaa ja opiskelijoiden edistymistä.
+
+Adminiin liittyvät vaatimukset
+- **REQ-15:** Admin voi lisätä uusia käyttäjiä järjestelmään (opiskelijat, opettajat).
+- **REQ-16:** Admin voi poistaa käyttäjiä järjestelmästä.
+- **REQ-17:** Admin voi muokata käyttäjien tietoja (nimi, rooli, sähköpostiosoite).
+- **REQ-18:** Admin voi muuttaa käyttäjän roolia (opiskelija → opettaja → admin).
+- **REQ-19:** Admin voi tarkastella järjestelmän lokitietoja ja auditointitapahtumia.
+- **REQ-20:** Admin voi palauttaa tai nollata käyttäjän salasanan.
+- **REQ-21:** Admin voi tarkastella järjestelmän tilaa (aktiivisten käyttäjien määrä, kurssit, tehtävien määrä).
+- **REQ-22:** Admin voi aktivoida tai poistaa kursseja.
+- **REQ-23:** Admin voi hallita opettajalistaa ja ylläpitää sitä.
+- **REQ-24:** Admin voi konfiguroida järjestelmän asetuksia.
  
 
 Tämä voisi olla sitä **Iineksen** hommaa
