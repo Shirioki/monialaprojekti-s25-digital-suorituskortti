@@ -21,8 +21,8 @@ export default function LoginScreen() {
       <View style={styles.content}>
         {/* Logo Section */}
         <View style={styles.logoSection}>
-          <Image 
-            source={require('../assets/images/hy-logo.png')} 
+          <Image
+            source={require('../assets/images/hy-logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />

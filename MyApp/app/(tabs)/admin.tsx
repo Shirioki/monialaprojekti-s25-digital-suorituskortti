@@ -19,11 +19,16 @@ export default function AdminDashboard() {
   const [editUserModalVisible, setEditUserModalVisible] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [menuVisible, setMenuVisible] = useState(false)
+  const [expandedSections, setExpandedSections] = useState({
+    admin: false,
+    teacher: false,
+    student: false
+  })
 
   // Sample user data
   const [users, setUsers] = useState<User[]>([
     { id: '1', name: 'Matti Opiskelija', email: 'matti.opiskelija@helsinki.fi', role: 'student', status: 'active' },
-    { id: '2', name: 'Dr. Anna Opettaja', email: 'anna.opettaja@helsinki.fi', role: 'teacher', status: 'active' },
+    { id: '2', name: 'Anna Opettaja', email: 'anna.opettaja@helsinki.fi', role: 'teacher', status: 'active' },
     { id: '3', name: 'Maija Mallikas', email: 'maija.mallikas@helsinki.fi', role: 'student', status: 'active' },
     { id: '4', name: 'Prof. Jussi Järjestelmä', email: 'jussi.jarjestelma@helsinki.fi', role: 'admin', status: 'active' },
     { id: '5', name: 'Teppo Testaaja', email: 'teppo.testaaja@helsinki.fi', role: 'student', status: 'inactive' },
@@ -40,6 +45,39 @@ export default function AdminDashboard() {
     user.name.toLowerCase().includes(searchText.toLowerCase()) ||
     user.email.toLowerCase().includes(searchText.toLowerCase())
   )
+
+  // Group users by role
+  const groupUsersByRole = (userList: User[]) => {
+    const roles = ['admin', 'teacher', 'student'] as const
+    const groupedUsers: Record<string, User[]> = {}
+
+    roles.forEach(role => {
+      groupedUsers[role] = userList.filter(user => user.role === role)
+    })
+
+    return groupedUsers
+  }
+
+  const groupedUsers = groupUsersByRole(filteredUsers)
+
+  const toggleSection = (section: 'admin' | 'teacher' | 'student') => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }))
+  }
+
+  const getRoleSectionStyle = (role: 'admin' | 'teacher' | 'student') => {
+    const borderColors = {
+      admin: '#F44336',
+      teacher: '#2196F3',
+      student: '#4CAF50'
+    }
+    return {
+      ...styles.roleSectionHeader,
+      borderLeftColor: borderColors[role]
+    }
+  }
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -112,8 +150,8 @@ export default function AdminDashboard() {
   }
 
   const handleToggleUserStatus = (userId: string) => {
-    setUsers(users.map(u => 
-      u.id === userId 
+    setUsers(users.map(u =>
+      u.id === userId
         ? { ...u, status: u.status === 'active' ? 'inactive' : 'active' }
         : u
     ))
@@ -242,10 +280,10 @@ export default function AdminDashboard() {
           style={[styles.tab, selectedTab === 'users' && styles.tabActive]}
           onPress={() => setSelectedTab('users')}
         >
-          <Ionicons 
-            name="people-outline" 
-            size={20} 
-            color={selectedTab === 'users' ? '#007AFF' : '#666'} 
+          <Ionicons
+            name="people-outline"
+            size={20}
+            color={selectedTab === 'users' ? '#007AFF' : '#666'}
           />
           <Text style={[styles.tabText, selectedTab === 'users' && styles.tabTextActive]}>
             Käyttäjät
@@ -255,10 +293,10 @@ export default function AdminDashboard() {
           style={[styles.tab, selectedTab === 'courses' && styles.tabActive]}
           onPress={() => setSelectedTab('courses')}
         >
-          <Ionicons 
-            name="book-outline" 
-            size={20} 
-            color={selectedTab === 'courses' ? '#007AFF' : '#666'} 
+          <Ionicons
+            name="book-outline"
+            size={20}
+            color={selectedTab === 'courses' ? '#007AFF' : '#666'}
           />
           <Text style={[styles.tabText, selectedTab === 'courses' && styles.tabTextActive]}>
             Kurssit
@@ -268,10 +306,10 @@ export default function AdminDashboard() {
           style={[styles.tab, selectedTab === 'system' && styles.tabActive]}
           onPress={() => setSelectedTab('system')}
         >
-          <Ionicons 
-            name="settings-outline" 
-            size={20} 
-            color={selectedTab === 'system' ? '#007AFF' : '#666'} 
+          <Ionicons
+            name="settings-outline"
+            size={20}
+            color={selectedTab === 'system' ? '#007AFF' : '#666'}
           />
           <Text style={[styles.tabText, selectedTab === 'system' && styles.tabTextActive]}>
             Järjestelmä
@@ -293,7 +331,7 @@ export default function AdminDashboard() {
                 onChangeText={setSearchText}
               />
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.addButton}
               onPress={() => setAddUserModalVisible(true)}
             >
@@ -301,57 +339,240 @@ export default function AdminDashboard() {
             </TouchableOpacity>
           </View>
 
-          {/* User List */}
+          {/* User List by Role */}
           <View style={styles.userList}>
-            {filteredUsers.map((user) => (
-              <View key={user.id} style={styles.userCard}>
-                <View style={styles.userInfo}>
-                  <View style={styles.userAvatar}>
-                    <Ionicons name="person" size={28} color="#007AFF" />
+            {/* Admin Section */}
+            {groupedUsers.admin.length > 0 && (
+              <View style={styles.roleSection}>
+                <TouchableOpacity
+                  style={getRoleSectionStyle('admin')}
+                  onPress={() => toggleSection('admin')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.roleSectionHeaderLeft}>
+                    <Ionicons name="shield-checkmark" size={20} color="#F44336" />
+                    <Text style={styles.roleSectionTitle}>Ylläpitäjät ({groupedUsers.admin.length})</Text>
                   </View>
-                  <View style={styles.userDetails}>
-                    <Text style={styles.userName}>{user.name}</Text>
-                    <Text style={styles.userEmail}>{user.email}</Text>
-                    <View style={styles.userMeta}>
-                      <View style={[styles.roleBadge, { backgroundColor: getRoleColor(user.role) + '20' }]}>
-                        <Text style={[styles.roleText, { color: getRoleColor(user.role) }]}>
-                          {getRoleLabel(user.role)}
-                        </Text>
+                  <Ionicons
+                    name={expandedSections.admin ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#666"
+                  />
+                </TouchableOpacity>
+                {expandedSections.admin && (
+                  <View style={styles.roleSectionContent}>
+                    {groupedUsers.admin.map((user) => (
+                      <View key={user.id} style={styles.userCard}>
+                        <View style={styles.userInfo}>
+                          <View style={styles.userAvatar}>
+                            <Ionicons name="person" size={28} color="#007AFF" />
+                          </View>
+                          <View style={styles.userDetails}>
+                            <Text style={styles.userName}>{user.name}</Text>
+                            <Text style={styles.userEmail}>{user.email}</Text>
+                            <View style={styles.userMeta}>
+                              <View style={[styles.roleBadge, { backgroundColor: getRoleColor(user.role) + '20' }]}>
+                                <Text style={[styles.roleText, { color: getRoleColor(user.role) }]}>
+                                  {getRoleLabel(user.role)}
+                                </Text>
+                              </View>
+                              <View style={[styles.statusBadge, user.status === 'active' ? styles.statusActive : styles.statusInactive]}>
+                                <Text style={styles.statusText}>
+                                  {user.status === 'active' ? 'Aktiivinen' : 'Ei-aktiivinen'}
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        <View style={styles.userActions}>
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => handleEditUser(user)}
+                          >
+                            <Ionicons name="create-outline" size={20} color="#007AFF" />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => handleToggleUserStatus(user.id)}
+                          >
+                            <Ionicons
+                              name={user.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'}
+                              size={20}
+                              color={user.status === 'active' ? '#FF9800' : '#4CAF50'}
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => handleDeleteUser(user.id)}
+                          >
+                            <Ionicons name="trash-outline" size={20} color="#F44336" />
+                          </TouchableOpacity>
+                        </View>
                       </View>
-                      <View style={[styles.statusBadge, user.status === 'active' ? styles.statusActive : styles.statusInactive]}>
-                        <Text style={styles.statusText}>
-                          {user.status === 'active' ? 'Aktiivinen' : 'Ei-aktiivinen'}
-                        </Text>
-                      </View>
-                    </View>
+                    ))}
                   </View>
-                </View>
-                <View style={styles.userActions}>
-                  <TouchableOpacity 
-                    style={styles.actionButton}
-                    onPress={() => handleEditUser(user)}
-                  >
-                    <Ionicons name="create-outline" size={20} color="#007AFF" />
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.actionButton}
-                    onPress={() => handleToggleUserStatus(user.id)}
-                  >
-                    <Ionicons 
-                      name={user.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'} 
-                      size={20} 
-                      color={user.status === 'active' ? '#FF9800' : '#4CAF50'} 
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.actionButton}
-                    onPress={() => handleDeleteUser(user.id)}
-                  >
-                    <Ionicons name="trash-outline" size={20} color="#F44336" />
-                  </TouchableOpacity>
-                </View>
+                )}
               </View>
-            ))}
+            )}
+
+            {/* Teacher Section */}
+            {groupedUsers.teacher.length > 0 && (
+              <View style={styles.roleSection}>
+                <TouchableOpacity
+                  style={getRoleSectionStyle('teacher')}
+                  onPress={() => toggleSection('teacher')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.roleSectionHeaderLeft}>
+                    <Ionicons name="school" size={20} color="#2196F3" />
+                    <Text style={styles.roleSectionTitle}>Opettajat ({groupedUsers.teacher.length})</Text>
+                  </View>
+                  <Ionicons
+                    name={expandedSections.teacher ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#666"
+                  />
+                </TouchableOpacity>
+                {expandedSections.teacher && (
+                  <View style={styles.roleSectionContent}>
+                    {groupedUsers.teacher.map((user) => (
+                      <View key={user.id} style={styles.userCard}>
+                        <View style={styles.userInfo}>
+                          <View style={styles.userAvatar}>
+                            <Ionicons name="person" size={28} color="#007AFF" />
+                          </View>
+                          <View style={styles.userDetails}>
+                            <Text style={styles.userName}>{user.name}</Text>
+                            <Text style={styles.userEmail}>{user.email}</Text>
+                            <View style={styles.userMeta}>
+                              <View style={[styles.roleBadge, { backgroundColor: getRoleColor(user.role) + '20' }]}>
+                                <Text style={[styles.roleText, { color: getRoleColor(user.role) }]}>
+                                  {getRoleLabel(user.role)}
+                                </Text>
+                              </View>
+                              <View style={[styles.statusBadge, user.status === 'active' ? styles.statusActive : styles.statusInactive]}>
+                                <Text style={styles.statusText}>
+                                  {user.status === 'active' ? 'Aktiivinen' : 'Ei-aktiivinen'}
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        <View style={styles.userActions}>
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => handleEditUser(user)}
+                          >
+                            <Ionicons name="create-outline" size={20} color="#007AFF" />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => handleToggleUserStatus(user.id)}
+                          >
+                            <Ionicons
+                              name={user.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'}
+                              size={20}
+                              color={user.status === 'active' ? '#FF9800' : '#4CAF50'}
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => handleDeleteUser(user.id)}
+                          >
+                            <Ionicons name="trash-outline" size={20} color="#F44336" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Student Section */}
+            {groupedUsers.student.length > 0 && (
+              <View style={styles.roleSection}>
+                <TouchableOpacity
+                  style={getRoleSectionStyle('student')}
+                  onPress={() => toggleSection('student')}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.roleSectionHeaderLeft}>
+                    <Ionicons name="people" size={20} color="#4CAF50" />
+                    <Text style={styles.roleSectionTitle}>Opiskelijat ({groupedUsers.student.length})</Text>
+                  </View>
+                  <Ionicons
+                    name={expandedSections.student ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#666"
+                  />
+                </TouchableOpacity>
+                {expandedSections.student && (
+                  <View style={styles.roleSectionContent}>
+                    {groupedUsers.student.map((user) => (
+                      <View key={user.id} style={styles.userCard}>
+                        <View style={styles.userInfo}>
+                          <View style={styles.userAvatar}>
+                            <Ionicons name="person" size={28} color="#007AFF" />
+                          </View>
+                          <View style={styles.userDetails}>
+                            <Text style={styles.userName}>{user.name}</Text>
+                            <Text style={styles.userEmail}>{user.email}</Text>
+                            <View style={styles.userMeta}>
+                              <View style={[styles.roleBadge, { backgroundColor: getRoleColor(user.role) + '20' }]}>
+                                <Text style={[styles.roleText, { color: getRoleColor(user.role) }]}>
+                                  {getRoleLabel(user.role)}
+                                </Text>
+                              </View>
+                              <View style={[styles.statusBadge, user.status === 'active' ? styles.statusActive : styles.statusInactive]}>
+                                <Text style={styles.statusText}>
+                                  {user.status === 'active' ? 'Aktiivinen' : 'Ei-aktiivinen'}
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                        <View style={styles.userActions}>
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => handleEditUser(user)}
+                          >
+                            <Ionicons name="create-outline" size={20} color="#007AFF" />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => handleToggleUserStatus(user.id)}
+                          >
+                            <Ionicons
+                              name={user.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'}
+                              size={20}
+                              color={user.status === 'active' ? '#FF9800' : '#4CAF50'}
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={styles.actionButton}
+                            onPress={() => handleDeleteUser(user.id)}
+                          >
+                            <Ionicons name="trash-outline" size={20} color="#F44336" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
+            {/* Show message if no users found */}
+            {filteredUsers.length === 0 && (
+              <View style={styles.emptyState}>
+                <Ionicons name="search-outline" size={48} color="#999" />
+                <Text style={styles.emptyStateText}>Ei käyttäjiä löytynyt</Text>
+                <Text style={styles.emptyStateSubtext}>
+                  Kokeile erilaista hakua tai lisää uusia käyttäjiä
+                </Text>
+              </View>
+            )}
           </View>
         </ScrollView>
       )}
@@ -374,7 +595,7 @@ export default function AdminDashboard() {
         <ScrollView style={styles.content}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Järjestelmän tila</Text>
-            
+
             <View style={styles.systemCard}>
               <View style={styles.systemItem}>
                 <Ionicons name="server-outline" size={24} color="#4CAF50" />
@@ -384,7 +605,7 @@ export default function AdminDashboard() {
                 </View>
                 <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
               </View>
-              
+
               <View style={styles.systemItem}>
                 <Ionicons name="cloud-outline" size={24} color="#4CAF50" />
                 <View style={styles.systemItemContent}>
@@ -393,7 +614,7 @@ export default function AdminDashboard() {
                 </View>
                 <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
               </View>
-              
+
               <View style={styles.systemItem}>
                 <Ionicons name="time-outline" size={24} color="#007AFF" />
                 <View style={styles.systemItemContent}>
@@ -406,19 +627,19 @@ export default function AdminDashboard() {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ylläpitotoiminnot</Text>
-            
+
             <TouchableOpacity style={styles.adminActionCard}>
               <Ionicons name="folder-open-outline" size={24} color="#007AFF" />
               <Text style={styles.adminActionText}>Tarkastele lokitietoja</Text>
               <Ionicons name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
-            
+
             <TouchableOpacity style={styles.adminActionCard}>
               <Ionicons name="cloud-download-outline" size={24} color="#007AFF" />
               <Text style={styles.adminActionText}>Luo varmuuskopio</Text>
               <Ionicons name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
-            
+
             <TouchableOpacity style={styles.adminActionCard}>
               <Ionicons name="analytics-outline" size={24} color="#007AFF" />
               <Text style={styles.adminActionText}>Näytä tilastot</Text>
@@ -695,10 +916,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
   userInfo: {
     flex: 1,
@@ -1000,5 +1221,57 @@ const styles = StyleSheet.create({
   menuFooterText: {
     fontSize: 12,
     color: '#999',
+  },
+  roleSection: {
+    marginBottom: 16,
+  },
+  roleSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingHorizontal: 19,
+    paddingVertical: 14,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderLeftWidth: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  roleSectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  roleSectionTitle: {
+    fontSize: 19,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 10,
+  },
+  roleSectionContent: {
+    paddingLeft: 8,
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 })

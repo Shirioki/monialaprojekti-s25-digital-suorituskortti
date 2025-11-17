@@ -212,7 +212,7 @@ const TeacherDashboard = () => {
             <View style={styles.avatarContainer}>
               <Ionicons name="person-circle-outline" size={80} color="#007AFF" />
             </View>
-            <Text style={styles.teacherName}>Dr. Anna Opettaja</Text>
+            <Text style={styles.teacherName}>Anna Opettaja</Text>
             <Text style={styles.teacherEmail}>anna.opettaja@helsinki.fi</Text>
             <Text style={styles.teacherTitle}>Hammaslääketieteen lehtori</Text>
 

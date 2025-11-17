@@ -21,15 +21,6 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="teacher"
-        options={{
-          title: 'Teacher',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="student"
         options={{
           title: 'Student',
@@ -38,6 +29,16 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="teacher"
+        options={{
+          title: 'Teacher',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+
       <Tabs.Screen
         name="h1"
         options={{

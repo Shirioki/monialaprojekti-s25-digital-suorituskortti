@@ -61,7 +61,7 @@ export default function TeacherTaskReview() {
     }
 
     try {
-      await reviewTask(taskId, studentId, decision, teacherFeedback, 'Dr. Leena Opettaja') // Using a default teacher name
+      await reviewTask(taskId, studentId, decision, teacherFeedback, 'Leena Opettaja') // Using a default teacher name
 
       const message =
         decision === 'approved'

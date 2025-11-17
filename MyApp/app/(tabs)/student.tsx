@@ -168,7 +168,7 @@ const StudentView = () => {
         <TouchableOpacity onPress={() => setMenuVisible(true)}>
           <Ionicons name="menu" size={28} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Opintojeni syksy</Text>
+        <Text style={styles.headerTitle}>Opiskelija</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity
             onPress={loadProgressData}
