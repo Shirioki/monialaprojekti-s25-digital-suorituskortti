@@ -477,16 +477,31 @@ Firebase-autentikointi sopii erinomaisesti projekteihin, kuten digitaalinen suor
 ## 8 Laadunvarmistus
 - Prototyypin testaus sprinttien lopussa.  
 - Katselmointipalaverit viikoittain.  
-- Hyväksymiskriteerit sovitaan asiakkaan kanssa.  
+- Hyväksymiskriteerit sovitaan asiakkaan kanssa.
+
+## 9 Lainsäädäntö ja saavutettavuus
+-	EU:n saavutettavuusdirektiivi (2016/2102) velvoittaa julkisen sektorin digipalvelut, kuten yliopistojen oppimisympäristöt, olemaan saavutettavia kaikille käyttäjille.
+- Suomen laki digitaalisten palvelujen tarjoamisesta (306/2019) toimeenpanee direktiivin. Helsingin yliopisto on velvollinen varmistamaan, että digitaaliset taitokortit täyttävät saavutettavuusvaatimukset (mm. WCAG 2.1 -kriteerit).
+- Yliopistolla on saavutettavuusseloste, jossa kerrotaan, miten opiskelijan digitaidot -materiaalit ja palvelut täyttävät vaatimukset ja mitä puutteita on.
+
+## 10 Riskit digitaalisissa taitokorteissa
+- Tietosuoja ja GDPR: opiskelijoiden suoritukset ja osaamisen arviointi tallennetaan digitaalisesti. Riskinä on henkilötietojen vuotaminen tai väärinkäyttö.
+- Saavutettavuuden puutteet: jos taitokortit eivät ole saavutettavia (esim. näkö- tai kuulovammaisille), opiskelijoiden yhdenvertaisuus vaarantuu. Tämä voi johtaa lain rikkomiseen.
+- Tekninen riippuvuus: järjestelmä voi olla sidottu tiettyyn ohjelmistoon tai alustaan, mikä voi rajoittaa käyttöä ja aiheuttaa ongelmia, jos järjestelmä ei toimi eri laitteilla.
+- Pedagogiset riskit: jos digitaaliset taitokortit eivät mittaa osaamista luotettavasti, opiskelijoiden arviointi voi vääristyä.
+- Oikeudelliset seuraamukset: saavutettavuus- tai tietosuojalainsäädännön rikkominen voi johtaa valvontaviranomaisen huomautuksiin, sakkoihin tai mainehaittaan.
+- Hammaslääketieteen opiskelijoiden digitaaliset taitokortit Helsingin yliopistossa ovat osa modernia opetusta, mutta niihin liittyy riskejä saavutettavuuden ja tietosuojan näkökulmasta. Lainsäädäntö (EU:n saavutettavuusdirektiivi ja Suomen digipalvelulaki) velvoittaa yliopistoa varmistamaan, että kaikki opiskelijat voivat käyttää taitokortteja yhdenvertaisesti ja turvallisesti.
+- Digitaaliset taitokortit tukevat modernia opetusta, mutta niihin liittyy merkittäviä riskejä erityisesti tietosuojan ja saavutettavuuden osalta. Helsingin yliopiston on varmistettava, että järjestelmä täyttää GDPR:n, saavutettavuusdirektiivin ja digipalvelulain vaatimukset. Riskien hallinta edellyttää teknisiä, pedagogisia ja hallinnollisia toimenpiteitä.
+
 
 ---
 
-## 9 Liitteet
+## 11 Liitteet
 - [Sovelluksen wireframe](https://www.figma.com/design/kcA0t7G717CqYGmhIGFy5p/Monialaprojekti-WF?t=JuTxYux5t83AS9Hy-1) 
 
 ---
 
-## 10 Lähteet
+## 12 Lähteet
 - Projektisuunnitelma 2025  
 - [GDPR-asetus](https://eur-lex.europa.eu/FI/legal-content/summary/general-data-protection-regulation-gdpr.html)
 - [Helsingin yliopiston tietoturvaohjeet](https://www.helsinki.fi/fi/tietotekniikkakeskus/tietoturva-yliopistolla/tietoturva-ja-tietosuoja/yliopiston-tietoturvapolitiikka)
