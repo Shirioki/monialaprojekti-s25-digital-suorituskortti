@@ -480,9 +480,31 @@ Firebase-autentikointi sopii erinomaisesti projekteihin, kuten digitaalinen suor
 - Hyväksymiskriteerit sovitaan asiakkaan kanssa.
 
 ## 9 Lainsäädäntö ja saavutettavuus
+
+### 9.1 Lainsäädäntö
+
 -	EU:n saavutettavuusdirektiivi (2016/2102) velvoittaa julkisen sektorin digipalvelut, kuten yliopistojen oppimisympäristöt, olemaan saavutettavia kaikille käyttäjille.
 - Suomen laki digitaalisten palvelujen tarjoamisesta (306/2019) toimeenpanee direktiivin. Helsingin yliopisto on velvollinen varmistamaan, että digitaaliset taitokortit täyttävät saavutettavuusvaatimukset (mm. WCAG 2.1 -kriteerit).
 - Yliopistolla on saavutettavuusseloste, jossa kerrotaan, miten opiskelijan digitaidot -materiaalit ja palvelut täyttävät vaatimukset ja mitä puutteita on.
+
+### 9.2 saavutettavuus
+
+Mahdollisia konkreettisia ratkaisuja, jotka mahdollistavat taitokorttien käytön erilaisille opiskelijoille:
+Näkövammaiset opiskelijat (sokeat / heikkonäköiset):
+- Taitokorttien tulee toimia täysin ruudunlukijoilla (esim. NVDA, VoiceOver).
+- Kuvilla ja kaavioille lisätään alt-tekstit, joissa kerrotaan sisällön tarkoitus.
+- Värien kontrasti tulee olla WCAG-standardin mukainen (esim. 4.5:1).
+
+Kuurot ja huonokuuloiset opiskelijat:
+- Kaikki videot, ohjeistukset ja demonstraatiot tulee tekstittää tarkasti.
+- Puheeseen perustuvat arviointitilanteet voidaan tarjota vaihtoehtoisesti kirjallisina.
+
+Neurokirjon opiskelijat / oppimisvaikeudet
+- Selkeä, looginen taitokortin rakenne (ei liikaa välilehtiä tai piilotettuja elementtejä).
+- Yksinkertaiset ohjeet.
+
+Saavutettavuuden takaamiseksi olisi hyvä suorittaa käytettävyystestaus oikeilla kohderyhmän opiskelijoilla.
+Käytettävyystestaus takaa, että taitokortit eivät ole saavutettavia vain teoriassa, vaan käytännössä kaikille opiskelijoille.
 
 ## 10 Riskit digitaalisissa taitokorteissa
 - Tietosuoja ja GDPR: opiskelijoiden suoritukset ja osaamisen arviointi tallennetaan digitaalisesti. Riskinä on henkilötietojen vuotaminen tai väärinkäyttö.
