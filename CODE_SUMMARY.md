@@ -27,12 +27,12 @@ export default function CreateWorkCardScreen() {
 
   // Form state
   const [title, setTitle] = useState('')
-  const [gypsumeBlockNumber, setGypsumeBlockNumber] = useState('')
+  const [gypsumBlockNumber, setGypsumeBlockNumber] = useState('')
   const [jawSelection, setJawSelection] = useState<'upper' | 'lower' | ''>('')
   const [checkboxes, setCheckboxes] = useState({
-    noCarier: false,
-    carierInEnamel: false,
-    carierInDentin: false
+    noCaries: false,
+    cariesInEnamel: false,
+    cariesInDentin: false
   })
 
   const handleCheckboxToggle = (checkbox: keyof typeof checkboxes) => {
@@ -49,7 +49,7 @@ export default function CreateWorkCardScreen() {
       return
     }
 
-    if (!gypsumeBlockNumber.trim()) {
+    if (!gypsumBlockNumber.trim()) {
       Alert.alert('Virhe', 'Lisää kipsiblokki numero')
       return
     }
@@ -60,7 +60,7 @@ export default function CreateWorkCardScreen() {
     }
 
     // Check that at least one checkbox is selected
-    if (!checkboxes.noCarier && !checkboxes.carierInEnamel && !checkboxes.carierInDentin) {
+    if (!checkboxes.noCaries && !checkboxes.cariesInEnamel && !checkboxes.cariesInDentin) {
       Alert.alert('Virhe', 'Valitse vähintään yksi kariesvaihtoehto')
       return
     }
@@ -68,12 +68,12 @@ export default function CreateWorkCardScreen() {
     // Create work card object
     const workCard = {
       title: title.trim(),
-      gypsumeBlockNumber: gypsumeBlockNumber.trim(),
+      gypsumBlockNumber: gypsumBlockNumber.trim(),
       jaw: jawSelection,
       conditions: {
-        noCarier: checkboxes.noCarier,
-        carierInEnamel: checkboxes.carierInEnamel,
-        carierInDentin: checkboxes.carierInDentin
+        noCaries: checkboxes.noCaries,
+        cariesInEnamel: checkboxes.cariesInEnamel,
+        cariesInDentin: checkboxes.cariesInDentin
       },
       createdAt: new Date().toISOString()
     }
@@ -142,7 +142,7 @@ export default function CreateWorkCardScreen() {
           <TextInput
             style={styles.textInput}
             placeholder="Syötä kipsiblokki numero..."
-            value={gypsumeBlockNumber}
+            value={gypsumBlockNumber}
             onChangeText={setGypsumeBlockNumber}
             keyboardType="numeric"
             placeholderTextColor="#999"
@@ -174,11 +174,11 @@ export default function CreateWorkCardScreen() {
           {/* No Cavity Checkbox */}
           <TouchableOpacity
             style={styles.checkboxRow}
-            onPress={() => handleCheckboxToggle('noCarier')}
+            onPress={() => handleCheckboxToggle('noCaries')}
             activeOpacity={0.7}
           >
             <View style={styles.checkbox}>
-              {checkboxes.noCarier && (
+              {checkboxes.noCaries && (
                 <Ionicons name="checkmark" size={20} color="#007AFF" />
               )}
             </View>
@@ -188,11 +188,11 @@ export default function CreateWorkCardScreen() {
           {/* Cavity in Enamel Checkbox */}
           <TouchableOpacity
             style={styles.checkboxRow}
-            onPress={() => handleCheckboxToggle('carierInEnamel')}
+            onPress={() => handleCheckboxToggle('cariesInEnamel')}
             activeOpacity={0.7}
           >
             <View style={styles.checkbox}>
-              {checkboxes.carierInEnamel && (
+              {checkboxes.cariesInEnamel && (
                 <Ionicons name="checkmark" size={20} color="#007AFF" />
               )}
             </View>
@@ -202,11 +202,11 @@ export default function CreateWorkCardScreen() {
           {/* Cavity in Dentin Checkbox */}
           <TouchableOpacity
             style={styles.checkboxRow}
-            onPress={() => handleCheckboxToggle('carierInDentin')}
+            onPress={() => handleCheckboxToggle('cariesInDentin')}
             activeOpacity={0.7}
           >
             <View style={styles.checkbox}>
-              {checkboxes.carierInDentin && (
+              {checkboxes.cariesInDentin && (
                 <Ionicons name="checkmark" size={20} color="#007AFF" />
               )}
             </View>

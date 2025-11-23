@@ -136,12 +136,12 @@ const [checkboxes, setCheckboxes] = useState({
 ```typescript
 interface WorkCard {
   title: string
-  gypsumeBlockNumber: string
+  gypsumBlockNumber: string
   jaw: 'upper' | 'lower'
   conditions: {
-    noCarier: boolean
-    carierInEnamel: boolean
-    carierInDentin: boolean
+    noCaries: boolean
+    cariesInEnamel: boolean
+    cariesInDentin: boolean
   }
   createdAt: string
 }
