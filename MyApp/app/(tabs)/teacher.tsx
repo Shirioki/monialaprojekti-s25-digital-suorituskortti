@@ -315,6 +315,14 @@ const TeacherDashboard = () => {
             <Ionicons name="document-text-outline" size={24} color="#fff" />
             <Text style={styles.actionButtonText}>Arvioitavat tehtävät</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.actionButtonSecondary]}
+            onPress={() => router.push('/create-work-card' as any)}
+          >
+            <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+            <Text style={styles.actionButtonTextSecondary}>Luo suorituskortti</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -517,9 +525,20 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     gap: 8,
+    marginBottom: 12,
   },
   actionButtonText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  actionButtonSecondary: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#007AFF',
+  },
+  actionButtonTextSecondary: {
+    color: '#007AFF',
     fontSize: 16,
     fontWeight: '600',
   },
