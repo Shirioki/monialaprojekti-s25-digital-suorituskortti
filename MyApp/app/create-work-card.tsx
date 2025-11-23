@@ -145,16 +145,40 @@ export default function CreateWorkCardScreen() {
           <Text style={styles.sectionTitle}>Hammas A</Text>
           <Text style={styles.sectionSubtitle}>Ylä- vai alavisuri</Text>
           
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={jawSelection}
-              onValueChange={(itemValue) => setJawSelection(itemValue)}
-              style={styles.picker}
+          <View style={styles.segmentContainer}>
+            <TouchableOpacity
+              style={[
+                styles.segmentButton,
+                jawSelection === 'upper' && styles.segmentButtonSelected
+              ]}
+              onPress={() => setJawSelection('upper')}
             >
-              <Picker.Item label="Valitse..." value="" />
-              <Picker.Item label="Ylävisuri" value="upper" />
-              <Picker.Item label="Alavisuri" value="lower" />
-            </Picker>
+              <Text
+                style={[
+                  styles.segmentText,
+                  jawSelection === 'upper' && styles.segmentTextSelected
+                ]}
+              >
+                Ylävisuri
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.segmentButton,
+                jawSelection === 'lower' && styles.segmentButtonSelected
+              ]}
+              onPress={() => setJawSelection('lower')}
+            >
+              <Text
+                style={[
+                  styles.segmentText,
+                  jawSelection === 'lower' && styles.segmentTextSelected
+                ]}
+              >
+                Alavisuri
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -343,4 +367,35 @@ const styles = StyleSheet.create({
   bottomSpacing: {
     height: 40,
   },
+  segmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f1f1f1',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e5e5e5',
+    borderRightWidth: 1,
+    borderRightColor: '#d0d0d0',
+  },
+  
+  segmentButtonSelected: {
+    backgroundColor: '#007AFF',
+  },
+  
+  segmentText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  
+  segmentTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },  
 })
