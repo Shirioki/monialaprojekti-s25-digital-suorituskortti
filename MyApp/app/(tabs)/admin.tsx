@@ -628,6 +628,15 @@ export default function AdminDashboard() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ylläpitotoiminnot</Text>
 
+            <TouchableOpacity 
+              style={styles.adminActionCard}
+              onPress={() => router.push('/create-work-card' as any)}
+            >
+              <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+              <Text style={styles.adminActionText}>Luo suorituskortti</Text>
+              <Ionicons name="chevron-forward" size={20} color="#999" />
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.adminActionCard}>
               <Ionicons name="folder-open-outline" size={24} color="#007AFF" />
               <Text style={styles.adminActionText}>Tarkastele lokitietoja</Text>
