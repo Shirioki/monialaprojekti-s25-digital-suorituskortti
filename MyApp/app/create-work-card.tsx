@@ -143,7 +143,7 @@ export default function CreateWorkCardScreen() {
     setFieldValues(prev => {
       const currentValues = prev[fieldId] || []
       const isSelected = currentValues.includes(option)
-      
+
       if (isSelected) {
         // Remove from selection
         return {
