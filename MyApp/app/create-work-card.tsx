@@ -22,7 +22,8 @@ interface Field {
   type: FieldType
   label: string
   required?: boolean
-  options?: string[] // For multiple choice
+  options?: string[] // For multiple choice and dropdown
+  staticText?: string // For text (read-only) fields
   value?: any
 }
 
@@ -45,6 +46,7 @@ export default function CreateWorkCardScreen() {
   const [newFieldLabel, setNewFieldLabel] = useState('')
   const [newFieldRequired, setNewFieldRequired] = useState(false)
   const [newFieldOptions, setNewFieldOptions] = useState<string[]>([''])
+  const [newFieldStaticText, setNewFieldStaticText] = useState('')
 
   // States for filling the suorituskortti (second phase)
   const [fieldValues, setFieldValues] = useState<{ [key: string]: any }>({})
@@ -63,6 +65,7 @@ export default function CreateWorkCardScreen() {
       label: newFieldLabel.trim(),
       required: newFieldRequired,
       options: (newFieldType === 'multipleChoice' || newFieldType === 'dropdown') ? newFieldOptions.filter(opt => opt.trim() !== '') : undefined,
+      staticText: newFieldType === 'text' ? newFieldStaticText.trim() : undefined,
     }
 
     setFields(prev => [...prev, newField])
@@ -71,6 +74,7 @@ export default function CreateWorkCardScreen() {
     setNewFieldLabel('')
     setNewFieldRequired(false)
     setNewFieldOptions([''])
+    setNewFieldStaticText('')
     setShowFieldModal(false)
   }
 
@@ -111,6 +115,8 @@ export default function CreateWorkCardScreen() {
     fields.forEach(field => {
       if (field.type === 'checkbox') {
         initialValues[field.id] = false
+      } else if (field.type === 'multipleChoice') {
+        initialValues[field.id] = []
       } else {
         initialValues[field.id] = ''
       }
@@ -132,13 +138,40 @@ export default function CreateWorkCardScreen() {
     setOpenDropdownId(prev => prev === fieldId ? null : fieldId)
   }
 
+  // Handle multiple choice selection (multiple options)
+  const toggleMultipleChoice = (fieldId: string, option: string) => {
+    setFieldValues(prev => {
+      const currentValues = prev[fieldId] || []
+      const isSelected = currentValues.includes(option)
+      
+      if (isSelected) {
+        // Remove from selection
+        return {
+          ...prev,
+          [fieldId]: currentValues.filter((item: string) => item !== option)
+        }
+      } else {
+        // Add to selection
+        return {
+          ...prev,
+          [fieldId]: [...currentValues, option]
+        }
+      }
+    })
+  }
+
   // Save the completed suorituskortti
   const handleSave = () => {
     // Validate required fields
     for (const field of fields) {
       if (field.required) {
         const value = fieldValues[field.id]
-        if (!value || (typeof value === 'string' && !value.trim())) {
+        if (field.type === 'multipleChoice') {
+          if (!value || !Array.isArray(value) || value.length === 0) {
+            Alert.alert('Virhe', `Kenttä "${field.label}" on pakollinen`)
+            return
+          }
+        } else if (!value || (typeof value === 'string' && !value.trim())) {
           Alert.alert('Virhe', `Kenttä "${field.label}" on pakollinen`)
           return
         }
@@ -267,7 +300,7 @@ export default function CreateWorkCardScreen() {
                   Monivalinta
                 </Text>
                 <Text style={styles.fieldTypeDescription}>
-                  Valitse yksi vaihtoehdoista
+                  Valitse useita vaihtoehtoja
                 </Text>
               </View>
             </TouchableOpacity>
@@ -363,6 +396,22 @@ export default function CreateWorkCardScreen() {
               <Text style={styles.checkboxLabel}>Pakollinen kenttä</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Static Text Content for Text Fields */}
+          {newFieldType === 'text' && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Tekstin sisältö</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Syötä näytettävä teksti..."
+                value={newFieldStaticText}
+                onChangeText={setNewFieldStaticText}
+                placeholderTextColor="#999"
+                multiline={true}
+                numberOfLines={3}
+              />
+            </View>
+          )}
 
           {/* Multiple Choice/Dropdown Options */}
           {(newFieldType === 'multipleChoice' || newFieldType === 'dropdown') && (
@@ -510,7 +559,9 @@ export default function CreateWorkCardScreen() {
             </Text>
 
             {field.type === 'text' && (
-              <Text style={styles.staticText}>Tekstikenttä (vain luku)</Text>
+              <Text style={styles.staticTextContent}>
+                {field.staticText || 'Tekstikenttä (vain luku)'}
+              </Text>
             )}
 
             {field.type === 'textInput' && (
@@ -525,26 +576,26 @@ export default function CreateWorkCardScreen() {
 
             {field.type === 'multipleChoice' && field.options && (
               <View>
-                {!fieldValues[field.id] && (
-                  <Text style={styles.multipleChoiceHint}>Valitse yksi vaihtoehto:</Text>
+                {(!fieldValues[field.id] || fieldValues[field.id].length === 0) && (
+                  <Text style={styles.multipleChoiceHint}>Valitse vaihtoehdot:</Text>
                 )}
                 {field.options.map((option, index) => (
                   <TouchableOpacity
                     key={index}
                     style={[
                       styles.multipleChoiceCard,
-                      fieldValues[field.id] === option && styles.multipleChoiceCardSelected
+                      fieldValues[field.id]?.includes(option) && styles.multipleChoiceCardSelected
                     ]}
-                    onPress={() => updateFieldValue(field.id, option)}
+                    onPress={() => toggleMultipleChoice(field.id, option)}
                   >
-                    <View style={styles.multipleChoiceRadio}>
-                      {fieldValues[field.id] === option && (
-                        <View style={styles.multipleChoiceRadioSelected} />
+                    <View style={styles.checkbox}>
+                      {fieldValues[field.id]?.includes(option) && (
+                        <Ionicons name="checkmark" size={20} color="#007AFF" />
                       )}
                     </View>
                     <Text style={[
                       styles.multipleChoiceText,
-                      fieldValues[field.id] === option && styles.multipleChoiceTextSelected
+                      fieldValues[field.id]?.includes(option) && styles.multipleChoiceTextSelected
                     ]}>
                       {option}
                     </Text>
@@ -920,6 +971,16 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     paddingVertical: 20,
+  },
+  staticTextContent: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 22,
+    backgroundColor: '#f9f9f9',
+    padding: 16,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#007AFF',
   },
   // Field type selection styles
   fieldTypeCard: {
