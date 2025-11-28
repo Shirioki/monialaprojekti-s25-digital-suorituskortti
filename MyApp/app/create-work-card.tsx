@@ -7,70 +7,156 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert
+  Alert,
+  Modal
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Picker } from '@react-native-picker/picker'
 
+// Field types that can be added to a suorituskortti
+type FieldType = 'text' | 'textInput' | 'multipleChoice' | 'checkbox' | 'dropdown' | 'teacherReview'
+
+interface Field {
+  id: string
+  type: FieldType
+  label: string
+  required?: boolean
+  options?: string[] // For multiple choice
+  value?: any
+}
+
+interface SuorituskorttiTemplate {
+  title: string
+  fields: Field[]
+}
+
 export default function CreateWorkCardScreen() {
   const router = useRouter()
 
-  // Form state
-  const [title, setTitle] = useState('')
-  const [gypsumBlockNumber, setGypsumBlockNumber] = useState('')
-  const [jawSelection, setJawSelection] = useState<'upper' | 'lower' | ''>('')
-  const [checkboxes, setCheckboxes] = useState({
-    noCaries: false,
-    cariesInEnamel: false,
-    cariesInDentin: false
-  })
+  // States for building the suorituskortti
+  const [isBuilding, setIsBuilding] = useState(true) // First phase: build template
+  const [suorituskorttiTitle, setSuorituskorttiTitle] = useState('')
+  const [fields, setFields] = useState<Field[]>([])
 
-  const handleCheckboxToggle = (checkbox: keyof typeof checkboxes) => {
-    setCheckboxes(prev => ({
+  // States for field creation modal
+  const [showFieldModal, setShowFieldModal] = useState(false)
+  const [newFieldType, setNewFieldType] = useState<FieldType>('text')
+  const [newFieldLabel, setNewFieldLabel] = useState('')
+  const [newFieldRequired, setNewFieldRequired] = useState(false)
+  const [newFieldOptions, setNewFieldOptions] = useState<string[]>([''])
+
+  // States for filling the suorituskortti (second phase)
+  const [fieldValues, setFieldValues] = useState<{ [key: string]: any }>({})
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
+
+  // Add new field to the template
+  const addField = () => {
+    if (!newFieldLabel.trim()) {
+      Alert.alert('Virhe', 'Lisää kentän nimi')
+      return
+    }
+
+    const newField: Field = {
+      id: Date.now().toString(),
+      type: newFieldType,
+      label: newFieldLabel.trim(),
+      required: newFieldRequired,
+      options: (newFieldType === 'multipleChoice' || newFieldType === 'dropdown') ? newFieldOptions.filter(opt => opt.trim() !== '') : undefined,
+    }
+
+    setFields(prev => [...prev, newField])
+
+    // Reset modal form
+    setNewFieldLabel('')
+    setNewFieldRequired(false)
+    setNewFieldOptions([''])
+    setShowFieldModal(false)
+  }
+
+  // Remove field from template
+  const removeField = (fieldId: string) => {
+    setFields(prev => prev.filter(field => field.id !== fieldId))
+  }
+
+  // Add option to multiple choice field
+  const addOption = () => {
+    setNewFieldOptions(prev => [...prev, ''])
+  }
+
+  // Update option in multiple choice field
+  const updateOption = (index: number, value: string) => {
+    setNewFieldOptions(prev => prev.map((opt, i) => i === index ? value : opt))
+  }
+
+  // Remove option from multiple choice field
+  const removeOption = (index: number) => {
+    setNewFieldOptions(prev => prev.filter((_, i) => i !== index))
+  }
+
+  // Proceed to filling phase
+  const proceedToFilling = () => {
+    if (!suorituskorttiTitle.trim()) {
+      Alert.alert('Virhe', 'Lisää suorituskortin otsikko')
+      return
+    }
+
+    if (fields.length === 0) {
+      Alert.alert('Virhe', 'Lisää vähintään yksi kenttä')
+      return
+    }
+
+    // Initialize field values
+    const initialValues: { [key: string]: any } = {}
+    fields.forEach(field => {
+      if (field.type === 'checkbox') {
+        initialValues[field.id] = false
+      } else {
+        initialValues[field.id] = ''
+      }
+    })
+    setFieldValues(initialValues)
+    setIsBuilding(false)
+  }
+
+  // Update field value during filling
+  const updateFieldValue = (fieldId: string, value: any) => {
+    setFieldValues(prev => ({
       ...prev,
-      [checkbox]: !prev[checkbox]
+      [fieldId]: value
     }))
   }
 
+  // Toggle dropdown open/close
+  const toggleDropdown = (fieldId: string) => {
+    setOpenDropdownId(prev => prev === fieldId ? null : fieldId)
+  }
+
+  // Save the completed suorituskortti
   const handleSave = () => {
-    // Validation
-    if (!title.trim()) {
-      Alert.alert('Virhe', 'Lisää otsikko')
-      return
+    // Validate required fields
+    for (const field of fields) {
+      if (field.required) {
+        const value = fieldValues[field.id]
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          Alert.alert('Virhe', `Kenttä "${field.label}" on pakollinen`)
+          return
+        }
+      }
     }
 
-    if (!gypsumBlockNumber.trim()) {
-      Alert.alert('Virhe', 'Lisää kipsiblokki numero')
-      return
-    }
-
-    if (!jawSelection) {
-      Alert.alert('Virhe', 'Valitse ylä- tai alavisuri')
-      return
-    }
-
-    // Check that at least one checkbox is selected
-    if (!checkboxes.noCaries && !checkboxes.cariesInEnamel && !checkboxes.cariesInDentin) {
-      Alert.alert('Virhe', 'Valitse vähintään yksi kariesvaihtoehto')
-      return
-    }
-
-    // Create work card object
-    const workCard = {
-      title: title.trim(),
-      gypsumBlockNumber: gypsumBlockNumber.trim(),
-      jaw: jawSelection,
-      conditions: {
-        noCaries: checkboxes.noCaries,
-        cariesInEnamel: checkboxes.cariesInEnamel,
-        cariesInDentin: checkboxes.cariesInDentin
-      },
+    // Create suorituskortti object
+    const suorituskortti = {
+      title: suorituskorttiTitle.trim(),
+      fields: fields.map(field => ({
+        ...field,
+        value: fieldValues[field.id]
+      })),
       createdAt: new Date().toISOString()
     }
 
     // TODO: Save to storage/database
-    console.log('Work card created:', workCard)
+    console.log('Suorituskortti created:', suorituskortti)
 
     Alert.alert(
       'Onnistui!',
@@ -101,7 +187,218 @@ export default function CreateWorkCardScreen() {
     )
   }
 
-  return (
+  const renderFieldCreationModal = () => (
+    <Modal
+      visible={showFieldModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+    >
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={() => setShowFieldModal(false)}>
+            <Text style={styles.modalCancelButton}>Peruuta</Text>
+          </TouchableOpacity>
+          <Text style={styles.modalTitle}>Lisää kenttä</Text>
+          <TouchableOpacity onPress={addField}>
+            <Text style={styles.modalSaveButton}>Lisää</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.modalContent}>
+          {/* Field Type Selection */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Kentän tyyppi</Text>
+
+            <TouchableOpacity
+              style={[
+                styles.fieldTypeCard,
+                newFieldType === 'text' && styles.fieldTypeCardSelected
+              ]}
+              onPress={() => setNewFieldType('text')}
+            >
+              <Ionicons name="text-outline" size={24} color={newFieldType === 'text' ? '#007AFF' : '#666'} />
+              <View style={styles.fieldTypeTextContainer}>
+                <Text style={[
+                  styles.fieldTypeTitle,
+                  newFieldType === 'text' && styles.fieldTypeTitleSelected
+                ]}>
+                  Tekstikenttä (vain luku)
+                </Text>
+                <Text style={styles.fieldTypeDescription}>
+                  Staattinen teksti, ei muokattavissa
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.fieldTypeCard,
+                newFieldType === 'textInput' && styles.fieldTypeCardSelected
+              ]}
+              onPress={() => setNewFieldType('textInput')}
+            >
+              <Ionicons name="create-outline" size={24} color={newFieldType === 'textInput' ? '#007AFF' : '#666'} />
+              <View style={styles.fieldTypeTextContainer}>
+                <Text style={[
+                  styles.fieldTypeTitle,
+                  newFieldType === 'textInput' && styles.fieldTypeTitleSelected
+                ]}>
+                  Tekstikenttä (käyttäjä täyttää)
+                </Text>
+                <Text style={styles.fieldTypeDescription}>
+                  Vapaa tekstikenttä käyttäjälle
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.fieldTypeCard,
+                newFieldType === 'multipleChoice' && styles.fieldTypeCardSelected
+              ]}
+              onPress={() => setNewFieldType('multipleChoice')}
+            >
+              <Ionicons name="list-outline" size={24} color={newFieldType === 'multipleChoice' ? '#007AFF' : '#666'} />
+              <View style={styles.fieldTypeTextContainer}>
+                <Text style={[
+                  styles.fieldTypeTitle,
+                  newFieldType === 'multipleChoice' && styles.fieldTypeTitleSelected
+                ]}>
+                  Monivalinta
+                </Text>
+                <Text style={styles.fieldTypeDescription}>
+                  Valitse yksi vaihtoehdoista
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.fieldTypeCard,
+                newFieldType === 'checkbox' && styles.fieldTypeCardSelected
+              ]}
+              onPress={() => setNewFieldType('checkbox')}
+            >
+              <Ionicons name="checkbox-outline" size={24} color={newFieldType === 'checkbox' ? '#007AFF' : '#666'} />
+              <View style={styles.fieldTypeTextContainer}>
+                <Text style={[
+                  styles.fieldTypeTitle,
+                  newFieldType === 'checkbox' && styles.fieldTypeTitleSelected
+                ]}>
+                  Valintaruutu
+                </Text>
+                <Text style={styles.fieldTypeDescription}>
+                  Kyllä/ei valinta
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.fieldTypeCard,
+                newFieldType === 'dropdown' && styles.fieldTypeCardSelected
+              ]}
+              onPress={() => setNewFieldType('dropdown')}
+            >
+              <Ionicons name="chevron-down-outline" size={24} color={newFieldType === 'dropdown' ? '#007AFF' : '#666'} />
+              <View style={styles.fieldTypeTextContainer}>
+                <Text style={[
+                  styles.fieldTypeTitle,
+                  newFieldType === 'dropdown' && styles.fieldTypeTitleSelected
+                ]}>
+                  Pudotusvalikko
+                </Text>
+                <Text style={styles.fieldTypeDescription}>
+                  Valitse yksi vaihtoehdoista pudotusvalikosta
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.fieldTypeCard,
+                newFieldType === 'teacherReview' && styles.fieldTypeCardSelected
+              ]}
+              onPress={() => setNewFieldType('teacherReview')}
+            >
+              <Ionicons name="school-outline" size={24} color={newFieldType === 'teacherReview' ? '#007AFF' : '#666'} />
+              <View style={styles.fieldTypeTextContainer}>
+                <Text style={[
+                  styles.fieldTypeTitle,
+                  newFieldType === 'teacherReview' && styles.fieldTypeTitleSelected
+                ]}>
+                  Opettajan arviointi
+                </Text>
+                <Text style={styles.fieldTypeDescription}>
+                  Tekstikenttä opettajan palautteelle
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Field Label */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Kentän nimi</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Syötä kentän nimi..."
+              value={newFieldLabel}
+              onChangeText={setNewFieldLabel}
+              placeholderTextColor="#999"
+            />
+          </View>
+
+          {/* Required Field Toggle */}
+          <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setNewFieldRequired(!newFieldRequired)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.checkbox}>
+                {newFieldRequired && (
+                  <Ionicons name="checkmark" size={20} color="#007AFF" />
+                )}
+              </View>
+              <Text style={styles.checkboxLabel}>Pakollinen kenttä</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Multiple Choice/Dropdown Options */}
+          {(newFieldType === 'multipleChoice' || newFieldType === 'dropdown') && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Vaihtoehdot</Text>
+              {newFieldOptions.map((option, index) => (
+                <View key={index} style={styles.optionRow}>
+                  <TextInput
+                    style={[styles.textInput, { flex: 1 }]}
+                    placeholder={`Vaihtoehto ${index + 1}`}
+                    value={option}
+                    onChangeText={(text) => updateOption(index, text)}
+                    placeholderTextColor="#999"
+                  />
+                  {newFieldOptions.length > 1 && (
+                    <TouchableOpacity
+                      style={styles.removeOptionButton}
+                      onPress={() => removeOption(index)}
+                    >
+                      <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+              <TouchableOpacity style={styles.addOptionButton} onPress={addOption}>
+                <Ionicons name="add" size={20} color="#007AFF" />
+                <Text style={styles.addOptionText}>Lisää vaihtoehto</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  )
+
+  const renderBuildingPhase = () => (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -109,142 +406,245 @@ export default function CreateWorkCardScreen() {
           <Ionicons name="close" size={28} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Luo suorituskortti</Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text style={styles.saveButton}>Tallenna</Text>
+        <TouchableOpacity onPress={proceedToFilling}>
+          <Text style={styles.saveButton}>Jatka</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Title Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Lisää Otsikko</Text>
+          <Text style={styles.sectionTitle}>Suorituskortin otsikko</Text>
           <TextInput
             style={styles.textInput}
             placeholder="Syötä otsikko..."
-            value={title}
-            onChangeText={setTitle}
+            value={suorituskorttiTitle}
+            onChangeText={setSuorituskorttiTitle}
             placeholderTextColor="#999"
           />
         </View>
 
-        {/* Gypsum Block Number Section */}
+        {/* Fields Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Kipsiblokki nro</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Syötä kipsiblokki numero..."
-            value={gypsumBlockNumber}
-            onChangeText={setGypsumBlockNumber}
-            keyboardType="numeric"
-            placeholderTextColor="#999"
-          />
-        </View>
-
-        {/* Tooth Selection Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Hammas A</Text>
-          <Text style={styles.sectionSubtitle}>Ylä- vai alavisuri</Text>
-          
-          <View style={styles.segmentContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Kentät</Text>
             <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                jawSelection === 'upper' && styles.segmentButtonSelected
-              ]}
-              onPress={() => setJawSelection('upper')}
+              style={styles.addFieldButton}
+              onPress={() => setShowFieldModal(true)}
             >
-              <Text
-                style={[
-                  styles.segmentText,
-                  jawSelection === 'upper' && styles.segmentTextSelected
-                ]}
-              >
-                Ylävisuri
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                jawSelection === 'lower' && styles.segmentButtonSelected
-              ]}
-              onPress={() => setJawSelection('lower')}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  jawSelection === 'lower' && styles.segmentTextSelected
-                ]}
-              >
-                Alavisuri
-              </Text>
+              <Ionicons name="add" size={20} color="#007AFF" />
+              <Text style={styles.addFieldText}>Lisää kenttä</Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        {/* Cavity Conditions Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Kariesvaihtoehto</Text>
-          
-          {/* No Cavity Checkbox */}
-          <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => handleCheckboxToggle('noCaries')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.checkbox}>
-              {checkboxes.noCaries && (
-                <Ionicons name="checkmark" size={20} color="#007AFF" />
-              )}
+          {fields.map((field, index) => (
+            <View key={field.id} style={styles.fieldPreview}>
+              <View style={styles.fieldPreviewHeader}>
+                <Text style={styles.fieldPreviewTitle}>
+                  {field.label}
+                  {field.required && <Text style={styles.requiredMark}> *</Text>}
+                </Text>
+                <TouchableOpacity onPress={() => removeField(field.id)}>
+                  <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.fieldPreviewType}>
+                {field.type === 'text' && 'Tekstikenttä (vain luku)'}
+                {field.type === 'textInput' && 'Tekstikenttä (täytettävä)'}
+                {field.type === 'multipleChoice' && `Monivalinta (${field.options?.length || 0} vaihtoehtoa)`}
+                {field.type === 'dropdown' && `Pudotusvalikko (${field.options?.length || 0} vaihtoehtoa)`}
+                {field.type === 'checkbox' && 'Valintaruutu'}
+                {field.type === 'teacherReview' && 'Opettajan arviointi'}
+              </Text>
             </View>
-            <Text style={styles.checkboxLabel}>Ei kariesta (intakti)</Text>
-          </TouchableOpacity>
+          ))}
 
-          {/* Cavity in Enamel Checkbox */}
-          <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => handleCheckboxToggle('cariesInEnamel')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.checkbox}>
-              {checkboxes.cariesInEnamel && (
-                <Ionicons name="checkmark" size={20} color="#007AFF" />
-              )}
-            </View>
-            <Text style={styles.checkboxLabel}>Kariesta vain kiilteessä</Text>
-          </TouchableOpacity>
-
-          {/* Cavity in Dentin Checkbox */}
-          <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={() => handleCheckboxToggle('cariesInDentin')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.checkbox}>
-              {checkboxes.cariesInDentin && (
-                <Ionicons name="checkmark" size={20} color="#007AFF" />
-              )}
-            </View>
-            <Text style={styles.checkboxLabel}>Karies dentiiniin asti</Text>
-          </TouchableOpacity>
+          {fields.length === 0 && (
+            <Text style={styles.noFieldsText}>Ei kenttiä lisätty</Text>
+          )}
         </View>
 
         {/* Info Card */}
         <View style={styles.infoCard}>
           <Ionicons name="information-circle-outline" size={24} color="#007AFF" />
           <View style={styles.infoTextContainer}>
-            <Text style={styles.infoTitle}>Huomio</Text>
+            <Text style={styles.infoTitle}>Ohjeet</Text>
             <Text style={styles.infoText}>
-              Täytä kaikki kentät ja valitse vähintään yksi kariesvaihtoehto luodaksesi suorituskortin.
+              Lisää suorituskortille haluamasi kentät. Voit lisätä tekstikenttiä, monivalintoja ja valintaruutuja.
             </Text>
           </View>
         </View>
 
-        {/* Bottom Spacing */}
+        <View style={styles.bottomSpacing} />
+      </ScrollView>
+
+      {renderFieldCreationModal()}
+    </SafeAreaView>
+  )
+
+  const renderFillingPhase = () => (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => setIsBuilding(true)}>
+          <Ionicons name="arrow-back" size={28} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Täytä tiedot</Text>
+        <TouchableOpacity onPress={handleSave}>
+          <Text style={styles.saveButton}>Tallenna</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Title Display */}
+        <View style={styles.section}>
+          <Text style={styles.suorituskorttiTitle}>{suorituskorttiTitle}</Text>
+        </View>
+
+        {/* Dynamic Fields */}
+        {fields.map((field) => (
+          <View key={field.id} style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {field.label}
+              {field.required && <Text style={styles.requiredMark}> *</Text>}
+            </Text>
+
+            {field.type === 'text' && (
+              <Text style={styles.staticText}>Tekstikenttä (vain luku)</Text>
+            )}
+
+            {field.type === 'textInput' && (
+              <TextInput
+                style={styles.textInput}
+                placeholder={`Syötä ${field.label.toLowerCase()}...`}
+                value={fieldValues[field.id] || ''}
+                onChangeText={(text) => updateFieldValue(field.id, text)}
+                placeholderTextColor="#999"
+              />
+            )}
+
+            {field.type === 'multipleChoice' && field.options && (
+              <View>
+                {!fieldValues[field.id] && (
+                  <Text style={styles.multipleChoiceHint}>Valitse yksi vaihtoehto:</Text>
+                )}
+                {field.options.map((option, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.multipleChoiceCard,
+                      fieldValues[field.id] === option && styles.multipleChoiceCardSelected
+                    ]}
+                    onPress={() => updateFieldValue(field.id, option)}
+                  >
+                    <View style={styles.multipleChoiceRadio}>
+                      {fieldValues[field.id] === option && (
+                        <View style={styles.multipleChoiceRadioSelected} />
+                      )}
+                    </View>
+                    <Text style={[
+                      styles.multipleChoiceText,
+                      fieldValues[field.id] === option && styles.multipleChoiceTextSelected
+                    ]}>
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {field.type === 'checkbox' && (
+              <TouchableOpacity
+                style={styles.checkboxRow}
+                onPress={() => updateFieldValue(field.id, !fieldValues[field.id])}
+                activeOpacity={0.7}
+              >
+                <View style={styles.checkbox}>
+                  {fieldValues[field.id] && (
+                    <Ionicons name="checkmark" size={20} color="#007AFF" />
+                  )}
+                </View>
+                <Text style={styles.checkboxLabel}>Kyllä</Text>
+              </TouchableOpacity>
+            )}
+
+            {field.type === 'dropdown' && field.options && (
+              <View>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() => toggleDropdown(field.id)}
+                >
+                  <Text style={[
+                    styles.dropdownButtonText,
+                    !fieldValues[field.id] && styles.dropdownPlaceholder
+                  ]}>
+                    {fieldValues[field.id] || 'Valitse...'}
+                  </Text>
+                  <Ionicons
+                    name={openDropdownId === field.id ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color="#666"
+                  />
+                </TouchableOpacity>
+
+                {/* Only show options when dropdown is open */}
+                {openDropdownId === field.id && (
+                  <View style={styles.dropdownOptions}>
+                    {field.options.map((option, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={[
+                          styles.dropdownOptionCard,
+                          fieldValues[field.id] === option && styles.dropdownOptionCardSelected
+                        ]}
+                        onPress={() => {
+                          updateFieldValue(field.id, option)
+                          setOpenDropdownId(null) // Close dropdown after selection
+                        }}
+                      >
+                        <Text style={[
+                          styles.dropdownOptionText,
+                          fieldValues[field.id] === option && styles.dropdownOptionTextSelected
+                        ]}>
+                          {option}
+                        </Text>
+                        {fieldValues[field.id] === option && (
+                          <Ionicons name="checkmark" size={18} color="#007AFF" />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+
+            {field.type === 'teacherReview' && (
+              <View style={styles.teacherReviewContainer}>
+                <View style={styles.teacherReviewHeader}>
+                  <Ionicons name="school" size={20} color="#007AFF" />
+                  <Text style={styles.teacherReviewLabel}>Opettajan arviointi</Text>
+                </View>
+                <TextInput
+                  style={styles.teacherReviewInput}
+                  placeholder="Kirjoita palautetta opiskelijalle..."
+                  value={fieldValues[field.id] || ''}
+                  onChangeText={(text) => updateFieldValue(field.id, text)}
+                  placeholderTextColor="#999"
+                  multiline={true}
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                />
+              </View>
+            )}
+          </View>
+        ))}
+
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </SafeAreaView>
   )
+
+  return isBuilding ? renderBuildingPhase() : renderFillingPhase()
 }
 
 const styles = StyleSheet.create({
@@ -285,6 +685,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
@@ -373,7 +779,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
   },
-  
   segmentButton: {
     flex: 1,
     paddingVertical: 12,
@@ -383,19 +788,291 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: '#d0d0d0',
   },
-  
   segmentButtonSelected: {
     backgroundColor: '#007AFF',
   },
-  
   segmentText: {
     fontSize: 16,
     color: '#333',
     fontWeight: '500',
   },
-  
   segmentTextSelected: {
     color: '#fff',
     fontWeight: '600',
-  },  
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
+  },
+  modalCancelButton: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF3B30',
+  },
+  modalSaveButton: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  modalContent: {
+    flex: 1,
+  },
+  // Field creation styles
+  addFieldButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  addFieldText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 4,
+  },
+  fieldPreview: {
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#007AFF',
+  },
+  fieldPreviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  fieldPreviewTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    flex: 1,
+  },
+  fieldPreviewType: {
+    fontSize: 14,
+    color: '#666',
+  },
+  requiredMark: {
+    color: '#FF3B30',
+    fontWeight: '700',
+  },
+  noFieldsText: {
+    fontSize: 16,
+    color: '#999',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    paddingVertical: 20,
+  },
+  // Options styles
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  removeOptionButton: {
+    marginLeft: 8,
+    padding: 8,
+  },
+  addOptionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  addOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 4,
+  },
+  // Filling phase styles
+  suorituskorttiTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#333',
+    textAlign: 'center',
+  },
+  staticText: {
+    fontSize: 16,
+    color: '#666',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  // Field type selection styles
+  fieldTypeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+  },
+  fieldTypeCardSelected: {
+    backgroundColor: '#E3F2FD',
+    borderColor: '#007AFF',
+  },
+  fieldTypeTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  fieldTypeTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  fieldTypeTitleSelected: {
+    color: '#007AFF',
+  },
+  fieldTypeDescription: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 18,
+  },
+  // Multiple choice selection styles
+  multipleChoiceHint: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  multipleChoiceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+  },
+  multipleChoiceCardSelected: {
+    backgroundColor: '#E3F2FD',
+    borderColor: '#007AFF',
+  },
+  multipleChoiceRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  multipleChoiceRadioSelected: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#007AFF',
+  },
+  multipleChoiceText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+  },
+  multipleChoiceTextSelected: {
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  // Dropdown styles
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+  },
+  dropdownButtonText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  dropdownPlaceholder: {
+    color: '#999',
+  },
+  dropdownOptions: {
+    marginTop: 8,
+  },
+  dropdownOptionCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  dropdownOptionCardSelected: {
+    backgroundColor: '#E3F2FD',
+    borderColor: '#007AFF',
+  },
+  dropdownOptionText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+  },
+  dropdownOptionTextSelected: {
+    color: '#007AFF',
+    fontWeight: '600',
+  },
+  // Teacher review styles
+  teacherReviewContainer: {
+    backgroundColor: '#FFF3E0',
+    borderRadius: 12,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF9800',
+  },
+  teacherReviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  teacherReviewLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#E65100',
+    marginLeft: 8,
+  },
+  teacherReviewInput: {
+    borderWidth: 1,
+    borderColor: '#FFB74D',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#FFF',
+    color: '#333',
+    minHeight: 100,
+  },
 })
