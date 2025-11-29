@@ -379,14 +379,6 @@ const TeacherDashboard = () => {
               </View>
             )}
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, styles.actionButtonSecondary]}
-            onPress={() => router.push('/create-work-card' as any)}
-          >
-            <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
-            <Text style={styles.actionButtonTextSecondary}>Luo suorituskortti</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
