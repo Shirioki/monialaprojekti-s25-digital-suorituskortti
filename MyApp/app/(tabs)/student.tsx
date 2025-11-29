@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Mod
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getAllCoursesProgress, CourseProgress } from '../../utils/taskManager'
+import { getAllCourses, Course } from '../../utils/courseManager'
 
 interface KurssiTehtava {
   id: string
@@ -39,51 +40,70 @@ const StudentView = () => {
   const loadProgressData = async () => {
     try {
       setLoading(true)
+      
+      // Get all courses from courseManager
+      const allCourses = await getAllCourses()
+      
+      // Filter courses for student visibility (student or both)
+      const studentCourses = allCourses.filter(
+        course => course.status === 'active' && 
+        (course.visibility === 'student' || course.visibility === 'both')
+      )
+      
+      // Get progress data
       const progressData = await getAllCoursesProgress()
       setCoursesProgress(progressData)
 
-      // Transform progress data into the existing UI structure
+      // Group courses by subject
+      const grouped: Record<string, Course[]> = {
+        'Kariologia': [],
+        'Kirurgia': [],
+        'Endodontia': [],
+      }
+
+      studentCourses.forEach(course => {
+        if (grouped[course.subject]) {
+          grouped[course.subject].push(course)
+        }
+      })
+
+      // Transform into UI structure
       const dynamicOppiaineet: Oppiaine[] = [
         {
           id: '1',
           nimi: 'Kariologia',
           expanded: false,
-          tehtavat: [
-            {
-              id: '1',
-              nimi: progressData.find(p => p.courseId === 'h1-kariologia')?.courseName || 'H1 Syksy',
-              progress: progressData.find(p => p.courseId === 'h1-kariologia')?.progress || 0
-            },
-            {
-              id: '2',
-              nimi: progressData.find(p => p.courseId === 'h1-kevat-kariologia')?.courseName || 'H1 Kevät',
-              progress: progressData.find(p => p.courseId === 'h1-kevat-kariologia')?.progress || 0
-            },
-            { id: '3', nimi: 'H2 Syksy', progress: 0 },
-            { id: '4', nimi: 'H2 Kevät', progress: 0 },
-            { id: '5', nimi: 'H3 Syksy', progress: 0 },
-            { id: '6', nimi: 'H3 Kevät', progress: 0 },
-            { id: '7', nimi: 'Mini-OSCE', progress: 0 },
-          ],
+          tehtavat: grouped['Kariologia'].map((course, index) => ({
+            id: course.id,
+            nimi: course.name,
+            progress: progressData.find(p => p.courseId === course.id)?.progress || 0
+          })),
         },
         {
           id: '2',
           nimi: 'Kirurgia',
           expanded: false,
-          tehtavat: [], // Ei tehtäviä Kirurgialle
+          tehtavat: grouped['Kirurgia'].map((course, index) => ({
+            id: course.id,
+            nimi: course.name,
+            progress: progressData.find(p => p.courseId === course.id)?.progress || 0
+          })),
         },
         {
           id: '3',
           nimi: 'Endodontia',
           expanded: false,
-          tehtavat: [], // Ei tehtäviä Endodontialle
+          tehtavat: grouped['Endodontia'].map((course, index) => ({
+            id: course.id,
+            nimi: course.name,
+            progress: progressData.find(p => p.courseId === course.id)?.progress || 0
+          })),
         },
       ]
 
       setOppiaineet(dynamicOppiaineet)
     } catch (error) {
       console.error('Error loading progress data:', error)
-      // Fallback to empty state or show error
     } finally {
       setLoading(false)
     }
@@ -169,22 +189,9 @@ const StudentView = () => {
           <Ionicons name="menu" size={28} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Opiskelija</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            onPress={loadProgressData}
-            style={styles.refreshButton}
-            disabled={loading}
-          >
-            <Ionicons
-              name="refresh"
-              size={20}
-              color={loading ? "#999" : "#007AFF"}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleSettingsPress}>
-            <Ionicons name="settings-outline" size={24} color="#333" />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={handleSettingsPress}>
+          <Ionicons name="settings-outline" size={24} color="#333" />
+        </TouchableOpacity>
       </View>
 
       {/* Side Menu Modal */}
@@ -236,104 +243,96 @@ const StudentView = () => {
         </TouchableOpacity>
       </Modal>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.content}>
-          {/* Student Profile Section - styled like [opiskelijaId] */}
-          <View style={styles.profileSection}>
-            <View style={styles.profileCard}>
-              <View style={styles.avatarContainer}>
-                <Ionicons name="person-circle-outline" size={80} color="#007AFF" />
-              </View>
-              <Text style={styles.studentName}>Matti Opiskelija</Text>
-              <Text style={styles.studentEmail}>matti.opiskelija@helsinki.fi</Text>
+      <ScrollView style={styles.content}>
+        {/* Student Profile Section - styled like [opiskelijaId] */}
+        <View style={styles.profileSection}>
+          <View style={styles.profileCard}>
+            <View style={styles.avatarContainer}>
+              <Ionicons name="person-circle" size={80} color="#007AFF" />
+            </View>
+            <Text style={styles.studentName}>Matti Opiskelija</Text>
+            <Text style={styles.studentEmail}>matti.opiskelija@helsinki.fi</Text>
 
-              {/* Overall Progress */}
-              <View style={styles.progressSection}>
-                <Text style={styles.progressLabel}>Kokonaisedistyminen</Text>
-                <View style={styles.progressBarContainer}>
-                  <View
-                    style={[
-                      styles.progressBar,
-                      {
-                        width: `${coursesProgress.length > 0 ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length : 0}%`,
-                        backgroundColor: getProgressColor(coursesProgress.length > 0 ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length : 0),
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.progressText}>
-                  {coursesProgress.length > 0 ? Math.round(coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length) : 0}%
-                </Text>
+            {/* Overall Progress */}
+            <View style={styles.progressSection}>
+              <Text style={styles.progressLabel}>Kokonaisedistyminen</Text>
+              <View style={styles.progressBarContainer}>
+                <View
+                  style={[
+                    styles.progressBar,
+                    {
+                      width: `${coursesProgress.length > 0 ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length : 0}%`,
+                      backgroundColor: getProgressColor(coursesProgress.length > 0 ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length : 0),
+                    },
+                  ]}
+                />
               </View>
+              <Text style={styles.progressText}>
+                {coursesProgress.length > 0 ? Math.round(coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length) : 0}%
+              </Text>
             </View>
           </View>
-
-          <Text style={styles.sectionTitle}>Oppiaineet</Text>
-
-          {oppiaineet.map((oppiaine) => (
-            <View key={oppiaine.id} style={styles.oppiaineCard}>
-              <TouchableOpacity
-                style={styles.oppiaineHeader}
-                onPress={() => toggleOppiaine(oppiaine.id)}
-              >
-                <View style={styles.oppiaineInfo}>
-                  <Ionicons
-                    name={oppiaine.expanded ? 'chevron-down' : 'chevron-forward'}
-                    size={20}
-                    color="#666"
-                  />
-                  <Text style={styles.oppiaineNimi}>{oppiaine.nimi}</Text>
-                </View>
-              </TouchableOpacity>
-
-              {oppiaine.expanded && (
-                <View style={styles.tehtavaList}>
-                  {/* Näytetään tehtävät vain Kariologialle */}
-                  {oppiaine.id === '1' && oppiaine.tehtavat.length > 0 ? (
-                    oppiaine.tehtavat.map((tehtava) => {
-                      const progress = tehtava.progress ?? 0
-
-                      return (
-                        <TouchableOpacity
-                          key={tehtava.id}
-                          style={styles.tehtavaItem}
-                          onPress={() => router.push('/h1-tasks' as any)}
-                        >
-                          <View style={styles.tehtavaInfo}>
-                            <Text style={styles.tehtavaNimi}>{tehtava.nimi}</Text>
-                            <View style={styles.progressBarContainer}>
-                              <View
-                                style={[
-                                  styles.progressBar,
-                                  {
-                                    width: `${progress}%`,
-                                    backgroundColor: getProgressColor(progress),
-                                  },
-                                ]}
-                              />
-                            </View>
-                            <Text style={styles.progressText}>
-                              {progress}% suoritettu
-                            </Text>
-                          </View>
-                          <Ionicons name="chevron-forward" size={20} color="#999" />
-                        </TouchableOpacity>
-                      )
-                    })
-                  ) : oppiaine.id !== '1' ? (
-                    <View style={[styles.tehtavaItem, styles.tehtavaItemDisabled]}>
-                      <View style={styles.tehtavaInfo}>
-                        <Text style={[styles.tehtavaNimi, styles.tehtavaDisabled]}>
-                          Tehtäviä ei ole vielä saatavilla
-                        </Text>
-                      </View>
-                    </View>
-                  ) : null}
-                </View>
-              )}
-            </View>
-          ))}
         </View>
+
+        {/* Oppiaineet */}
+        <Text style={styles.sectionTitle}>Oppiaineet</Text>
+
+        {oppiaineet.map((oppiaine) => (
+          <View key={oppiaine.id} style={styles.oppiaineCard}>
+            <TouchableOpacity
+              style={styles.oppiaineHeader}
+              onPress={() => toggleOppiaine(oppiaine.id)}
+            >
+              <View style={styles.oppiaineInfo}>
+                <Ionicons name="book-outline" size={24} color="#007AFF" />
+                <Text style={styles.oppiaineNimi}>{oppiaine.nimi}</Text>
+              </View>
+              <Ionicons
+                name={oppiaine.expanded ? 'chevron-up' : 'chevron-down'}
+                size={24}
+                color="#666"
+              />
+            </TouchableOpacity>
+
+            {oppiaine.expanded && (
+              <View style={styles.tehtavaList}>
+                {oppiaine.tehtavat.length > 0 ? (
+                  oppiaine.tehtavat.map((tehtava) => {
+                    const progress = tehtava.progress ?? 0
+                    return (
+                      <TouchableOpacity
+                        key={tehtava.id}
+                        style={styles.tehtavaItem}
+                        onPress={() => router.push('/h1-tasks' as any)}
+                      >
+                        <View style={styles.tehtavaInfo}>
+                          <Text style={styles.tehtavaNimi}>{tehtava.nimi}</Text>
+                          <View style={styles.progressBarContainer}>
+                            <View
+                              style={[
+                                styles.progressBar,
+                                {
+                                  width: `${progress}%`,
+                                  backgroundColor: getProgressColor(progress),
+                                },
+                              ]}
+                            />
+                          </View>
+                          <Text style={styles.progressText}>{progress}% suoritettu</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color="#999" />
+                      </TouchableOpacity>
+                    )
+                  })
+                ) : (
+                  <View style={styles.tehtavaItem}>
+                    <Text style={styles.tehtavaDisabled}>Kursseja ei ole vielä saatavilla</Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+        ))}
       </ScrollView>
     </SafeAreaView>
   )

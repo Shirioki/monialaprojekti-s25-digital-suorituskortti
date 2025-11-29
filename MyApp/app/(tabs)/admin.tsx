@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, TextInput, Modal, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { getAllCourses, getCoursesBySubject, getSubjectsWithCounts, addCourse, updateCourse, deleteCourse, Course } from '../../utils/courseManager'
 
 interface User {
   id: string
@@ -46,6 +47,24 @@ export default function AdminDashboard() {
     user.email.toLowerCase().includes(searchText.toLowerCase())
   )
 
+  // Course management state
+  const [allCourses, setAllCourses] = useState<Course[]>([])
+  const [coursesBySubject, setCoursesBySubject] = useState<Record<string, Course[]>>({})
+  const [teacherCourses, setTeacherCourses] = useState<Course[]>([])
+  const [subjectsWithCounts, setSubjectsWithCounts] = useState<{ name: string; count: number; icon: string; color: string }[]>([])
+  const [addCourseModalVisible, setAddCourseModalVisible] = useState(false)
+  const [editCourseModalVisible, setEditCourseModalVisible] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+  const [newCourse, setNewCourse] = useState({
+    name: '',
+    subject: 'Kariologia',
+    visibility: 'student' as 'student' | 'teacher' | 'both',
+    yearGroup: '',
+    studentCount: 0,
+    status: 'active' as 'active' | 'inactive',
+    createdBy: 'Admin'
+  })
+
   // Group users by role
   const groupUsersByRole = (userList: User[]) => {
     const roles = ['admin', 'teacher', 'student'] as const
@@ -73,6 +92,7 @@ export default function AdminDashboard() {
       teacher: '#2196F3',
       student: '#4CAF50'
     }
+
     return {
       ...styles.roleSectionHeader,
       borderLeftColor: borderColors[role]
@@ -155,6 +175,115 @@ export default function AdminDashboard() {
         ? { ...u, status: u.status === 'active' ? 'inactive' : 'active' }
         : u
     ))
+  }
+
+  // Load courses data
+  const loadCoursesData = async () => {
+    try {
+      const courses = await getAllCourses()
+      setAllCourses(courses)
+      
+      // Group by subject
+      const grouped: Record<string, Course[]> = {
+        'Kariologia': [],
+        'Kirurgia': [],
+        'Endodontia': [],
+      }
+      
+      courses.forEach(course => {
+        if (grouped[course.subject]) {
+          grouped[course.subject].push(course)
+        }
+      })
+      
+      setCoursesBySubject(grouped)
+      
+      // Get teacher courses
+      const teacherCoursesData = courses.filter(c => c.visibility === 'teacher' || c.visibility === 'both')
+      setTeacherCourses(teacherCoursesData)
+      
+      // Get subjects with counts
+      const subjects = await getSubjectsWithCounts()
+      setSubjectsWithCounts(subjects)
+    } catch (error) {
+      console.error('Error loading courses:', error)
+    }
+  }
+
+  // Load courses when tab changes to 'courses'
+  React.useEffect(() => {
+    if (selectedTab === 'courses') {
+      loadCoursesData()
+    }
+  }, [selectedTab])
+
+  const handleAddCourse = async () => {
+    if (!newCourse.name) {
+      Alert.alert('Virhe', 'Anna kurssille nimi')
+      return
+    }
+
+    try {
+      await addCourse(newCourse)
+      setAddCourseModalVisible(false)
+      setNewCourse({
+        name: '',
+        subject: 'Kariologia',
+        visibility: 'student',
+        yearGroup: '',
+        studentCount: 0,
+        status: 'active',
+        createdBy: 'Admin'
+      })
+      loadCoursesData()
+      Alert.alert('Onnistui', 'Kurssi lisätty')
+    } catch (error) {
+      Alert.alert('Virhe', 'Kurssin lisääminen epäonnistui')
+    }
+  }
+
+  const handleEditCourse = (course: Course) => {
+    setSelectedCourse(course)
+    setEditCourseModalVisible(true)
+  }
+
+  const handleSaveCourseEdit = async () => {
+    if (!selectedCourse) return
+
+    try {
+      await updateCourse(selectedCourse.id, selectedCourse)
+      setEditCourseModalVisible(false)
+      setSelectedCourse(null)
+      loadCoursesData()
+      Alert.alert('Onnistui', 'Kurssi päivitetty')
+    } catch (error) {
+      Alert.alert('Virhe', 'Kurssin päivittäminen epäonnistui')
+    }
+  }
+
+  const handleDeleteCourse = async (courseId: string) => {
+    Alert.alert(
+      'Vahvista poisto',
+      'Haluatko varmasti poistaa tämän kurssin?',
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Poista',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteCourse(courseId)
+              setEditCourseModalVisible(false)
+              setSelectedCourse(null)
+              loadCoursesData()
+              Alert.alert('Onnistui', 'Kurssi poistettu')
+            } catch (error) {
+              Alert.alert('Virhe', 'Kurssin poistaminen epäonnistui')
+            }
+          }
+        }
+      ]
+    )
   }
 
   const menuItems = [
@@ -280,37 +409,27 @@ export default function AdminDashboard() {
           style={[styles.tab, selectedTab === 'users' && styles.tabActive]}
           onPress={() => setSelectedTab('users')}
         >
-          <Ionicons
-            name="people-outline"
-            size={20}
-            color={selectedTab === 'users' ? '#007AFF' : '#666'}
-          />
+          <Ionicons name="people-outline" size={20} color={selectedTab === 'users' ? '#007AFF' : '#666'} />
           <Text style={[styles.tabText, selectedTab === 'users' && styles.tabTextActive]}>
             Käyttäjät
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.tab, selectedTab === 'courses' && styles.tabActive]}
           onPress={() => setSelectedTab('courses')}
         >
-          <Ionicons
-            name="book-outline"
-            size={20}
-            color={selectedTab === 'courses' ? '#007AFF' : '#666'}
-          />
+          <Ionicons name="book-outline" size={20} color={selectedTab === 'courses' ? '#007AFF' : '#666'} />
           <Text style={[styles.tabText, selectedTab === 'courses' && styles.tabTextActive]}>
             Kurssit
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.tab, selectedTab === 'system' && styles.tabActive]}
           onPress={() => setSelectedTab('system')}
         >
-          <Ionicons
-            name="settings-outline"
-            size={20}
-            color={selectedTab === 'system' ? '#007AFF' : '#666'}
-          />
+          <Ionicons name="settings-outline" size={20} color={selectedTab === 'system' ? '#007AFF' : '#666'} />
           <Text style={[styles.tabText, selectedTab === 'system' && styles.tabTextActive]}>
             Järjestelmä
           </Text>
@@ -354,11 +473,12 @@ export default function AdminDashboard() {
                     <Text style={styles.roleSectionTitle}>Ylläpitäjät ({groupedUsers.admin.length})</Text>
                   </View>
                   <Ionicons
-                    name={expandedSections.admin ? "chevron-up" : "chevron-down"}
+                    name={expandedSections.admin ? 'chevron-up' : 'chevron-down'}
                     size={20}
                     color="#666"
                   />
                 </TouchableOpacity>
+
                 {expandedSections.admin && (
                   <View style={styles.roleSectionContent}>
                     {groupedUsers.admin.map((user) => (
@@ -385,26 +505,17 @@ export default function AdminDashboard() {
                           </View>
                         </View>
                         <View style={styles.userActions}>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleEditUser(user)}
-                          >
+                          <TouchableOpacity style={styles.actionButton} onPress={() => handleEditUser(user)}>
                             <Ionicons name="create-outline" size={20} color="#007AFF" />
                           </TouchableOpacity>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleToggleUserStatus(user.id)}
-                          >
+                          <TouchableOpacity style={styles.actionButton} onPress={() => handleToggleUserStatus(user.id)}>
                             <Ionicons
                               name={user.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'}
                               size={20}
                               color={user.status === 'active' ? '#FF9800' : '#4CAF50'}
                             />
                           </TouchableOpacity>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleDeleteUser(user.id)}
-                          >
+                          <TouchableOpacity style={styles.actionButton} onPress={() => handleDeleteUser(user.id)}>
                             <Ionicons name="trash-outline" size={20} color="#F44336" />
                           </TouchableOpacity>
                         </View>
@@ -428,11 +539,12 @@ export default function AdminDashboard() {
                     <Text style={styles.roleSectionTitle}>Opettajat ({groupedUsers.teacher.length})</Text>
                   </View>
                   <Ionicons
-                    name={expandedSections.teacher ? "chevron-up" : "chevron-down"}
+                    name={expandedSections.teacher ? 'chevron-up' : 'chevron-down'}
                     size={20}
                     color="#666"
                   />
                 </TouchableOpacity>
+
                 {expandedSections.teacher && (
                   <View style={styles.roleSectionContent}>
                     {groupedUsers.teacher.map((user) => (
@@ -459,26 +571,17 @@ export default function AdminDashboard() {
                           </View>
                         </View>
                         <View style={styles.userActions}>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleEditUser(user)}
-                          >
+                          <TouchableOpacity style={styles.actionButton} onPress={() => handleEditUser(user)}>
                             <Ionicons name="create-outline" size={20} color="#007AFF" />
                           </TouchableOpacity>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleToggleUserStatus(user.id)}
-                          >
+                          <TouchableOpacity style={styles.actionButton} onPress={() => handleToggleUserStatus(user.id)}>
                             <Ionicons
                               name={user.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'}
                               size={20}
                               color={user.status === 'active' ? '#FF9800' : '#4CAF50'}
                             />
                           </TouchableOpacity>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleDeleteUser(user.id)}
-                          >
+                          <TouchableOpacity style={styles.actionButton} onPress={() => handleDeleteUser(user.id)}>
                             <Ionicons name="trash-outline" size={20} color="#F44336" />
                           </TouchableOpacity>
                         </View>
@@ -502,11 +605,12 @@ export default function AdminDashboard() {
                     <Text style={styles.roleSectionTitle}>Opiskelijat ({groupedUsers.student.length})</Text>
                   </View>
                   <Ionicons
-                    name={expandedSections.student ? "chevron-up" : "chevron-down"}
+                    name={expandedSections.student ? 'chevron-up' : 'chevron-down'}
                     size={20}
                     color="#666"
                   />
                 </TouchableOpacity>
+
                 {expandedSections.student && (
                   <View style={styles.roleSectionContent}>
                     {groupedUsers.student.map((user) => (
@@ -533,26 +637,17 @@ export default function AdminDashboard() {
                           </View>
                         </View>
                         <View style={styles.userActions}>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleEditUser(user)}
-                          >
+                          <TouchableOpacity style={styles.actionButton} onPress={() => handleEditUser(user)}>
                             <Ionicons name="create-outline" size={20} color="#007AFF" />
                           </TouchableOpacity>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleToggleUserStatus(user.id)}
-                          >
+                          <TouchableOpacity style={styles.actionButton} onPress={() => handleToggleUserStatus(user.id)}>
                             <Ionicons
                               name={user.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'}
                               size={20}
                               color={user.status === 'active' ? '#FF9800' : '#4CAF50'}
                             />
                           </TouchableOpacity>
-                          <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleDeleteUser(user.id)}
-                          >
+                          <TouchableOpacity style={styles.actionButton} onPress={() => handleDeleteUser(user.id)}>
                             <Ionicons name="trash-outline" size={20} color="#F44336" />
                           </TouchableOpacity>
                         </View>
@@ -580,12 +675,112 @@ export default function AdminDashboard() {
       {/* Courses Tab Content */}
       {selectedTab === 'courses' && (
         <ScrollView style={styles.content}>
-          <View style={styles.comingSoonContainer}>
-            <Ionicons name="book-outline" size={60} color="#007AFF" />
-            <Text style={styles.comingSoonTitle}>Kurssien hallinta</Text>
-            <Text style={styles.comingSoonText}>
-              Kurssien hallinta-ominaisuus on kehitteillä. Täältä pääset pian hallinnoimaan kursseja, lisäämään uusia kursseja ja muokkaamaan olemassa olevia.
-            </Text>
+          <View style={styles.section}>
+            <View style={styles.coursesHeader}>
+              <Text style={styles.sectionTitle}>Kaikki kurssit</Text>
+              <TouchableOpacity
+                style={styles.addCourseButton}
+                onPress={() => setAddCourseModalVisible(true)}
+              >
+                <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
+                <Text style={styles.addCourseButtonText}>Lisää kurssi</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Dynamic Subjects */}
+            <View style={styles.subjectSection}>
+              <Text style={styles.subjectTitle}>Oppiaineet</Text>
+
+              {subjectsWithCounts.map((subject) => (
+                <View key={subject.name} style={styles.subjectCard}>
+                  <View style={styles.subjectHeader}>
+                    <View style={styles.subjectHeaderLeft}>
+                      <Ionicons name={subject.icon as any} size={24} color={subject.color} />
+                      <Text style={styles.subjectName}>{subject.name}</Text>
+                    </View>
+                    <View style={styles.subjectStats}>
+                      <Ionicons name="book-outline" size={16} color="#666" />
+                      <Text style={styles.subjectStatsText}>{subject.count} kurssia</Text>
+                    </View>
+                  </View>
+
+                  {coursesBySubject[subject.name] && coursesBySubject[subject.name].length > 0 ? (
+                    <View style={styles.coursesList}>
+                      {coursesBySubject[subject.name].map((course) => (
+                        <TouchableOpacity
+                          key={course.id}
+                          style={styles.courseItem}
+                          onPress={() => handleEditCourse(course)}
+                        >
+                          <View style={styles.courseItemLeft}>
+                            <View
+                              style={[
+                                styles.courseStatusDot,
+                                { backgroundColor: course.status === 'active' ? '#4CAF50' : '#999' }
+                              ]}
+                            />
+                            <Text style={styles.courseItemText}>{course.name}</Text>
+                          </View>
+                          <View style={styles.courseItemRight}>
+                            <Ionicons name="people-outline" size={16} color="#666" />
+                            <Text style={styles.courseItemStudents}>{course.studentCount}</Text>
+                            <Ionicons name="chevron-forward" size={16} color="#999" style={{ marginLeft: 8 }} />
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  ) : (
+                    <View style={styles.emptyCoursesContainer}>
+                      <Text style={styles.emptyCoursesText}>Ei kursseja vielä saatavilla</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+
+            {/* Teacher Year Courses */}
+            {teacherCourses.length > 0 && (
+              <View style={styles.subjectSection}>
+                <Text style={styles.subjectTitle}>Vuosikurssit (Opettajanäkymä)</Text>
+
+                {teacherCourses.map((course) => (
+                  <TouchableOpacity
+                    key={course.id}
+                    style={styles.subjectCard}
+                    onPress={() => handleEditCourse(course)}
+                  >
+                    <View style={styles.subjectHeader}>
+                      <View style={styles.subjectHeaderLeft}>
+                        <Ionicons name="calendar" size={24} color="#FF5722" />
+                        <Text style={styles.subjectName}>{course.name}</Text>
+                      </View>
+                      <View style={styles.subjectStats}>
+                        <Ionicons name="people-outline" size={16} color="#666" />
+                        <Text style={styles.subjectStatsText}>{course.studentCount} opiskelijaa</Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Summary Stats */}
+            <View style={styles.summarySection}>
+              <View style={styles.summaryCard}>
+                <Text style={styles.summaryNumber}>{allCourses.filter(c => c.status === 'active').length}</Text>
+                <Text style={styles.summaryLabel}>Aktiivisia kursseja</Text>
+              </View>
+              <View style={styles.summaryCard}>
+                <Text style={styles.summaryNumber}>{subjectsWithCounts.length}</Text>
+                <Text style={styles.summaryLabel}>Oppiainetta</Text>
+              </View>
+              <View style={styles.summaryCard}>
+                <Text style={styles.summaryNumber}>
+                  {allCourses.reduce((sum, course) => sum + course.studentCount, 0)}
+                </Text>
+                <Text style={styles.summaryLabel}>Opiskelijaa yhteensä</Text>
+              </View>
+            </View>
           </View>
         </ScrollView>
       )}
@@ -595,7 +790,6 @@ export default function AdminDashboard() {
         <ScrollView style={styles.content}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Järjestelmän tila</Text>
-
             <View style={styles.systemCard}>
               <View style={styles.systemItem}>
                 <Ionicons name="server-outline" size={24} color="#4CAF50" />
@@ -627,8 +821,7 @@ export default function AdminDashboard() {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ylläpitotoiminnot</Text>
-
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.adminActionCard}
               onPress={() => router.push('/create-work-card' as any)}
             >
@@ -708,10 +901,12 @@ export default function AdminDashboard() {
                     ]}
                     onPress={() => setNewUser({ ...newUser, role })}
                   >
-                    <Text style={[
-                      styles.roleOptionText,
-                      newUser.role === role && styles.roleOptionTextActive
-                    ]}>
+                    <Text
+                      style={[
+                        styles.roleOptionText,
+                        newUser.role === role && styles.roleOptionTextActive
+                      ]}
+                    >
                       {getRoleLabel(role)}
                     </Text>
                   </TouchableOpacity>
@@ -776,10 +971,12 @@ export default function AdminDashboard() {
                         ]}
                         onPress={() => setSelectedUser({ ...selectedUser, role })}
                       >
-                        <Text style={[
-                          styles.roleOptionText,
-                          selectedUser.role === role && styles.roleOptionTextActive
-                        ]}>
+                        <Text
+                          style={[
+                            styles.roleOptionText,
+                            selectedUser.role === role && styles.roleOptionTextActive
+                          ]}
+                        >
                           {getRoleLabel(role)}
                         </Text>
                       </TouchableOpacity>
@@ -791,6 +988,294 @@ export default function AdminDashboard() {
                   <Text style={styles.submitButtonText}>Tallenna muutokset</Text>
                 </TouchableOpacity>
               </>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Course Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={addCourseModalVisible}
+        onRequestClose={() => setAddCourseModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Lisää uusi kurssi</Text>
+              <TouchableOpacity onPress={() => setAddCourseModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Kurssin nimi *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="esim. H1 Syksy"
+                  value={newCourse.name}
+                  onChangeText={(text) => setNewCourse({ ...newCourse, name: text })}
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Oppiaine *</Text>
+                <View style={styles.roleSelector}>
+                  {['Kariologia', 'Kirurgia', 'Endodontia'].map((subject) => (
+                    <TouchableOpacity
+                      key={subject}
+                      style={[
+                        styles.roleOption,
+                        newCourse.subject === subject && styles.roleOptionActive
+                      ]}
+                      onPress={() => setNewCourse({ ...newCourse, subject })}
+                    >
+                      <Text
+                        style={[
+                          styles.roleOptionText,
+                          newCourse.subject === subject && styles.roleOptionTextActive
+                        ]}
+                      >
+                        {subject}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Näkyvyys *</Text>
+                <View style={styles.roleSelector}>
+                  {[
+                    { value: 'student', label: 'Opiskelija' },
+                    { value: 'teacher', label: 'Opettaja' },
+                    { value: 'both', label: 'Molemmat' }
+                  ].map((item) => (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={[
+                        styles.roleOption,
+                        newCourse.visibility === item.value && styles.roleOptionActive
+                      ]}
+                      onPress={() => setNewCourse({ ...newCourse, visibility: item.value as any })}
+                    >
+                      <Text
+                        style={[
+                          styles.roleOptionText,
+                          newCourse.visibility === item.value && styles.roleOptionTextActive
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {newCourse.visibility !== 'student' && (
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Vuosikurssi (opettajanäkymälle)</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="esim. 2024"
+                    value={newCourse.yearGroup}
+                    onChangeText={(text) => setNewCourse({ ...newCourse, yearGroup: text })}
+                    keyboardType="numeric"
+                  />
+                </View>
+              )}
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Opiskelijamäärä</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="esim. 30"
+                  value={String(newCourse.studentCount)}
+                  onChangeText={(text) => setNewCourse({ ...newCourse, studentCount: parseInt(text) || 0 })}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Tila *</Text>
+                <View style={styles.roleSelector}>
+                  {[
+                    { value: 'active', label: 'Aktiivinen' },
+                    { value: 'inactive', label: 'Ei-aktiivinen' }
+                  ].map((item) => (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={[
+                        styles.roleOption,
+                        newCourse.status === item.value && styles.roleOptionActive
+                      ]}
+                      onPress={() => setNewCourse({ ...newCourse, status: item.value as any })}
+                    >
+                      <Text
+                        style={[
+                          styles.roleOptionText,
+                          newCourse.status === item.value && styles.roleOptionTextActive
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <TouchableOpacity style={styles.submitButton} onPress={handleAddCourse}>
+                <Text style={styles.submitButtonText}>Lisää kurssi</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Course Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editCourseModalVisible}
+        onRequestClose={() => setEditCourseModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Muokkaa kurssia</Text>
+              <TouchableOpacity onPress={() => setEditCourseModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedCourse && (
+              <ScrollView>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Kurssin nimi *</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={selectedCourse.name}
+                    onChangeText={(text) => setSelectedCourse({ ...selectedCourse, name: text })}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Oppiaine *</Text>
+                  <View style={styles.roleSelector}>
+                    {['Kariologia', 'Kirurgia', 'Endodontia'].map((subject) => (
+                      <TouchableOpacity
+                        key={subject}
+                        style={[
+                          styles.roleOption,
+                          selectedCourse.subject === subject && styles.roleOptionActive
+                        ]}
+                        onPress={() => setSelectedCourse({ ...selectedCourse, subject })}
+                      >
+                        <Text
+                          style={[
+                            styles.roleOptionText,
+                            selectedCourse.subject === subject && styles.roleOptionTextActive
+                          ]}
+                        >
+                          {subject}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Näkyvyys *</Text>
+                  <View style={styles.roleSelector}>
+                    {[
+                      { value: 'student', label: 'Opiskelija' },
+                      { value: 'teacher', label: 'Opettaja' },
+                      { value: 'both', label: 'Molemmat' }
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={item.value}
+                        style={[
+                          styles.roleOption,
+                          selectedCourse.visibility === item.value && styles.roleOptionActive
+                        ]}
+                        onPress={() => setSelectedCourse({ ...selectedCourse, visibility: item.value as any })}
+                      >
+                        <Text
+                          style={[
+                            styles.roleOptionText,
+                            selectedCourse.visibility === item.value && styles.roleOptionTextActive
+                          ]}
+                        >
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {selectedCourse.visibility !== 'student' && (
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>Vuosikurssi (opettajanäkymälle)</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={selectedCourse.yearGroup || ''}
+                      onChangeText={(text) => setSelectedCourse({ ...selectedCourse, yearGroup: text })}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                )}
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Opiskelijamäärä</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={String(selectedCourse.studentCount)}
+                    onChangeText={(text) => setSelectedCourse({ ...selectedCourse, studentCount: parseInt(text) || 0 })}
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Tila *</Text>
+                  <View style={styles.roleSelector}>
+                    {[
+                      { value: 'active', label: 'Aktiivinen' },
+                      { value: 'inactive', label: 'Ei-aktiivinen' }
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={item.value}
+                        style={[
+                          styles.roleOption,
+                          selectedCourse.status === item.value && styles.roleOptionActive
+                        ]}
+                        onPress={() => setSelectedCourse({ ...selectedCourse, status: item.value as any })}
+                      >
+                        <Text
+                          style={[
+                            styles.roleOptionText,
+                            selectedCourse.status === item.value && styles.roleOptionTextActive
+                          ]}
+                        >
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <TouchableOpacity style={styles.submitButton} onPress={handleSaveCourseEdit}>
+                  <Text style={styles.submitButtonText}>Tallenna muutokset</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.submitButton, styles.deleteButton]} 
+                  onPress={() => handleDeleteCourse(selectedCourse.id)}
+                >
+                  <Text style={styles.submitButtonText}>Poista kurssi</Text>
+                </TouchableOpacity>
+              </ScrollView>
             )}
           </View>
         </View>
@@ -1071,28 +1556,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+  deleteButton: {
+    backgroundColor: '#F44336',
+    marginTop: 12,
+  },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  comingSoonContainer: {
-    alignItems: 'center',
-    padding: 40,
-    margin: 16,
-  },
-  comingSoonTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  comingSoonText: {
-    fontSize: 15,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 22,
   },
   section: {
     padding: 16,
@@ -1282,5 +1753,147 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  coursesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  addCourseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  addCourseButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  subjectSection: {
+    marginBottom: 24,
+  },
+  subjectTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 12,
+  },
+  subjectCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    overflow: 'hidden',
+  },
+  subjectHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  subjectHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  subjectName: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#333',
+  },
+  subjectStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  subjectStatsText: {
+    fontSize: 13,
+    color: '#666',
+  },
+  coursesList: {
+    padding: 8,
+  },
+  courseItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#fafafa',
+    marginBottom: 8,
+  },
+  courseItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  courseStatusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  courseItemText: {
+    fontSize: 15,
+    color: '#333',
+    fontWeight: '500',
+  },
+  courseItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  courseItemStudents: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '600',
+  },
+  emptyCoursesContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyCoursesText: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
+  },
+  summarySection: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  summaryCard: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  summaryNumber: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#007AFF',
+    marginBottom: 4,
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
   },
 })
