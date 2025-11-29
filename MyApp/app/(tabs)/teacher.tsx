@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, Scro
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getTasks, calculateCourseProgress } from '../../utils/taskManager'
+import { getAllCourses, Course } from '../../utils/courseManager'
 
 interface Kurssi {
   id: string
   nimi: string
+  yearGroup?: string
 }
 
 interface Opiskelija {
@@ -17,31 +19,31 @@ interface Opiskelija {
 
 const TeacherDashboard = () => {
   const router = useRouter()
-  const [kurssit, setKurssit] = useState<Kurssi[]>([
-    { id: '1', nimi: 'Vuosikurssi 2023' },
-    { id: '2', nimi: 'Vuosikurssi 2024' },
-    { id: '3', nimi: 'Vuosikurssi 2025' },
-  ])
+  const [kurssit, setKurssit] = useState<Kurssi[]>([])
   const [searchText, setSearchText] = useState('')
   const [avattuKurssi, setAvattuKurssi] = useState<string | null>(null)
   const [menuVisible, setMenuVisible] = useState(false)
   const [unreviewedTasksCount, setUnreviewedTasksCount] = useState(0)
   const [mattiProgress, setMattiProgress] = useState(0)
+  const [loading, setLoading] = useState(true)
 
-  // Load unreviewed tasks count
+  // Load courses and unreviewed tasks
   useEffect(() => {
-    loadUnreviewedTasks()
+    loadTeacherData()
   }, [])
 
-  // Refresh unreviewed tasks when screen is focused
+  // Refresh data when screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      loadUnreviewedTasks()
+      loadTeacherData()
     }, [])
   )
 
-  const loadUnreviewedTasks = async () => {
+  const loadTeacherData = async () => {
     try {
+      setLoading(true)
+      
+      // Load unreviewed tasks
       const tasks = await getTasks()
       const unreviewedCount = tasks.filter(task => task.status === 'submitted').length
       setUnreviewedTasksCount(unreviewedCount)
@@ -49,11 +51,32 @@ const TeacherDashboard = () => {
       // Calculate Matti's progress from real task data
       const progress = await calculateCourseProgress()
       setMattiProgress(progress)
+
+      // Load courses from courseManager
+      const allCourses = await getAllCourses()
+      
+      // Filter courses for teacher visibility (teacher or both) and active status
+      const teacherCourses = allCourses.filter(
+        course => course.status === 'active' && 
+        (course.visibility === 'teacher' || course.visibility === 'both')
+      )
+
+      // Transform courses into UI format
+      const formattedCourses: Kurssi[] = teacherCourses.map(course => ({
+        id: course.id,
+        nimi: course.name,
+        yearGroup: course.yearGroup
+      }))
+
+      setKurssit(formattedCourses)
     } catch (error) {
-      console.error('Error loading unreviewed tasks:', error)
+      console.error('Error loading teacher data:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
+  // Sample student data (this would ideally come from a database)
   const opiskelijat: Record<string, Opiskelija[]> = {
     '1': [
       { id: '1', nimi: 'Matti Meikäläinen', edistys: 80 },
@@ -109,6 +132,13 @@ const TeacherDashboard = () => {
       icon: 'document-text-outline',
       route: '/teacher-tasks',
       description: 'Näytä odottavat tehtävät'
+    },
+    {
+      id: '4',
+      title: 'Admin Dashboard',
+      icon: 'shield-checkmark-outline',
+      route: '/(tabs)/admin',
+      description: 'Ylläpitonäkymä'
     },
     {
       id: '5',
@@ -205,12 +235,12 @@ const TeacherDashboard = () => {
         </TouchableOpacity>
       </Modal>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content}>
         {/* Teacher Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
-              <Ionicons name="person-circle-outline" size={80} color="#007AFF" />
+              <Ionicons name="person-circle" size={80} color="#007AFF" />
             </View>
             <Text style={styles.teacherName}>Anna Opettaja</Text>
             <Text style={styles.teacherEmail}>anna.opettaja@helsinki.fi</Text>
@@ -224,16 +254,12 @@ const TeacherDashboard = () => {
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>
-                  {Object.values(opiskelijat).flat().length}
-                </Text>
+                <Text style={styles.statNumber}>{Object.values(opiskelijat).flat().length}</Text>
                 <Text style={styles.statLabel}>Opiskelijaa</Text>
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>
-                  {unreviewedTasksCount}
-                </Text>
+                <Text style={styles.statNumber}>{unreviewedTasksCount}</Text>
                 <Text style={styles.statLabel}>Arvioitavaa{'\n'}tehtävää</Text>
               </View>
             </View>
@@ -244,66 +270,91 @@ const TeacherDashboard = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Kurssit</Text>
 
-          {/* Course List */}
-          {kurssit.map((kurssi) => (
-            <View key={kurssi.id} style={styles.kurssiCard}>
-              <TouchableOpacity
-                style={styles.kurssiHeader}
-                onPress={() => toggleKurssi(kurssi.id)}
-              >
-                <View style={styles.kurssiInfo}>
+          {loading ? (
+            <View style={styles.kurssiCard}>
+              <View style={styles.kurssiHeader}>
+                <Text style={styles.kurssiNimi}>Ladataan kursseja...</Text>
+              </View>
+            </View>
+          ) : kurssit.length === 0 ? (
+            <View style={styles.kurssiCard}>
+              <View style={styles.kurssiHeader}>
+                <Text style={styles.kurssiNimi}>Ei kursseja saatavilla</Text>
+              </View>
+              <View style={styles.opiskelijaList}>
+                <Text style={styles.progressText}>
+                  Admin voi lisätä kursseja opettajanäkymään asettamalla näkyvyydeksi "Opettaja" tai "Molemmat".
+                </Text>
+              </View>
+            </View>
+          ) : (
+            /* Course List */
+            kurssit.map((kurssi) => (
+              <View key={kurssi.id} style={styles.kurssiCard}>
+                <TouchableOpacity
+                  style={styles.kurssiHeader}
+                  onPress={() => toggleKurssi(kurssi.id)}
+                >
+                  <View style={styles.kurssiInfo}>
+                    <Ionicons name="calendar-outline" size={24} color="#007AFF" />
+                    <View>
+                      <Text style={styles.kurssiNimi}>{kurssi.nimi}</Text>
+                      {kurssi.yearGroup && (
+                        <Text style={styles.progressText}>Vuosikurssi {kurssi.yearGroup}</Text>
+                      )}
+                    </View>
+                  </View>
                   <Ionicons
-                    name={avattuKurssi === kurssi.id ? "chevron-down" : "chevron-forward"}
-                    size={20}
+                    name={avattuKurssi === kurssi.id ? 'chevron-up' : 'chevron-down'}
+                    size={24}
                     color="#666"
                   />
-                  <Text style={styles.kurssiNimi}>{kurssi.nimi}</Text>
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
 
-              {/* Expanded Student List */}
-              {avattuKurssi === kurssi.id && (
-                <View style={styles.opiskelijaList}>
-                  {/* Search */}
-                  <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={18} color="#999" />
-                    <TextInput
-                      style={styles.searchInput}
-                      placeholder="Etsi opiskelija..."
-                      value={searchText}
-                      onChangeText={setSearchText}
-                    />
-                  </View>
+                {/* Expanded Student List */}
+                {avattuKurssi === kurssi.id && (
+                  <View style={styles.opiskelijaList}>
+                    {/* Search */}
+                    <View style={styles.searchContainer}>
+                      <Ionicons name="search" size={20} color="#999" />
+                      <TextInput
+                        style={styles.searchInput}
+                        placeholder="Etsi opiskelijaa..."
+                        value={searchText}
+                        onChangeText={setSearchText}
+                      />
+                    </View>
 
-                  {/* Students */}
-                  {filteredOpiskelijat(kurssi.id).map((opiskelija) => (
-                    <TouchableOpacity
-                      key={opiskelija.id}
-                      style={styles.opiskelijaItem}
-                      onPress={() => handleStudentPress(opiskelija.id)}
-                    >
-                      <View style={styles.opiskelijaInfo}>
-                        <Text style={styles.opiskelijaNimi}>{opiskelija.nimi}</Text>
-                        <View style={styles.progressBarContainer}>
-                          <View
-                            style={[
-                              styles.progressBar,
-                              {
-                                width: `${opiskelija.edistys}%`,
-                                backgroundColor: getProgressColor(opiskelija.edistys)
-                              }
-                            ]}
-                          />
+                    {/* Students */}
+                    {filteredOpiskelijat(kurssi.id).map((opiskelija) => (
+                      <TouchableOpacity
+                        key={opiskelija.id}
+                        style={styles.opiskelijaItem}
+                        onPress={() => handleStudentPress(opiskelija.id)}
+                      >
+                        <View style={styles.opiskelijaInfo}>
+                          <Text style={styles.opiskelijaNimi}>{opiskelija.nimi}</Text>
+                          <View style={styles.progressBarContainer}>
+                            <View
+                              style={[
+                                styles.progressBar,
+                                {
+                                  width: `${opiskelija.edistys}%`,
+                                  backgroundColor: getProgressColor(opiskelija.edistys),
+                                },
+                              ]}
+                            />
+                          </View>
+                          <Text style={styles.progressText}>{opiskelija.edistys}%</Text>
                         </View>
-                        <Text style={styles.progressText}>{opiskelija.edistys}%</Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={20} color="#999" />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
-          ))}
+                        <Ionicons name="chevron-forward" size={20} color="#999" />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))
+          )}
         </View>
 
         {/* Actions Section */}
@@ -314,6 +365,19 @@ const TeacherDashboard = () => {
           >
             <Ionicons name="document-text-outline" size={24} color="#fff" />
             <Text style={styles.actionButtonText}>Arvioitavat tehtävät</Text>
+            {unreviewedTasksCount > 0 && (
+              <View style={{ 
+                backgroundColor: '#F44336', 
+                borderRadius: 12, 
+                paddingHorizontal: 8, 
+                paddingVertical: 2,
+                marginLeft: 8
+              }}>
+                <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>
+                  {unreviewedTasksCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -427,6 +491,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
   },
+  content: {
+    flex: 1,
+  },
   section: {
     padding: 16,
   },
@@ -457,12 +524,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    gap: 8,
   },
   kurssiNimi: {
     fontSize: 17,
     fontWeight: '600',
     color: '#333',
-    marginLeft: 8,
   },
   opiskelijaList: {
     borderTopWidth: 1,
