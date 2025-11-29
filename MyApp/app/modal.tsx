@@ -101,7 +101,7 @@ const TeacherDashboard = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => setMenuVisible(true)}>
-          <Ionicons name="menu" size={28} color="#333" />
+          <Ionicons name="menu" size={60} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Kotisivu</Text>
         <TouchableOpacity>
@@ -111,7 +111,7 @@ const TeacherDashboard = () => {
 
       {/* Side Menu Modal */}
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={menuVisible}
         onRequestClose={() => setMenuVisible(false)}
