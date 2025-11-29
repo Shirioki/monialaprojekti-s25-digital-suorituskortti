@@ -992,6 +992,294 @@ export default function AdminDashboard() {
           </View>
         </View>
       </Modal>
+
+      {/* Add Course Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={addCourseModalVisible}
+        onRequestClose={() => setAddCourseModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Lisää uusi kurssi</Text>
+              <TouchableOpacity onPress={() => setAddCourseModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Kurssin nimi *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="esim. H1 Syksy"
+                  value={newCourse.name}
+                  onChangeText={(text) => setNewCourse({ ...newCourse, name: text })}
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Oppiaine *</Text>
+                <View style={styles.roleSelector}>
+                  {['Kariologia', 'Kirurgia', 'Endodontia'].map((subject) => (
+                    <TouchableOpacity
+                      key={subject}
+                      style={[
+                        styles.roleOption,
+                        newCourse.subject === subject && styles.roleOptionActive
+                      ]}
+                      onPress={() => setNewCourse({ ...newCourse, subject })}
+                    >
+                      <Text
+                        style={[
+                          styles.roleOptionText,
+                          newCourse.subject === subject && styles.roleOptionTextActive
+                        ]}
+                      >
+                        {subject}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Näkyvyys *</Text>
+                <View style={styles.roleSelector}>
+                  {[
+                    { value: 'student', label: 'Opiskelija' },
+                    { value: 'teacher', label: 'Opettaja' },
+                    { value: 'both', label: 'Molemmat' }
+                  ].map((item) => (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={[
+                        styles.roleOption,
+                        newCourse.visibility === item.value && styles.roleOptionActive
+                      ]}
+                      onPress={() => setNewCourse({ ...newCourse, visibility: item.value as any })}
+                    >
+                      <Text
+                        style={[
+                          styles.roleOptionText,
+                          newCourse.visibility === item.value && styles.roleOptionTextActive
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {newCourse.visibility !== 'student' && (
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Vuosikurssi (opettajanäkymälle)</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="esim. 2024"
+                    value={newCourse.yearGroup}
+                    onChangeText={(text) => setNewCourse({ ...newCourse, yearGroup: text })}
+                    keyboardType="numeric"
+                  />
+                </View>
+              )}
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Opiskelijamäärä</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="esim. 30"
+                  value={String(newCourse.studentCount)}
+                  onChangeText={(text) => setNewCourse({ ...newCourse, studentCount: parseInt(text) || 0 })}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Tila *</Text>
+                <View style={styles.roleSelector}>
+                  {[
+                    { value: 'active', label: 'Aktiivinen' },
+                    { value: 'inactive', label: 'Ei-aktiivinen' }
+                  ].map((item) => (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={[
+                        styles.roleOption,
+                        newCourse.status === item.value && styles.roleOptionActive
+                      ]}
+                      onPress={() => setNewCourse({ ...newCourse, status: item.value as any })}
+                    >
+                      <Text
+                        style={[
+                          styles.roleOptionText,
+                          newCourse.status === item.value && styles.roleOptionTextActive
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <TouchableOpacity style={styles.submitButton} onPress={handleAddCourse}>
+                <Text style={styles.submitButtonText}>Lisää kurssi</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Course Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editCourseModalVisible}
+        onRequestClose={() => setEditCourseModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Muokkaa kurssia</Text>
+              <TouchableOpacity onPress={() => setEditCourseModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedCourse && (
+              <ScrollView>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Kurssin nimi *</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={selectedCourse.name}
+                    onChangeText={(text) => setSelectedCourse({ ...selectedCourse, name: text })}
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Oppiaine *</Text>
+                  <View style={styles.roleSelector}>
+                    {['Kariologia', 'Kirurgia', 'Endodontia'].map((subject) => (
+                      <TouchableOpacity
+                        key={subject}
+                        style={[
+                          styles.roleOption,
+                          selectedCourse.subject === subject && styles.roleOptionActive
+                        ]}
+                        onPress={() => setSelectedCourse({ ...selectedCourse, subject })}
+                      >
+                        <Text
+                          style={[
+                            styles.roleOptionText,
+                            selectedCourse.subject === subject && styles.roleOptionTextActive
+                          ]}
+                        >
+                          {subject}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Näkyvyys *</Text>
+                  <View style={styles.roleSelector}>
+                    {[
+                      { value: 'student', label: 'Opiskelija' },
+                      { value: 'teacher', label: 'Opettaja' },
+                      { value: 'both', label: 'Molemmat' }
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={item.value}
+                        style={[
+                          styles.roleOption,
+                          selectedCourse.visibility === item.value && styles.roleOptionActive
+                        ]}
+                        onPress={() => setSelectedCourse({ ...selectedCourse, visibility: item.value as any })}
+                      >
+                        <Text
+                          style={[
+                            styles.roleOptionText,
+                            selectedCourse.visibility === item.value && styles.roleOptionTextActive
+                          ]}
+                        >
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {selectedCourse.visibility !== 'student' && (
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>Vuosikurssi (opettajanäkymälle)</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={selectedCourse.yearGroup || ''}
+                      onChangeText={(text) => setSelectedCourse({ ...selectedCourse, yearGroup: text })}
+                      keyboardType="numeric"
+                    />
+                  </View>
+                )}
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Opiskelijamäärä</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={String(selectedCourse.studentCount)}
+                    onChangeText={(text) => setSelectedCourse({ ...selectedCourse, studentCount: parseInt(text) || 0 })}
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Tila *</Text>
+                  <View style={styles.roleSelector}>
+                    {[
+                      { value: 'active', label: 'Aktiivinen' },
+                      { value: 'inactive', label: 'Ei-aktiivinen' }
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={item.value}
+                        style={[
+                          styles.roleOption,
+                          selectedCourse.status === item.value && styles.roleOptionActive
+                        ]}
+                        onPress={() => setSelectedCourse({ ...selectedCourse, status: item.value as any })}
+                      >
+                        <Text
+                          style={[
+                            styles.roleOptionText,
+                            selectedCourse.status === item.value && styles.roleOptionTextActive
+                          ]}
+                        >
+                          {item.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <TouchableOpacity style={styles.submitButton} onPress={handleSaveCourseEdit}>
+                  <Text style={styles.submitButtonText}>Tallenna muutokset</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.submitButton, styles.deleteButton]} 
+                  onPress={() => handleDeleteCourse(selectedCourse.id)}
+                >
+                  <Text style={styles.submitButtonText}>Poista kurssi</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -1267,6 +1555,10 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginTop: 8,
+  },
+  deleteButton: {
+    backgroundColor: '#F44336',
+    marginTop: 12,
   },
   submitButtonText: {
     color: '#fff',
