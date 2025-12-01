@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ScrollView, Modal } from 'react-native'
+import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getTasks, calculateCourseProgress } from '../../utils/taskManager'
 import { getAllCourses, Course } from '../../utils/courseManager'
+import { getWorkCardsByCourse, WorkCard } from '../../utils/workCardManager'
 
 interface Kurssi {
   id: string
@@ -26,6 +27,7 @@ const TeacherDashboard = () => {
   const [unreviewedTasksCount, setUnreviewedTasksCount] = useState(0)
   const [mattiProgress, setMattiProgress] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [workCardsByCourse, setWorkCardsByCourse] = useState<Record<string, WorkCard[]>>({})
 
   // Load courses and unreviewed tasks
   useEffect(() => {
@@ -69,6 +71,15 @@ const TeacherDashboard = () => {
       }))
 
       setKurssit(formattedCourses)
+
+      // Load work cards for each course
+      const workCardsMap: Record<string, WorkCard[]> = {}
+      for (const course of teacherCourses) {
+        const cards = await getWorkCardsByCourse(course.id)
+        workCardsMap[course.id] = cards
+      }
+      setWorkCardsByCourse(workCardsMap)
+
     } catch (error) {
       console.error('Error loading teacher data:', error)
     } finally {
@@ -168,14 +179,13 @@ const TeacherDashboard = () => {
     } as any)
   }
 
-  // Settings/Options handler
   const handleSettingsPress = () => {
     router.push('/(tabs)/settings' as any)
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with functional navigation */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => setMenuVisible(true)}>
           <Ionicons name="menu" size={28} color="#333" />
@@ -288,7 +298,6 @@ const TeacherDashboard = () => {
               </View>
             </View>
           ) : (
-            /* Course List */
             kurssit.map((kurssi) => (
               <View key={kurssi.id} style={styles.kurssiCard}>
                 <TouchableOpacity
@@ -311,9 +320,40 @@ const TeacherDashboard = () => {
                   />
                 </TouchableOpacity>
 
-                {/* Expanded Student List */}
                 {avattuKurssi === kurssi.id && (
                   <View style={styles.opiskelijaList}>
+                    {/* Work Cards Section */}
+                    {workCardsByCourse[kurssi.id] && workCardsByCourse[kurssi.id].length > 0 && (
+                      <View style={styles.workCardsSection}>
+                        <View style={styles.workCardsSectionHeader}>
+                          <Ionicons name="document-text-outline" size={20} color="#007AFF" />
+                          <Text style={styles.workCardsSectionTitle}>
+                            Suorituskortit ({workCardsByCourse[kurssi.id].length})
+                          </Text>
+                        </View>
+                        {workCardsByCourse[kurssi.id].map((card) => (
+                          <TouchableOpacity
+                            key={card.id}
+                            style={styles.workCardItemTeacher}
+                            onPress={() => {
+                              Alert.alert('Suorituskortti', `Avaa: ${card.title}`)
+                            }}
+                          >
+                            <View style={styles.workCardIconTeacher}>
+                              <Ionicons name="document-text" size={20} color="#007AFF" />
+                            </View>
+                            <View style={styles.workCardInfoTeacher}>
+                              <Text style={styles.workCardTitleTeacher}>{card.title}</Text>
+                              <Text style={styles.workCardMetaTeacher}>
+                                {card.fields.length} kenttää • Luotu {new Date(card.createdAt).toLocaleDateString('fi-FI')}
+                              </Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={16} color="#999" />
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+
                     {/* Search */}
                     <View style={styles.searchContainer}>
                       <Ionicons name="search" size={20} color="#999" />
@@ -379,6 +419,14 @@ const TeacherDashboard = () => {
               </View>
             )}
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, styles.actionButtonSecondary]}
+            onPress={() => router.push('/create-work-card' as any)}
+          >
+            <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
+            <Text style={styles.actionButtonTextSecondary}>Luo suorituskortti</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -406,7 +454,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333',
   },
-  // Menu Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -659,5 +706,57 @@ const styles = StyleSheet.create({
     width: 1,
     height: 30,
     backgroundColor: '#e0e0e0',
+  },
+  workCardsSection: {
+    backgroundColor: '#f9f9f9',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#007AFF',
+  },
+  workCardsSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  workCardsSectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 8,
+  },
+  workCardItemTeacher: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  workCardIconTeacher: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  workCardInfoTeacher: {
+    flex: 1,
+  },
+  workCardTitleTeacher: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 3,
+  },
+  workCardMetaTeacher: {
+    fontSize: 12,
+    color: '#666',
   },
 })

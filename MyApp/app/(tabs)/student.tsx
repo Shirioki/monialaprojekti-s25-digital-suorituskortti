@@ -25,12 +25,10 @@ const StudentView = () => {
   const [loading, setLoading] = useState(true)
   const [oppiaineet, setOppiaineet] = useState<Oppiaine[]>([])
 
-  // Load dynamic progress data
   useEffect(() => {
     loadProgressData()
   }, [])
 
-  // Refresh progress data when screen is focused
   useFocusEffect(
     React.useCallback(() => {
       loadProgressData()
@@ -41,39 +39,34 @@ const StudentView = () => {
     try {
       setLoading(true)
       
-      // Get all courses from courseManager
       const allCourses = await getAllCourses()
       
-      // Filter courses for student visibility (student or both)
       const studentCourses = allCourses.filter(
         course => course.status === 'active' && 
         (course.visibility === 'student' || course.visibility === 'both')
       )
       
-      // Get progress data
       const progressData = await getAllCoursesProgress()
       setCoursesProgress(progressData)
 
-      // Group courses by subject
       const grouped: Record<string, Course[]> = {
         'Kariologia': [],
         'Kirurgia': [],
         'Endodontia': [],
       }
-
+      
       studentCourses.forEach(course => {
         if (grouped[course.subject]) {
           grouped[course.subject].push(course)
         }
       })
 
-      // Transform into UI structure
       const dynamicOppiaineet: Oppiaine[] = [
         {
           id: '1',
           nimi: 'Kariologia',
           expanded: false,
-          tehtavat: grouped['Kariologia'].map((course, index) => ({
+          tehtavat: grouped['Kariologia'].map((course) => ({
             id: course.id,
             nimi: course.name,
             progress: progressData.find(p => p.courseId === course.id)?.progress || 0
@@ -83,7 +76,7 @@ const StudentView = () => {
           id: '2',
           nimi: 'Kirurgia',
           expanded: false,
-          tehtavat: grouped['Kirurgia'].map((course, index) => ({
+          tehtavat: grouped['Kirurgia'].map((course) => ({
             id: course.id,
             nimi: course.name,
             progress: progressData.find(p => p.courseId === course.id)?.progress || 0
@@ -93,7 +86,7 @@ const StudentView = () => {
           id: '3',
           nimi: 'Endodontia',
           expanded: false,
-          tehtavat: grouped['Endodontia'].map((course, index) => ({
+          tehtavat: grouped['Endodontia'].map((course) => ({
             id: course.id,
             nimi: course.name,
             progress: progressData.find(p => p.courseId === course.id)?.progress || 0
@@ -126,7 +119,6 @@ const StudentView = () => {
     return '#e0e0e0'
   }
 
-  // Menu items for student navigation
   const menuItems = [
     {
       id: '1',
@@ -183,7 +175,7 @@ const StudentView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with functional navigation */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => setMenuVisible(true)}>
           <Ionicons name="menu" size={28} color="#333" />
@@ -244,7 +236,7 @@ const StudentView = () => {
       </Modal>
 
       <ScrollView style={styles.content}>
-        {/* Student Profile Section - styled like [opiskelijaId] */}
+        {/* Student Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
@@ -299,6 +291,7 @@ const StudentView = () => {
                 {oppiaine.tehtavat.length > 0 ? (
                   oppiaine.tehtavat.map((tehtava) => {
                     const progress = tehtava.progress ?? 0
+                    
                     return (
                       <TouchableOpacity
                         key={tehtava.id}
@@ -359,7 +352,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333',
   },
-  // Menu Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -458,6 +450,9 @@ const styles = StyleSheet.create({
   },
   oppiaineHeader: {
     padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   oppiaineInfo: {
     flexDirection: 'row',
@@ -491,18 +486,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#333',
     marginBottom: 6,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  refreshButton: {
-    padding: 4,
-    borderRadius: 6,
-  },
-  tehtavaItemDisabled: {
-    opacity: 0.6,
   },
   tehtavaDisabled: {
     color: '#999',
