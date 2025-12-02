@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+  Alert,
+} from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getTasks, calculateCourseProgress } from '../../utils/taskManager'
@@ -44,10 +54,10 @@ const TeacherDashboard = () => {
   const loadTeacherData = async () => {
     try {
       setLoading(true)
-      
+
       // Load unreviewed tasks
       const tasks = await getTasks()
-      const unreviewedCount = tasks.filter(task => task.status === 'submitted').length
+      const unreviewedCount = tasks.filter((task) => task.status === 'submitted').length
       setUnreviewedTasksCount(unreviewedCount)
 
       // Calculate Matti's progress from real task data
@@ -56,18 +66,19 @@ const TeacherDashboard = () => {
 
       // Load courses from courseManager
       const allCourses = await getAllCourses()
-      
+
       // Filter courses for teacher visibility (teacher or both) and active status
       const teacherCourses = allCourses.filter(
-        course => course.status === 'active' && 
-        (course.visibility === 'teacher' || course.visibility === 'both')
+        (course) =>
+          course.status === 'active' &&
+          (course.visibility === 'teacher' || course.visibility === 'both')
       )
 
       // Transform courses into UI format
-      const formattedCourses: Kurssi[] = teacherCourses.map(course => ({
+      const formattedCourses: Kurssi[] = teacherCourses.map((course) => ({
         id: course.id,
         nimi: course.name,
-        yearGroup: course.yearGroup
+        yearGroup: course.yearGroup,
       }))
 
       setKurssit(formattedCourses)
@@ -79,7 +90,6 @@ const TeacherDashboard = () => {
         workCardsMap[course.id] = cards
       }
       setWorkCardsByCourse(workCardsMap)
-
     } catch (error) {
       console.error('Error loading teacher data:', error)
     } finally {
@@ -116,9 +126,7 @@ const TeacherDashboard = () => {
   const filteredOpiskelijat = (kurssiId: string) => {
     const students = opiskelijat[kurssiId] || []
     if (!searchText) return students
-    return students.filter(o =>
-      o.nimi.toLowerCase().includes(searchText.toLowerCase())
-    )
+    return students.filter((o) => o.nimi.toLowerCase().includes(searchText.toLowerCase()))
   }
 
   // Menu items with navigation
@@ -128,42 +136,42 @@ const TeacherDashboard = () => {
       title: 'Opettajan kotisivu',
       icon: 'home-outline',
       route: '/(tabs)/teacher',
-      description: 'Palaa etusivulle'
+      description: 'Palaa etusivulle',
     },
     {
       id: '2',
       title: 'Opiskelijan näkymä',
       icon: 'school-outline',
       route: '/(tabs)/student',
-      description: 'Vaihda opiskelijaksi'
+      description: 'Vaihda opiskelijaksi',
     },
     {
       id: '3',
       title: 'Arvioitavat tehtävät',
       icon: 'document-text-outline',
       route: '/teacher-tasks',
-      description: 'Näytä odottavat tehtävät'
+      description: 'Näytä odottavat tehtävät',
     },
     {
       id: '4',
       title: 'Admin Dashboard',
       icon: 'shield-checkmark-outline',
       route: '/(tabs)/admin',
-      description: 'Ylläpitonäkymä'
+      description: 'Ylläpitonäkymä',
     },
     {
       id: '5',
       title: 'Asetukset',
       icon: 'settings-outline',
       route: '/(tabs)/settings',
-      description: 'Sovelluksen asetukset'
+      description: 'Sovelluksen asetukset',
     },
     {
       id: '6',
       title: 'Kirjaudu ulos',
       icon: 'log-out-outline',
       route: '/login',
-      description: 'Poistu sovelluksesta'
+      description: 'Poistu sovelluksesta',
     },
   ]
 
@@ -175,7 +183,7 @@ const TeacherDashboard = () => {
   const handleStudentPress = (opiskelijaId: string) => {
     router.push({
       pathname: '/[opiskelijaId]',
-      params: { opiskelijaId }
+      params: { opiskelijaId },
     } as any)
   }
 
@@ -270,7 +278,9 @@ const TeacherDashboard = () => {
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{unreviewedTasksCount}</Text>
-                <Text style={styles.statLabel}>Arvioitavaa{'\n'}tehtävää</Text>
+                <Text style={styles.statLabel}>
+                  Arvioitavaa{'\n'}tehtävää
+                </Text>
               </View>
             </View>
           </View>
@@ -293,7 +303,8 @@ const TeacherDashboard = () => {
               </View>
               <View style={styles.opiskelijaList}>
                 <Text style={styles.progressText}>
-                  Admin voi lisätä kursseja opettajanäkymään asettamalla näkyvyydeksi "Opettaja" tai "Molemmat".
+                  Admin voi lisätä kursseja opettajanäkymään asettamalla näkyvyydeksi "Opettaja"
+                  tai "Molemmat".
                 </Text>
               </View>
             </View>
@@ -335,9 +346,9 @@ const TeacherDashboard = () => {
                           <TouchableOpacity
                             key={card.id}
                             style={styles.workCardItemTeacher}
-                            onPress={() => {
+                            onPress={() =>
                               Alert.alert('Suorituskortti', `Avaa: ${card.title}`)
-                            }}
+                            }
                           >
                             <View style={styles.workCardIconTeacher}>
                               <Ionicons name="document-text" size={20} color="#007AFF" />
@@ -345,7 +356,10 @@ const TeacherDashboard = () => {
                             <View style={styles.workCardInfoTeacher}>
                               <Text style={styles.workCardTitleTeacher}>{card.title}</Text>
                               <Text style={styles.workCardMetaTeacher}>
-                                {card.fields.length} kenttää • Luotu {new Date(card.createdAt).toLocaleDateString('fi-FI')}
+                                {card.fields.length} kenttää • Luotu{' '}
+                                {card.createdAt
+                                  ? new Date(card.createdAt).toLocaleDateString('fi-FI')
+                                  : 'Ei päivämäärää'}
                               </Text>
                             </View>
                             <Ionicons name="chevron-forward" size={16} color="#999" />
@@ -406,26 +420,20 @@ const TeacherDashboard = () => {
             <Ionicons name="document-text-outline" size={24} color="#fff" />
             <Text style={styles.actionButtonText}>Arvioitavat tehtävät</Text>
             {unreviewedTasksCount > 0 && (
-              <View style={{ 
-                backgroundColor: '#F44336', 
-                borderRadius: 12, 
-                paddingHorizontal: 8, 
-                paddingVertical: 2,
-                marginLeft: 8
-              }}>
+              <View
+                style={{
+                  backgroundColor: '#F44336',
+                  borderRadius: 12,
+                  paddingHorizontal: 8,
+                  paddingVertical: 2,
+                  marginLeft: 8,
+                }}
+              >
                 <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>
                   {unreviewedTasksCount}
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, styles.actionButtonSecondary]}
-            onPress={() => router.push('/create-work-card' as any)}
-          >
-            <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
-            <Text style={styles.actionButtonTextSecondary}>Luo suorituskortti</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -624,7 +632,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   actionButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#007AFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -635,16 +643,6 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  actionButtonSecondary: {
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#007AFF',
-  },
-  actionButtonTextSecondary: {
-    color: '#007AFF',
     fontSize: 16,
     fontWeight: '600',
   },
