@@ -38,14 +38,14 @@ const StudentView = () => {
   const loadProgressData = async () => {
     try {
       setLoading(true)
-      
+
       const allCourses = await getAllCourses()
-      
+
       const studentCourses = allCourses.filter(
-        course => course.status === 'active' && 
-        (course.visibility === 'student' || course.visibility === 'both')
+        course => course.status === 'active' &&
+          (course.visibility === 'student' || course.visibility === 'both')
       )
-      
+
       const progressData = await getAllCoursesProgress()
       setCoursesProgress(progressData)
 
@@ -54,7 +54,7 @@ const StudentView = () => {
         'Kirurgia': [],
         'Endodontia': [],
       }
-      
+
       studentCourses.forEach(course => {
         if (grouped[course.subject]) {
           grouped[course.subject].push(course)
@@ -166,7 +166,15 @@ const StudentView = () => {
 
   const handleMenuItemPress = (route: string) => {
     setMenuVisible(false)
-    router.push(route as any)
+    if (route === '/h1-tasks') {
+      // Navigate to H1 Syksy tasks by default
+      router.push({
+        pathname: '/h1-tasks',
+        params: { courseId: '1', courseName: 'H1 Syksy' }
+      } as any)
+    } else {
+      router.push(route as any)
+    }
   }
 
   const handleSettingsPress = () => {
@@ -291,12 +299,15 @@ const StudentView = () => {
                 {oppiaine.tehtavat.length > 0 ? (
                   oppiaine.tehtavat.map((tehtava) => {
                     const progress = tehtava.progress ?? 0
-                    
+
                     return (
                       <TouchableOpacity
                         key={tehtava.id}
                         style={styles.tehtavaItem}
-                        onPress={() => router.push('/h1-tasks' as any)}
+                        onPress={() => router.push({
+                          pathname: '/h1-tasks',
+                          params: { courseId: tehtava.id, courseName: tehtava.nimi }
+                        } as any)}
                       >
                         <View style={styles.tehtavaInfo}>
                           <Text style={styles.tehtavaNimi}>{tehtava.nimi}</Text>

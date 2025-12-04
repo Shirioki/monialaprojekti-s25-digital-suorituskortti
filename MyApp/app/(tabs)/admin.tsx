@@ -21,6 +21,7 @@ export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState<'users' | 'courses' | 'system'>('users')
   const [addUserModalVisible, setAddUserModalVisible] = useState(false)
   const [editUserModalVisible, setEditUserModalVisible] = useState(false)
+  const [exportModalVisible, setExportModalVisible] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [menuVisible, setMenuVisible] = useState(false)
   const [expandedSections, setExpandedSections] = useState({
@@ -304,6 +305,9 @@ export default function AdminDashboard() {
           onPress: async () => {
             try {
               await deleteWorkCard(workCard.id)
+              // Delete all tasks associated with this work card
+              const { deleteTasksByWorkCardId } = await import('../../utils/taskManager')
+              await deleteTasksByWorkCardId(workCard.id)
               await loadWorkCards()
               Alert.alert('Onnistui', 'Suorituskortti poistettu onnistuneesti!')
             } catch (error) {
@@ -1046,9 +1050,52 @@ export default function AdminDashboard() {
               <Text style={styles.adminActionText}>Näytä tilastot</Text>
               <Ionicons name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
+
+            {/* Export completions button */}
+            <TouchableOpacity style={styles.adminActionCard} onPress={() => setExportModalVisible(true)}>
+              <Ionicons name="share-outline" size={24} color="#007AFF" />
+              <Text style={styles.adminActionText}>Vie suoritukset</Text>
+              <Ionicons name="chevron-forward" size={20} color="#999" />
+            </TouchableOpacity>
           </View>
         </ScrollView>
       )}
+
+      {/* Export Completions Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={exportModalVisible}
+        onRequestClose={() => setExportModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Vie suoritukset</Text>
+              <TouchableOpacity onPress={() => setExportModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+            {/* Mock list for vuosikurssit */}
+            <Text style={{ fontSize: 16, color: '#333', marginBottom: 12 }}>
+              Valitse vuosikurssi suoritusten vientiin:
+            </Text>
+            <View style={{ marginBottom: 16 }}>
+              {['2022', '2023', '2024', '2025'].map((year) => (
+                <View key={year} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <Ionicons name="school-outline" size={20} color="#007AFF" style={{ marginRight: 8 }} />
+                  <Text style={{ fontSize: 16, color: '#333' }}>{year}</Text>
+                </View>
+              ))}
+            </View>
+            {/* Add export UI/logic here */}
+            <Text style={{ fontSize: 16, color: '#999' }}>
+              Tähän tulee suoritusten vienti. Lisää haluamasi toiminnallisuus.
+            </Text>
+          </View>
+        </View>
+      </Modal>
+      {/* End System Tab Content */}
 
       {/* Add User Modal */}
       <Modal
@@ -1588,56 +1635,69 @@ export default function AdminDashboard() {
               {/* Work Cards List */}
               <Text style={styles.librarySubheading}>Olemassa olevat kortit</Text>
 
-              {availableWorkCards
-                .filter(workCard =>
-                  workCard.title.toLowerCase().includes(workCardSearchText.toLowerCase()) ||
-                  workCard.courseName.toLowerCase().includes(workCardSearchText.toLowerCase())
-                )
-                .map((workCard) => (
-                  <View key={workCard.id} style={styles.libraryWorkCardItem}>
-                    <View style={styles.libraryWorkCardLeft}>
-                      <Ionicons
-                        name="clipboard-outline"
-                        size={24}
-                        color="#007AFF"
-                      />
-                      <View>
-                        <Text style={styles.libraryWorkCardName}>{workCard.title}</Text>
-                        <Text style={styles.libraryWorkCardSubtitle}>
-                          {workCard.fields.length} kenttää • {workCard.createdAt ? new Date(workCard.createdAt).toLocaleDateString('fi-FI') : 'Ei päivämäärää'}
-                        </Text>
-                        {workCard.status === 'active' && (
-                          <View style={styles.usedBadge}>
-                            <Text style={styles.usedBadgeText}>Aktiivinen</Text>
-                          </View>
-                        )}
+              {(() => {
+                // Filter to unique cards by title+fields signature
+                const uniqueCards: WorkCard[] = [];
+                const seen = new Set();
+                availableWorkCards.forEach(card => {
+                  // Create a signature from title and fields (fields as JSON string)
+                  const signature = card.title + '|' + JSON.stringify(card.fields);
+                  if (!seen.has(signature)) {
+                    seen.add(signature);
+                    uniqueCards.push(card);
+                  }
+                });
+                return uniqueCards
+                  .filter(workCard =>
+                    workCard.title.toLowerCase().includes(workCardSearchText.toLowerCase()) ||
+                    workCard.courseName.toLowerCase().includes(workCardSearchText.toLowerCase())
+                  )
+                  .map((workCard) => (
+                    <View key={workCard.id} style={styles.libraryWorkCardItem}>
+                      <View style={styles.libraryWorkCardLeft}>
+                        <Ionicons
+                          name="clipboard-outline"
+                          size={24}
+                          color="#007AFF"
+                        />
+                        <View>
+                          <Text style={styles.libraryWorkCardName}>{workCard.title}</Text>
+                          <Text style={styles.libraryWorkCardSubtitle}>
+                            {workCard.fields.length} kenttää • {workCard.createdAt ? new Date(workCard.createdAt).toLocaleDateString('fi-FI') : 'Ei päivämäärää'}
+                          </Text>
+                          {workCard.status === 'active' && (
+                            <View style={styles.usedBadge}>
+                              <Text style={styles.usedBadgeText}>Aktiivinen</Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                      <View style={styles.libraryWorkCardActions}>
+                        <TouchableOpacity
+                          style={styles.libraryActionBtn}
+                          onPress={() => handleAssignWorkCardToCourse(workCard)}
+                          accessibilityLabel="Liitä kurssille"
+                        >
+                          <Ionicons name="add-circle-outline" size={18} color="#4CAF50" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.libraryActionBtn}
+                          onPress={() => handleEditWorkCard(workCard)}
+                          accessibilityLabel="Muokkaa korttia"
+                        >
+                          <Ionicons name="create-outline" size={18} color="#007AFF" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.libraryActionBtn}
+                          onPress={() => handleDeleteWorkCard(workCard)}
+                          accessibilityLabel="Poista kortti"
+                        >
+                          <Ionicons name="trash-outline" size={18} color="#F44336" />
+                        </TouchableOpacity>
                       </View>
                     </View>
-                    <View style={styles.libraryWorkCardActions}>
-                      <TouchableOpacity
-                        style={styles.libraryActionBtn}
-                        onPress={() => handleAssignWorkCardToCourse(workCard)}
-                        accessibilityLabel="Liitä kurssille"
-                      >
-                        <Ionicons name="add-circle-outline" size={18} color="#4CAF50" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.libraryActionBtn}
-                        onPress={() => handleEditWorkCard(workCard)}
-                        accessibilityLabel="Muokkaa korttia"
-                      >
-                        <Ionicons name="create-outline" size={18} color="#007AFF" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.libraryActionBtn}
-                        onPress={() => handleDeleteWorkCard(workCard)}
-                        accessibilityLabel="Poista kortti"
-                      >
-                        <Ionicons name="trash-outline" size={18} color="#F44336" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                ))}
+                  ));
+              })()}
 
               {/* Empty State */}
               {availableWorkCards

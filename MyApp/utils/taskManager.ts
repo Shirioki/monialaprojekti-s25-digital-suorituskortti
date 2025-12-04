@@ -1,3 +1,15 @@
+// Delete all tasks associated with a workCardId
+export const deleteTasksByWorkCardId = async (workCardId: string): Promise<void> => {
+  try {
+    const tasks = await getTasks();
+    const filteredTasks = tasks.filter(task => task.workCardId !== workCardId);
+    await AsyncStorage.setItem(TASKS_KEY, JSON.stringify(filteredTasks));
+    console.log('✅ Tasks deleted for workCardId:', workCardId);
+  } catch (error) {
+    console.error('Error deleting tasks by workCardId:', error);
+    throw error;
+  }
+}
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface ConversationMessage {
