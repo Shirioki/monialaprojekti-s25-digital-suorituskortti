@@ -44,11 +44,11 @@ let dataInitializedThisSession = false;
 
 // Default tasks
 const defaultTasks: Task[] = [
-  { id: '1', nimi: 'Hampaiden tunnistus', status: 'not_started', type: 'regular' },
-  { id: '2', nimi: 'Käsi-instrumentteihin tutustuminen', status: 'not_started', type: 'regular' },
-  { id: '3', nimi: 'Suun tarkastus', status: 'not_started', type: 'regular' },
-  { id: '4', nimi: 'Röntgenkuvien tulkinta', status: 'not_started', type: 'regular' },
-  { id: '5', nimi: 'Anestesia', status: 'not_started', type: 'regular' },
+  { id: '1', nimi: 'Hampaiden tunnistus', status: 'not_started', type: 'regular', courseId: '1' },
+  { id: '2', nimi: 'Käsi-instrumentteihin tutustuminen', status: 'not_started', type: 'regular', courseId: '1' },
+  { id: '3', nimi: 'Suun tarkastus', status: 'not_started', type: 'regular', courseId: '1' },
+  { id: '4', nimi: 'Röntgenkuvien tulkinta', status: 'not_started', type: 'regular', courseId: '1' },
+  { id: '5', nimi: 'Anestesia', status: 'not_started', type: 'regular', courseId: '1' },
 ];
 
 export const initializeTasks = async (): Promise<void> => {
@@ -322,25 +322,34 @@ export interface CourseProgress {
 export const getAllCoursesProgress = async (): Promise<CourseProgress[]> => {
   try {
     const tasks = await getTasks();
-    const h1Progress = await calculateCourseProgress();
-    const completedTasks = tasks.filter(task => task.status === 'approved').length;
+    const { getAllCourses } = await import('./courseManager');
+    const allCourses = await getAllCourses();
 
-    return [
-      {
-        courseId: 'h1-kariologia',
-        courseName: 'H1 Syksy',
-        progress: h1Progress,
-        taskCount: tasks.length,
-        completedTasks: completedTasks
-      },
-      {
-        courseId: 'h1-kevat-kariologia',
-        courseName: 'H1 Kevät',
-        progress: 0,
-        taskCount: 0,
-        completedTasks: 0
+    // Calculate progress for each course
+    const courseProgressList: CourseProgress[] = [];
+
+    for (const course of allCourses) {
+      // Filter tasks for this course
+      const courseTasks = tasks.filter(task => task.courseId === course.id);
+      const completedTasks = courseTasks.filter(task => task.status === 'approved').length;
+      const totalTasks = courseTasks.length;
+
+      // Calculate progress percentage
+      let progress = 0;
+      if (totalTasks > 0) {
+        progress = Math.round((completedTasks / totalTasks) * 100);
       }
-    ];
+
+      courseProgressList.push({
+        courseId: course.id,
+        courseName: course.name,
+        progress: progress,
+        taskCount: totalTasks,
+        completedTasks: completedTasks
+      });
+    }
+
+    return courseProgressList;
   } catch (error) {
     console.error('Error getting all courses progress:', error);
     return [];

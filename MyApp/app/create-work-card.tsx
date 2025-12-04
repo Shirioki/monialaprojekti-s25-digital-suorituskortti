@@ -10,11 +10,11 @@ import {
   Alert,
   Modal,
 } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getAllCourses, Course } from '../utils/courseManager'
-import { addWorkCard, WorkCardField } from '../utils/workCardManager'
+import { addWorkCard, WorkCardField, getWorkCardById, updateWorkCard } from '../utils/workCardManager'
 import { addTask } from '../utils/taskManager'
 
 type FieldType = 'text' | 'textInput' | 'multipleChoice' | 'checkbox' | 'dropdown' | 'teacherReview'
@@ -31,7 +31,15 @@ interface Field {
 
 export default function CreateWorkCardScreen() {
   const router = useRouter()
+  const params = useLocalSearchParams()
   const insets = useSafeAreaInsets()
+
+  // Check if we're in edit mode
+  const isEditMode = params.editMode === 'true'
+  const editWorkCardId = params.workCardId as string
+  const editWorkCardTitle = params.workCardTitle as string
+  const editCourseId = params.courseId as string
+  const editCourseName = params.courseName as string
 
   // Course selection state
   const [availableCourses, setAvailableCourses] = useState<Course[]>([])
@@ -58,7 +66,36 @@ export default function CreateWorkCardScreen() {
 
   useEffect(() => {
     loadCourses()
+    // If in edit mode, load the work card data
+    if (isEditMode && editWorkCardId) {
+      loadWorkCardForEdit(editWorkCardId)
+    }
   }, [])
+
+  const loadWorkCardForEdit = async (workCardId: string) => {
+    try {
+      const workCard = await getWorkCardById(workCardId)
+      if (workCard) {
+        setSuorituskorttiTitle(workCard.title)
+        setSelectedCourseId(workCard.courseId)
+
+        // Convert WorkCardField[] to Field[]
+        const convertedFields: Field[] = workCard.fields.map((field, index) => ({
+          id: (index + 1).toString(),
+          type: field.type as FieldType,
+          label: field.label,
+          required: field.required,
+          options: field.options,
+          staticText: field.staticText,
+          value: field.value
+        }))
+        setFields(convertedFields)
+      }
+    } catch (error) {
+      console.error('Error loading work card for edit:', error)
+      Alert.alert('Virhe', 'Suorituskortin lataaminen epäonnistui')
+    }
+  }
 
   const loadCourses = async () => {
     try {
@@ -197,36 +234,90 @@ export default function CreateWorkCardScreen() {
         value: fieldValues[field.id],
       } as WorkCardField))
 
-      // Save work card and get the generated ID
-      const workCardId = await addWorkCard({
-        title: suorituskorttiTitle.trim(),
-        courseId: selectedCourseId,
-        courseName: selectedCourse.name,
-        fields: workCardFields,
-        createdBy: 'admin',
-        status: 'active',
-      })
+      if (isEditMode && editWorkCardId) {
+        // Check if course has changed
+        if (selectedCourseId !== editCourseId) {
+          // Course changed, create a new copy for the new course instead of updating
+          const newWorkCardId = await addWorkCard({
+            title: suorituskorttiTitle.trim(),
+            courseId: selectedCourseId,
+            courseName: selectedCourse.name,
+            fields: workCardFields,
+            createdBy: 'admin',
+            status: 'active',
+          })
 
-      console.log('Work card created with ID:', workCardId)
+          console.log('New work card created for different course:', newWorkCardId)
 
-      // CREATE TASK for this work card
-      await addTask({
-        id: `task-${workCardId}`,
-        nimi: suorituskorttiTitle.trim(),
-        status: 'not_started',
-        type: 'workcard',
-        workCardId: workCardId,
-        courseId: selectedCourseId,
-      })
+          // CREATE TASK for this new work card
+          await addTask({
+            id: `task-${newWorkCardId}`,
+            nimi: suorituskorttiTitle.trim(),
+            status: 'not_started',
+            type: 'workcard',
+            workCardId: newWorkCardId,
+            courseId: selectedCourseId,
+          })
 
-      console.log('Task created for work card')
+          console.log('Task created for new work card')
 
-      Alert.alert('Onnistui!', 'Suorituskortti ja tehtävä luotu onnistuneesti', [
-        {
-          text: 'OK',
-          onPress: () => router.back(),
-        },
-      ])
+          Alert.alert('Onnistui!', `Suorituskortti luotu kurssille "${selectedCourse.name}"`, [
+            {
+              text: 'OK',
+              onPress: () => router.back(),
+            },
+          ])
+        } else {
+          // Same course, just update the existing work card
+          await updateWorkCard(editWorkCardId, {
+            title: suorituskorttiTitle.trim(),
+            courseId: selectedCourseId,
+            courseName: selectedCourse.name,
+            fields: workCardFields,
+            status: 'active',
+          })
+
+          console.log('Work card updated:', editWorkCardId)
+
+          Alert.alert('Onnistui!', 'Suorituskortti päivitetty onnistuneesti', [
+            {
+              text: 'OK',
+              onPress: () => router.back(),
+            },
+          ])
+        }
+      } else {
+        // Create new work card
+        const workCardId = await addWorkCard({
+          title: suorituskorttiTitle.trim(),
+          courseId: selectedCourseId,
+          courseName: selectedCourse.name,
+          fields: workCardFields,
+          createdBy: 'admin',
+          status: 'active',
+        })
+
+        console.log('Work card created with ID:', workCardId)
+
+        // CREATE TASK for this work card
+        await addTask({
+          id: `task-${workCardId}`,
+          nimi: suorituskorttiTitle.trim(),
+          status: 'not_started',
+          type: 'workcard',
+          workCardId: workCardId,
+          courseId: selectedCourseId,
+        })
+
+        console.log('Task created for work card')
+
+        Alert.alert('Onnistui!', 'Suorituskortti ja tehtävä luotu onnistuneesti', [
+          {
+            text: 'OK',
+            onPress: () => router.back(),
+          },
+        ])
+      }
     } catch (error) {
       console.error('Error saving work card:', error)
       Alert.alert('Virhe', 'Suorituskortin tallentaminen epäonnistui')
@@ -504,7 +595,9 @@ export default function CreateWorkCardScreen() {
         <TouchableOpacity onPress={handleCancel}>
           <Ionicons name="chevron-back" size={28} color="#FF3B30" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Luo suorituskortti</Text>
+        <Text style={styles.headerTitle}>
+          {isEditMode ? 'Muokkaa suorituskorttia' : 'Luo suorituskortti'}
+        </Text>
         <TouchableOpacity
           onPress={proceedToFilling}
           disabled={fields.length === 0}
@@ -569,7 +662,7 @@ export default function CreateWorkCardScreen() {
                           style={[
                             styles.courseDropdownItemTitle,
                             selectedCourseId === course.id &&
-                              styles.courseDropdownItemTitleSelected,
+                            styles.courseDropdownItemTitleSelected,
                           ]}
                         >
                           {course.name}
@@ -675,7 +768,9 @@ export default function CreateWorkCardScreen() {
         <TouchableOpacity onPress={() => setIsBuilding(true)}>
           <Ionicons name="chevron-back" size={28} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Täytä tiedot</Text>
+        <Text style={styles.headerTitle}>
+          {isEditMode ? 'Muokkaa tietoja' : 'Täytä tiedot'}
+        </Text>
         <TouchableOpacity onPress={handleSave}>
           <Text style={styles.saveButton}>Tallenna</Text>
         </TouchableOpacity>
@@ -722,7 +817,7 @@ export default function CreateWorkCardScreen() {
                     style={[
                       styles.multipleChoiceCard,
                       fieldValues[field.id]?.includes(option) &&
-                        styles.multipleChoiceCardSelected,
+                      styles.multipleChoiceCardSelected,
                     ]}
                     onPress={() => toggleMultipleChoice(field.id, option)}
                   >
@@ -733,7 +828,7 @@ export default function CreateWorkCardScreen() {
                       style={[
                         styles.multipleChoiceText,
                         fieldValues[field.id]?.includes(option) &&
-                          styles.multipleChoiceTextSelected,
+                        styles.multipleChoiceTextSelected,
                       ]}
                     >
                       {option}

@@ -71,12 +71,6 @@ export default function H1TasksScreen() {
       <View style={styles.taskHeader}>
         <View style={styles.taskTitleContainer}>
           <Text style={styles.taskTitle}>{item.nimi}</Text>
-          {item.type === 'workcard' && (
-            <View style={styles.workCardBadge}>
-              <Ionicons name="document-text" size={14} color="#007AFF" />
-              <Text style={styles.workCardBadgeText}>Suorituskortti</Text>
-            </View>
-          )}
         </View>
         <Ionicons name="chevron-forward" size={20} color="#999" />
       </View>
@@ -199,22 +193,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 4,
-  },
-  workCardBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 4,
-  },
-  workCardBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#007AFF',
-    marginLeft: 4,
   },
   taskFooter: {
     flexDirection: 'row',
