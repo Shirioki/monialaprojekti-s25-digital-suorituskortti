@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getTasks, Task } from '../utils/taskManager'
 
@@ -12,6 +12,13 @@ export default function H1TasksScreen() {
   useEffect(() => {
     loadTasks()
   }, [])
+
+  // Refresh tasks when screen is focused (when coming back from other screens)
+  useFocusEffect(
+    React.useCallback(() => {
+      loadTasks()
+    }, [])
+  )
 
   const loadTasks = async () => {
     try {
