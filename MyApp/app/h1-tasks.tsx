@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
-import { useRouter, useFocusEffect } from 'expo-router'
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getTasks, Task } from '../utils/taskManager'
 
 export default function H1TasksScreen() {
   const router = useRouter()
+  const params = useLocalSearchParams()
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Get course info from params, default to H1 Syksy (courseId: '1')
+  const courseId = typeof params.courseId === 'string' ? params.courseId : '1'
+  const courseName = typeof params.courseName === 'string' ? params.courseName : 'H1 Syksy'
 
   useEffect(() => {
     loadTasks()
@@ -24,7 +29,9 @@ export default function H1TasksScreen() {
     try {
       setLoading(true)
       const allTasks = await getTasks()
-      setTasks(allTasks)
+      // Filter tasks to only show tasks for the selected course
+      const courseTasks = allTasks.filter(task => task.courseId === courseId)
+      setTasks(courseTasks)
     } catch (error) {
       console.error('Error loading tasks:', error)
     } finally {
@@ -71,12 +78,6 @@ export default function H1TasksScreen() {
       <View style={styles.taskHeader}>
         <View style={styles.taskTitleContainer}>
           <Text style={styles.taskTitle}>{item.nimi}</Text>
-          {item.type === 'workcard' && (
-            <View style={styles.workCardBadge}>
-              <Ionicons name="document-text" size={14} color="#007AFF" />
-              <Text style={styles.workCardBadgeText}>Suorituskortti</Text>
-            </View>
-          )}
         </View>
         <Ionicons name="chevron-forward" size={20} color="#999" />
       </View>
@@ -103,7 +104,7 @@ export default function H1TasksScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={28} color="#333" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>H1 Syksy</Text>
+          <Text style={styles.headerTitle}>{courseName}</Text>
           <View style={{ width: 28 }} />
         </View>
         <View style={styles.loadingContainer}>
@@ -120,7 +121,7 @@ export default function H1TasksScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>H1 Syksy</Text>
+        <Text style={styles.headerTitle}>{courseName}</Text>
         <TouchableOpacity onPress={loadTasks}>
           <Ionicons name="refresh" size={24} color="#007AFF" />
         </TouchableOpacity>
@@ -199,22 +200,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 4,
-  },
-  workCardBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 4,
-  },
-  workCardBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#007AFF',
-    marginLeft: 4,
   },
   taskFooter: {
     flexDirection: 'row',

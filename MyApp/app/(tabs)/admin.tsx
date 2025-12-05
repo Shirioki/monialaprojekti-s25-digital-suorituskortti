@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, TextInput, Modal, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useFocusEffect } from '@react-navigation/native'
 import { Ionicons } from '@expo/vector-icons'
 import { getAllCourses, getCoursesBySubject, getSubjectsWithCounts, addCourse, updateCourse, deleteCourse, Course } from '../../utils/courseManager'
+import { getAllWorkCards, WorkCard, addWorkCard, deleteWorkCard } from '../../utils/workCardManager'
+import { addTask } from '../../utils/taskManager'
 
 interface User {
   id: string
@@ -18,12 +21,20 @@ export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState<'users' | 'courses' | 'system'>('users')
   const [addUserModalVisible, setAddUserModalVisible] = useState(false)
   const [editUserModalVisible, setEditUserModalVisible] = useState(false)
+  const [exportModalVisible, setExportModalVisible] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [menuVisible, setMenuVisible] = useState(false)
   const [expandedSections, setExpandedSections] = useState({
     admin: false,
     teacher: false,
     student: false
+  })
+
+  // State for expanded subjects in course management
+  const [expandedSubjects, setExpandedSubjects] = useState<Record<string, boolean>>({
+    'Kariologia': false,
+    'Kirurgia': false,
+    'Endodontia': false
   })
 
   // Sample user data
@@ -55,6 +66,16 @@ export default function AdminDashboard() {
   const [addCourseModalVisible, setAddCourseModalVisible] = useState(false)
   const [editCourseModalVisible, setEditCourseModalVisible] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+
+  // Work Cards Library state
+  const [workCardsLibraryModalVisible, setWorkCardsLibraryModalVisible] = useState(false)
+  const [availableWorkCards, setAvailableWorkCards] = useState<WorkCard[]>([])
+  const [workCardSearchText, setWorkCardSearchText] = useState('')
+
+  // Course assignment modal state
+  const [courseAssignmentModalVisible, setCourseAssignmentModalVisible] = useState(false)
+  const [selectedWorkCardForAssignment, setSelectedWorkCardForAssignment] = useState<WorkCard | null>(null)
+
   const [newCourse, setNewCourse] = useState({
     name: '',
     subject: 'Kariologia',
@@ -83,6 +104,13 @@ export default function AdminDashboard() {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section]
+    }))
+  }
+
+  const toggleSubject = (subjectName: string) => {
+    setExpandedSubjects(prev => ({
+      ...prev,
+      [subjectName]: !prev[subjectName]
     }))
   }
 
@@ -182,26 +210,26 @@ export default function AdminDashboard() {
     try {
       const courses = await getAllCourses()
       setAllCourses(courses)
-      
+
       // Group by subject
       const grouped: Record<string, Course[]> = {
         'Kariologia': [],
         'Kirurgia': [],
         'Endodontia': [],
       }
-      
+
       courses.forEach(course => {
         if (grouped[course.subject]) {
           grouped[course.subject].push(course)
         }
       })
-      
+
       setCoursesBySubject(grouped)
-      
+
       // Get teacher courses
       const teacherCoursesData = courses.filter(c => c.visibility === 'teacher' || c.visibility === 'both')
       setTeacherCourses(teacherCoursesData)
-      
+
       // Get subjects with counts
       const subjects = await getSubjectsWithCounts()
       setSubjectsWithCounts(subjects)
@@ -210,12 +238,162 @@ export default function AdminDashboard() {
     }
   }
 
+  // Load work cards for library
+  const loadWorkCards = async () => {
+    try {
+      const workCards = await getAllWorkCards()
+      setAvailableWorkCards(workCards)
+    } catch (error) {
+      console.error('Error loading work cards:', error)
+      // Don't show alert on error to avoid blocking UI
+    }
+  }
+
+  // Handle work card edit
+  const handleEditWorkCard = async (workCard: WorkCard) => {
+    // Navigate to create-work-card page with workCard data for editing
+    router.push({
+      pathname: '/create-work-card',
+      params: {
+        editMode: 'true',
+        workCardId: workCard.id,
+        workCardTitle: workCard.title,
+        courseId: workCard.courseId,
+        courseName: workCard.courseName
+      }
+    } as any)
+    // Close any open modals
+    setWorkCardsLibraryModalVisible(false)
+    setEditCourseModalVisible(false)
+  }
+
+  // Handle work card copy
+  const handleCopyWorkCard = async (workCard: WorkCard) => {
+    try {
+      // Create a copy with modified title
+      const copiedCard = {
+        title: `${workCard.title} (kopio)`,
+        courseId: workCard.courseId,
+        courseName: workCard.courseName,
+        fields: workCard.fields,
+        createdBy: 'Admin',
+        status: 'active' as const
+      }
+
+      // Save the copied card
+      await addWorkCard(copiedCard)
+
+      // Reload work cards
+      await loadWorkCards()
+
+      Alert.alert('Onnistui', 'Suorituskortti kopioitu onnistuneesti!')
+    } catch (error) {
+      Alert.alert('Virhe', 'Kortin kopiointi epäonnistui')
+    }
+  }
+
+  // Handle work card delete
+  const handleDeleteWorkCard = async (workCard: WorkCard) => {
+    Alert.alert(
+      'Poista suorituskortti',
+      `Haluatko varmasti poistaa kortin "${workCard.title}"?`,
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Poista',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteWorkCard(workCard.id)
+              // Delete all tasks associated with this work card
+              const { deleteTasksByWorkCardId } = await import('../../utils/taskManager')
+              await deleteTasksByWorkCardId(workCard.id)
+              await loadWorkCards()
+              Alert.alert('Onnistui', 'Suorituskortti poistettu onnistuneesti!')
+            } catch (error) {
+              Alert.alert('Virhe', 'Kortin poistaminen epäonnistui')
+            }
+          }
+        }
+      ]
+    )
+  }
+
+  // Handle work card assignment to course
+  const handleAssignWorkCardToCourse = async (workCard: WorkCard) => {
+    setSelectedWorkCardForAssignment(workCard)
+    // Close the library modal first, then open course assignment modal
+    setWorkCardsLibraryModalVisible(false)
+    // Use React state update callback instead of setTimeout
+    requestAnimationFrame(() => {
+      setCourseAssignmentModalVisible(true)
+    })
+  }
+
+  const assignWorkCardToCourse = async (courseId: string) => {
+    if (!selectedWorkCardForAssignment) return
+
+    try {
+      const selectedCourse = allCourses.find(c => c.id === courseId)
+      if (!selectedCourse) {
+        Alert.alert('Virhe', 'Valittu kurssi ei löydy')
+        return
+      }
+
+      // Create a copy of the work card for the new course
+      const newWorkCard = {
+        title: selectedWorkCardForAssignment.title,
+        courseId: courseId,
+        courseName: selectedCourse.name,
+        fields: selectedWorkCardForAssignment.fields,
+        createdBy: 'Admin',
+        status: 'active' as const
+      }
+
+      // Add the work card copy to the new course
+      const newWorkCardId = await addWorkCard(newWorkCard)
+
+      // Create corresponding task for the course
+      await addTask({
+        id: `task-${newWorkCardId}`,
+        nimi: newWorkCard.title,
+        status: 'not_started',
+        type: 'workcard',
+        workCardId: newWorkCardId,
+        courseId: courseId,
+      })
+
+      // Close modal and reload work cards
+      setCourseAssignmentModalVisible(false)
+      setSelectedWorkCardForAssignment(null)
+      // Reload work cards in background without blocking UI
+      loadWorkCards().catch(console.error)
+
+      Alert.alert('Onnistui', `Suorituskortti "${newWorkCard.title}" lisätty kurssille "${selectedCourse.name}"`)
+    } catch (error) {
+      console.error('Error assigning work card to course:', error)
+      Alert.alert('Virhe', 'Suorituskortin liittäminen kurssille epäonnistui')
+    }
+  }
+
   // Load courses when tab changes to 'courses'
   React.useEffect(() => {
     if (selectedTab === 'courses') {
       loadCoursesData()
+      loadWorkCards()
     }
   }, [selectedTab])
+
+  // Reload work cards when the page comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      // Only reload if we're on the courses tab and the modal is not visible
+      if (selectedTab === 'courses' && !workCardsLibraryModalVisible) {
+        console.log('Focus effect: reloading work cards')
+        loadWorkCards()
+      }
+    }, [selectedTab, workCardsLibraryModalVisible])
+  )
 
   const handleAddCourse = async () => {
     if (!newCourse.name) {
@@ -245,6 +423,8 @@ export default function AdminDashboard() {
   const handleEditCourse = (course: Course) => {
     setSelectedCourse(course)
     setEditCourseModalVisible(true)
+    // Load work cards to see current state in the modal
+    loadWorkCards()
   }
 
   const handleSaveCourseEdit = async () => {
@@ -255,6 +435,8 @@ export default function AdminDashboard() {
       setEditCourseModalVisible(false)
       setSelectedCourse(null)
       loadCoursesData()
+      // Also reload work cards to reflect any changes
+      loadWorkCards()
       Alert.alert('Onnistui', 'Kurssi päivitetty')
     } catch (error) {
       Alert.alert('Virhe', 'Kurssin päivittäminen epäonnistui')
@@ -693,18 +875,28 @@ export default function AdminDashboard() {
 
               {subjectsWithCounts.map((subject) => (
                 <View key={subject.name} style={styles.subjectCard}>
-                  <View style={styles.subjectHeader}>
+                  <TouchableOpacity
+                    style={styles.subjectHeader}
+                    onPress={() => toggleSubject(subject.name)}
+                  >
                     <View style={styles.subjectHeaderLeft}>
                       <Ionicons name={subject.icon as any} size={24} color={subject.color} />
                       <Text style={styles.subjectName}>{subject.name}</Text>
                     </View>
-                    <View style={styles.subjectStats}>
-                      <Ionicons name="book-outline" size={16} color="#666" />
-                      <Text style={styles.subjectStatsText}>{subject.count} kurssia</Text>
+                    <View style={styles.subjectHeaderRight}>
+                      <View style={styles.subjectStats}>
+                        <Ionicons name="book-outline" size={16} color="#666" />
+                        <Text style={styles.subjectStatsText}>{subject.count} kurssia</Text>
+                      </View>
+                      <Ionicons
+                        name={expandedSubjects[subject.name] ? "chevron-up" : "chevron-down"}
+                        size={20}
+                        color="#666"
+                      />
                     </View>
-                  </View>
+                  </TouchableOpacity>
 
-                  {coursesBySubject[subject.name] && coursesBySubject[subject.name].length > 0 ? (
+                  {expandedSubjects[subject.name] && coursesBySubject[subject.name] && coursesBySubject[subject.name].length > 0 && (
                     <View style={styles.coursesList}>
                       {coursesBySubject[subject.name].map((course) => (
                         <TouchableOpacity
@@ -729,9 +921,11 @@ export default function AdminDashboard() {
                         </TouchableOpacity>
                       ))}
                     </View>
-                  ) : (
+                  )}
+
+                  {expandedSubjects[subject.name] && (!coursesBySubject[subject.name] || coursesBySubject[subject.name].length === 0) && (
                     <View style={styles.emptyCoursesContainer}>
-                      <Text style={styles.emptyCoursesText}>Ei kursseja vielä saatavilla</Text>
+                      <Text style={styles.emptyCoursesText}>Ei kursseja tässä oppiaineessa</Text>
                     </View>
                   )}
                 </View>
@@ -763,6 +957,24 @@ export default function AdminDashboard() {
                 ))}
               </View>
             )}
+
+            {/* Work Cards Library */}
+            <View style={styles.subjectSection}>
+              <TouchableOpacity
+                style={styles.subjectCard}
+                onPress={() => {
+                  console.log('Opening work cards library modal')
+                  setWorkCardsLibraryModalVisible(true)
+                }}
+              >
+                <View style={styles.subjectHeader}>
+                  <View style={styles.subjectHeaderLeft}>
+                    <Ionicons name="folder-outline" size={24} color="#007AFF" />
+                    <Text style={styles.subjectName}>Suorituskorttien kirjasto</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </View>
 
             {/* Summary Stats */}
             <View style={styles.summarySection}>
@@ -821,15 +1033,6 @@ export default function AdminDashboard() {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ylläpitotoiminnot</Text>
-            <TouchableOpacity
-              style={styles.adminActionCard}
-              onPress={() => router.push('/create-work-card' as any)}
-            >
-              <Ionicons name="add-circle-outline" size={24} color="#007AFF" />
-              <Text style={styles.adminActionText}>Luo suorituskortti</Text>
-              <Ionicons name="chevron-forward" size={20} color="#999" />
-            </TouchableOpacity>
-
             <TouchableOpacity style={styles.adminActionCard}>
               <Ionicons name="folder-open-outline" size={24} color="#007AFF" />
               <Text style={styles.adminActionText}>Tarkastele lokitietoja</Text>
@@ -847,9 +1050,52 @@ export default function AdminDashboard() {
               <Text style={styles.adminActionText}>Näytä tilastot</Text>
               <Ionicons name="chevron-forward" size={20} color="#999" />
             </TouchableOpacity>
+
+            {/* Export completions button */}
+            <TouchableOpacity style={styles.adminActionCard} onPress={() => setExportModalVisible(true)}>
+              <Ionicons name="share-outline" size={24} color="#007AFF" />
+              <Text style={styles.adminActionText}>Vie suoritukset</Text>
+              <Ionicons name="chevron-forward" size={20} color="#999" />
+            </TouchableOpacity>
           </View>
         </ScrollView>
       )}
+
+      {/* Export Completions Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={exportModalVisible}
+        onRequestClose={() => setExportModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Vie suoritukset</Text>
+              <TouchableOpacity onPress={() => setExportModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+            {/* Mock list for vuosikurssit */}
+            <Text style={{ fontSize: 16, color: '#333', marginBottom: 12 }}>
+              Valitse vuosikurssi suoritusten vientiin:
+            </Text>
+            <View style={{ marginBottom: 16 }}>
+              {['2022', '2023', '2024', '2025'].map((year) => (
+                <View key={year} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <Ionicons name="school-outline" size={20} color="#007AFF" style={{ marginRight: 8 }} />
+                  <Text style={{ fontSize: 16, color: '#333' }}>{year}</Text>
+                </View>
+              ))}
+            </View>
+            {/* Add export UI/logic here */}
+            <Text style={{ fontSize: 16, color: '#999' }}>
+              Tähän tulee suoritusten vienti. Lisää haluamasi toiminnallisuus.
+            </Text>
+          </View>
+        </View>
+      </Modal>
+      {/* End System Tab Content */}
 
       {/* Add User Modal */}
       <Modal
@@ -1265,16 +1511,265 @@ export default function AdminDashboard() {
                   </View>
                 </View>
 
+                {/* Course Work Cards Section */}
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Kurssin suorituskortit</Text>
+                  <View style={styles.workCardsList}>
+                    {availableWorkCards.filter(card => card.courseId === selectedCourse.id).length > 0 ? (
+                      availableWorkCards
+                        .filter(card => card.courseId === selectedCourse.id)
+                        .map(workCard => (
+                          <View key={workCard.id} style={styles.workCardItem}>
+                            <View style={styles.workCardItemLeft}>
+                              <Text style={styles.workCardName}>{workCard.title}</Text>
+                              <Text style={styles.workCardSubtitle}>
+                                {workCard.fields.length} kenttää
+                              </Text>
+                            </View>
+                            <View style={styles.workCardActions}>
+                              <TouchableOpacity
+                                style={styles.workCardActionBtn}
+                                onPress={() => {
+                                  setEditCourseModalVisible(false)
+                                  requestAnimationFrame(() => {
+                                    handleEditWorkCard(workCard)
+                                  })
+                                }}
+                              >
+                                <Ionicons name="create-outline" size={18} color="#007AFF" />
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={styles.workCardActionBtn}
+                                onPress={() => handleDeleteWorkCard(workCard)}
+                              >
+                                <Ionicons name="trash-outline" size={18} color="#F44336" />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        ))
+                    ) : (
+                      <View style={styles.emptyWorkCardsContainer}>
+                        <Ionicons name="clipboard-outline" size={24} color="#ccc" />
+                        <Text style={styles.emptyWorkCardsText}>
+                          Ei suorituskortteja tällä kurssilla
+                        </Text>
+                        <Text style={styles.emptyWorkCardsSubtext}>
+                          Lisää kortteja kirjaston kautta
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* Add Work Card Button */}
+                    <TouchableOpacity
+                      style={styles.addNewWorkCardButton}
+                      onPress={() => {
+                        setEditCourseModalVisible(false)
+                        requestAnimationFrame(() => {
+                          setWorkCardsLibraryModalVisible(true)
+                        })
+                      }}
+                    >
+                      <Ionicons name="add" size={20} color="#fff" />
+                      <Text style={styles.addNewWorkCardText}>Lisää uusi suorituskortti</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
                 <TouchableOpacity style={styles.submitButton} onPress={handleSaveCourseEdit}>
                   <Text style={styles.submitButtonText}>Tallenna muutokset</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity 
-                  style={[styles.submitButton, styles.deleteButton]} 
+                <TouchableOpacity
+                  style={[styles.submitButton, styles.deleteButton]}
                   onPress={() => handleDeleteCourse(selectedCourse.id)}
                 >
                   <Text style={styles.submitButtonText}>Poista kurssi</Text>
                 </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Work Cards Library Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={workCardsLibraryModalVisible}
+        onRequestClose={() => setWorkCardsLibraryModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Suorituskorttien kirjasto</Text>
+              <TouchableOpacity onPress={() => setWorkCardsLibraryModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 500 }}>
+              {/* Create New Card Button */}
+              <TouchableOpacity
+                style={styles.addNewWorkCardButton}
+                onPress={() => {
+                  setWorkCardsLibraryModalVisible(false)
+                  router.push('/create-work-card' as any)
+                }}
+              >
+                <Ionicons name="add" size={20} color="#fff" />
+                <Text style={styles.addNewWorkCardText}>Luo uusi suorituskortti</Text>
+              </TouchableOpacity>
+
+              {/* Search Field */}
+              <View style={styles.searchContainer}>
+                <Ionicons name="search" size={20} color="#999" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Hae suorituskortteja..."
+                  placeholderTextColor="#999"
+                  value={workCardSearchText}
+                  onChangeText={setWorkCardSearchText}
+                />
+              </View>
+
+              {/* Work Cards List */}
+              <Text style={styles.librarySubheading}>Olemassa olevat kortit</Text>
+
+              {(() => {
+                // Filter to unique cards by title+fields signature
+                const uniqueCards: WorkCard[] = [];
+                const seen = new Set();
+                availableWorkCards.forEach(card => {
+                  // Create a signature from title and fields (fields as JSON string)
+                  const signature = card.title + '|' + JSON.stringify(card.fields);
+                  if (!seen.has(signature)) {
+                    seen.add(signature);
+                    uniqueCards.push(card);
+                  }
+                });
+                return uniqueCards
+                  .filter(workCard =>
+                    workCard.title.toLowerCase().includes(workCardSearchText.toLowerCase()) ||
+                    workCard.courseName.toLowerCase().includes(workCardSearchText.toLowerCase())
+                  )
+                  .map((workCard) => (
+                    <View key={workCard.id} style={styles.libraryWorkCardItem}>
+                      <View style={styles.libraryWorkCardLeft}>
+                        <Ionicons
+                          name="clipboard-outline"
+                          size={24}
+                          color="#007AFF"
+                        />
+                        <View>
+                          <Text style={styles.libraryWorkCardName}>{workCard.title}</Text>
+                          <Text style={styles.libraryWorkCardSubtitle}>
+                            {workCard.fields.length} kenttää • {workCard.createdAt ? new Date(workCard.createdAt).toLocaleDateString('fi-FI') : 'Ei päivämäärää'}
+                          </Text>
+                          {workCard.status === 'active' && (
+                            <View style={styles.usedBadge}>
+                              <Text style={styles.usedBadgeText}>Aktiivinen</Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                      <View style={styles.libraryWorkCardActions}>
+                        <TouchableOpacity
+                          style={styles.libraryActionBtn}
+                          onPress={() => handleAssignWorkCardToCourse(workCard)}
+                          accessibilityLabel="Liitä kurssille"
+                        >
+                          <Ionicons name="add-circle-outline" size={18} color="#4CAF50" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.libraryActionBtn}
+                          onPress={() => handleEditWorkCard(workCard)}
+                          accessibilityLabel="Muokkaa korttia"
+                        >
+                          <Ionicons name="create-outline" size={18} color="#007AFF" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.libraryActionBtn}
+                          onPress={() => handleDeleteWorkCard(workCard)}
+                          accessibilityLabel="Poista kortti"
+                        >
+                          <Ionicons name="trash-outline" size={18} color="#F44336" />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ));
+              })()}
+
+              {/* Empty State */}
+              {availableWorkCards
+                .filter(workCard =>
+                  workCard.title.toLowerCase().includes(workCardSearchText.toLowerCase()) ||
+                  workCard.courseName.toLowerCase().includes(workCardSearchText.toLowerCase())
+                )
+                .length === 0 && (
+                  <View style={styles.libraryEmptyState}>
+                    <Ionicons name="clipboard-outline" size={48} color="#ccc" />
+                    <Text style={styles.libraryEmptyText}>
+                      {workCardSearchText ? 'Ei hakutuloksia' : 'Ei suorituskortteja vielä'}
+                    </Text>
+                    <Text style={styles.libraryEmptySubtext}>
+                      {workCardSearchText ? 'Kokeile erilaista hakutermiä' : 'Luo ensimmäinen suorituskorttimallisi'}
+                    </Text>
+                  </View>
+                )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Course Assignment Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={courseAssignmentModalVisible}
+        onRequestClose={() => setCourseAssignmentModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Liitä kortti kurssille</Text>
+              <TouchableOpacity onPress={() => setCourseAssignmentModalVisible(false)}>
+                <Ionicons name="close" size={28} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            {selectedWorkCardForAssignment && (
+              <ScrollView style={{ maxHeight: 400 }}>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Valittu suorituskortti:</Text>
+                  <Text style={styles.selectedWorkCardTitle}>{selectedWorkCardForAssignment.title}</Text>
+                </View>
+
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Valitse kurssi:</Text>
+
+                  {allCourses.filter(course => course.status === 'active').map((course) => (
+                    <TouchableOpacity
+                      key={course.id}
+                      style={styles.courseSelectionItem}
+                      onPress={() => assignWorkCardToCourse(course.id)}
+                    >
+                      <View style={styles.courseSelectionItemLeft}>
+                        <Ionicons name="book-outline" size={20} color="#007AFF" />
+                        <View>
+                          <Text style={styles.courseSelectionName}>{course.name}</Text>
+                          <Text style={styles.courseSelectionSubject}>{course.subject}</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color="#999" />
+                    </TouchableOpacity>
+                  ))}
+
+                  {allCourses.filter(course => course.status === 'active').length === 0 && (
+                    <View style={styles.emptyCoursesContainer}>
+                      <Text style={styles.emptyCoursesText}>Ei aktiivisia kursseja</Text>
+                    </View>
+                  )}
+                </View>
               </ScrollView>
             )}
           </View>
@@ -1807,6 +2302,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  subjectHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   subjectName: {
     fontSize: 17,
     fontWeight: '600',
@@ -1895,5 +2395,243 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
+  },
+  // Work Cards Library Styles
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 6,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  workCardsList: {
+    gap: 8,
+  },
+  workCardItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  workCardItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  workCardName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  workCardSubtitle: {
+    fontSize: 12,
+    color: '#666',
+  },
+  workCardActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  workCardActionBtn: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#f8f9fa',
+  },
+  emptyWorkCardsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 16,
+  },
+  emptyWorkCardsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#999',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  emptyWorkCardsSubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  // Library Modal Styles
+  createNewCardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    borderStyle: 'dashed',
+  },
+  createNewCardText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 12,
+    flex: 1,
+  },
+  librarySubheading: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 12,
+  },
+  libraryWorkCardItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  libraryWorkCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  libraryWorkCardName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 2,
+  },
+  libraryWorkCardSubtitle: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  usedBadge: {
+    backgroundColor: '#E8F5E8',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+  },
+  usedBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#2E7D32',
+  },
+  libraryWorkCardActions: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  libraryActionBtn: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: '#f8f9fa',
+  },
+  libraryEmptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  libraryEmptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#999',
+    marginTop: 12,
+  },
+  libraryEmptySubtext: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  libraryManageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  libraryManageButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#007AFF',
+    marginLeft: 8,
+  },
+  selectedWorkCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    padding: 12,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  courseSelectionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  courseSelectionItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  courseSelectionName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 12,
+  },
+  courseSelectionSubject: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 12,
+    marginTop: 2,
+  },
+  addNewWorkCardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 12,
+  },
+  addNewWorkCardText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#fff',
+    marginLeft: 8,
   },
 })
