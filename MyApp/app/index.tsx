@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Image } from 'react-native'
 import { useRouter } from 'expo-router'
+import { hyColors } from '@/constants/hy-colors';
 
 export default function LoginScreen() {
   const router = useRouter()
@@ -85,22 +86,24 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   universityText: {
+    fontFamily: 'OpenSans-SemiBold',
     fontSize: 16,
     fontWeight: '700',
-    color: '#00205B',
+    color: hyColors.textColor.default,
     marginBottom: 8,
     letterSpacing: 0.5,
   },
   subtitle: {
+    fontFamily: 'OpenSans-Regular',
     fontSize: 15,
-    color: '#333',
+    color: hyColors.textColor.secondary,
     textAlign: 'center',
   },
   form: {
     width: '100%',
     maxWidth: 400,
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 0,
     padding: 24,
     shadowColor: '#000',
     shadowOpacity: 0.08,
@@ -109,39 +112,42 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontFamily: 'OpenSans-SemiBold',
+    fontSize: 16,
+    color: hyColors.textColor.secondary,
     marginBottom: 8,
     marginTop: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
+    borderWidth: 2,
+    borderColor: hyColors.borderColor.default,
+    borderRadius: 0,
     padding: 12,
     fontSize: 15,
-    backgroundColor: '#fafafa',
+    backgroundColor: hyColors.bgColor.neutral,
     marginBottom: 16,
   },
   button: {
-    backgroundColor: '#000',
-    borderRadius: 8,
+    backgroundColor: hyColors.bgColor.black,
+    borderRadius: 0,
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 8,
   },
   buttonText: {
-    color: '#fff',
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.white,
     fontSize: 16,
-    fontWeight: '600',
   },
   linkContainer: {
     marginTop: 16,
     alignItems: 'center',
   },
   linkText: {
-    color: '#007AFF',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.link,
     fontSize: 14,
   },
 })

@@ -1,9 +1,32 @@
 import { Stack } from 'expo-router'
 import { useAppLifecycle } from '../utils/appLifecycle'
 
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+import {useEffect} from 'react';
+
+SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
   // Initialize app data and handle lifecycle
   useAppLifecycle()
+
+  const [loaded, error] = useFonts({
+    'OpenSans-Bold': require('../assets/fonts/OpenSans-Bold.ttf'),
+    'OpenSans-SemiBold': require('../assets/fonts/OpenSans-SemiBold.ttf'),
+    'OpenSans-Regular': require('../assets/fonts/OpenSans-Regular.ttf'),
+    'OpenSans-Light': require('../assets/fonts/OpenSans-Light.ttf')
+  });
+
+  useEffect(() => {
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  if (!loaded && !error) {
+    return null;
+  }
 
   return (
     <Stack

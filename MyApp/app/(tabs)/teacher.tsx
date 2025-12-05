@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, Scro
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getTasks, calculateCourseProgress } from '../../utils/taskManager'
+import { hyColors } from '@/constants/hy-colors'
 
 interface Kurssi {
   id: string
@@ -172,10 +173,9 @@ const TeacherDashboard = () => {
             <View style={styles.menuHeader}>
               <View>
                 <Text style={styles.menuTitle}>Valikko</Text>
-                <Text style={styles.menuSubtitle}>Navigoi sovelluksessa</Text>
               </View>
               <TouchableOpacity onPress={() => setMenuVisible(false)}>
-                <Ionicons name="close" size={28} color="#333" />
+                <Ionicons name="close" size={28} color={hyColors.iconColor.primary} />
               </TouchableOpacity>
             </View>
 
@@ -327,29 +327,29 @@ export default TeacherDashboard
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: hyColors.bgColor.white,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: hyColors.bgColor.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: hyColors.borderColor.default,
   },
   headerTitle: {
+    fontFamily: 'OpenSans-Bold',
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
+    color: hyColors.textColor.default,
   },
-  // Menu Modal Styles
+  // MENU Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   menuContainer: {
-    width: '80%',
+    width: '70%',
     height: '100%',
     backgroundColor: '#fff',
     shadowColor: '#000',
@@ -368,13 +368,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   menuTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontFamily: 'OpenSans-SemiBold',
+    fontSize: 16,
+    color: hyColors.textColor.primary,
   },
   menuSubtitle: {
     fontSize: 13,
-    color: '#666',
+    color: hyColors.textColor.primary,
     marginTop: 4,
   },
   menuItems: {
@@ -400,14 +400,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuItemText: {
+    fontFamily: 'OpenSans-SemiBold',
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    color: hyColors.textColor.primary,
     marginBottom: 2,
   },
   menuItemDescription: {
+    fontFamily: 'OpenSans-Regular',
     fontSize: 12,
-    color: '#666',
+    color: hyColors.textColor.primary,
   },
   menuFooter: {
     padding: 16,
@@ -417,8 +418,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   menuFooterText: {
+    fontFamily: 'OpenSans-Regular',
     fontSize: 12,
-    color: '#999',
+    color: hyColors.textColor.secondary,
   },
   section: {
     padding: 16,
@@ -429,12 +431,12 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 16,
   },
+  // MENU END
   kurssiCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: hyColors.bgColor.neutral,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
@@ -465,8 +467,9 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
+    backgroundColor: hyColors.bgColor.white,
+    borderWidth: 2,
+    borderColor: hyColors.borderColor.default,
     paddingHorizontal: 12,
     marginHorizontal: 16,
     marginBottom: 12,
