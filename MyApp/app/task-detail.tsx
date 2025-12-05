@@ -172,7 +172,7 @@ export default function TaskDetailScreen() {
 
       // Convert work card values to self assessment text
       const assessmentParts: string[] = []
-      // ✅ FIX #5: Add WorkCardField type annotation
+      // ✅ FIX #5: Add WorkCardField type annotation.
       workCard.fields.map((field: WorkCardField) => {
         const value = workCardValues[field.id]
         if (value) {
