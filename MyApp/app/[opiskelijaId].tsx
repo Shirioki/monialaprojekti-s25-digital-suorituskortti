@@ -221,7 +221,7 @@ export default function StudentDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: hyColors.bgColor.white,
   },
   header: {
     flexDirection: 'row',
@@ -242,11 +242,17 @@ const styles = StyleSheet.create({
   },
   // Student card starts
   infoCard: {
-    backgroundColor: '#fff',
+    backgroundColor: hyColors.bgColor.neutral,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
     padding: 24,
     alignItems: 'center',
     marginBottom: 10,
     elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
   },
   avatarContainer: {
     marginBottom: 10,
@@ -298,7 +304,7 @@ const styles = StyleSheet.create({
   },
   // Student card ends
   taskCard: {
-    backgroundColor: '#fff',
+    backgroundColor: hyColors.bgColor.neutral,
     borderWidth: 1,
     borderColor: hyColors.borderColor.light,
     padding: 16,

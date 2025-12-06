@@ -108,7 +108,7 @@ export default function TeacherTasksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: hyColors.bgColor.white,
   },
   header: {
     flexDirection: 'row',
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   taskCard: {
-    backgroundColor: hyColors.bgColor.white,
+    backgroundColor: hyColors.bgColor.neutral,
     borderWidth: 1,
     borderColor: hyColors.borderColor.light,
     padding: 16,

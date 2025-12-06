@@ -550,7 +550,9 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   profileCard: {
-    backgroundColor: '#fff',
+    backgroundColor: hyColors.bgColor.neutral,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
     padding: 24,
     alignItems: 'center',
     shadowColor: '#000',

@@ -216,7 +216,7 @@ export default function TeacherTaskReview() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: hyColors.bgColor.white,
   },
   header: {
     flexDirection: 'row',
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
     borderColor: hyColors.borderColor.light,
-    backgroundColor: hyColors.bgColor.white,
+    backgroundColor: hyColors.bgColor.neutral,
     padding: 20,
     marginTop: 20,
     shadowColor: '#000',
@@ -321,14 +321,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 12,
     borderLeftWidth: 4,
+    borderWidth: 1,
   },
   studentMessage: {
     backgroundColor: hyColors.extraColor.lightGreen,
     borderLeftColor: hyColors.extraColor.green,
+    borderColor: hyColors.extraColor.green
   },
   teacherMessage: {
     backgroundColor: hyColors.bgColor.secondaryHover,
     borderLeftColor: hyColors.borderColor.info,
+    borderColor: hyColors.borderColor.info
   },
   messageHeader: {
     flexDirection: 'row',
