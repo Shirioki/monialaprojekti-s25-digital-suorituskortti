@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { getAllCourses, getCoursesBySubject, getSubjectsWithCounts, addCourse, updateCourse, deleteCourse, Course } from '../../utils/courseManager'
 import { getAllWorkCards, WorkCard, addWorkCard, deleteWorkCard } from '../../utils/workCardManager'
 import { addTask } from '../../utils/taskManager'
+import { hyColors } from '../../constants/hy-colors'
 
 interface User {
   id: string
@@ -646,7 +647,7 @@ export default function AdminDashboard() {
             {groupedUsers.admin.length > 0 && (
               <View style={styles.roleSection}>
                 <TouchableOpacity
-                  style={getRoleSectionStyle('admin')}
+                  style={styles.roleSectionHeader}
                   onPress={() => toggleSection('admin')}
                   activeOpacity={0.7}
                 >
@@ -1782,21 +1783,22 @@ export default function AdminDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: hyColors.bgColor.white,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: hyColors.bgColor.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: hyColors.textColor.default,
+    fontFamily: 'OpenSans-Bold',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -1805,32 +1807,31 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: hyColors.bgColor.neutral,
+    borderRadius: 0,
     padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
   },
   statNumber: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333',
+    color: hyColors.textColor.default,
     marginTop: 8,
+    fontFamily: 'OpenSans-Bold',
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: hyColors.textColor.secondary,
     marginTop: 4,
+    fontFamily: 'OpenSans-Regular',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: hyColors.bgColor.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   tab: {
     flex: 1,
@@ -1843,15 +1844,16 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: '#007AFF',
+    borderBottomColor: hyColors.borderColor.primary,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: hyColors.textColor.secondary,
+    fontFamily: 'OpenSans-SemiBold',
   },
   tabTextActive: {
-    color: '#007AFF',
+    color: hyColors.textColor.primary,
   },
   content: {
     flex: 1,
@@ -1865,33 +1867,27 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: hyColors.bgColor.neutral,
+    borderRadius: 0,
     paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
   },
   searchInput: {
     flex: 1,
     paddingVertical: 12,
     paddingLeft: 12,
     fontSize: 15,
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.default,
   },
   addButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: hyColors.bgColor.primary,
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
   },
   userList: {
     padding: 16,
@@ -1899,16 +1895,12 @@ const styles = StyleSheet.create({
   },
   userCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: hyColors.borderColor.light,
   },
   userInfo: {
     flex: 1,
@@ -1918,8 +1910,8 @@ const styles = StyleSheet.create({
   userAvatar: {
     width: 50,
     height: 50,
-    borderRadius: 25,
-    backgroundColor: '#E3F2FD',
+    borderRadius: 0,
+    backgroundColor: hyColors.bgColor.secondaryHover,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -1930,13 +1922,15 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: hyColors.textColor.default,
     marginBottom: 2,
+    fontFamily: 'OpenSans-SemiBold',
   },
   userEmail: {
     fontSize: 13,
-    color: '#666',
+    color: hyColors.textColor.secondary,
     marginBottom: 6,
+    fontFamily: 'OpenSans-Regular',
   },
   userMeta: {
     flexDirection: 'row',
@@ -1945,7 +1939,7 @@ const styles = StyleSheet.create({
   roleBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 0,
   },
   roleText: {
     fontSize: 11,
@@ -1987,8 +1981,8 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '90%',
     maxWidth: 500,
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: hyColors.bgColor.white,
+    borderRadius: 0,
     padding: 24,
     maxHeight: '80%',
   },
@@ -2001,7 +1995,8 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: hyColors.textColor.default,
+    fontFamily: 'OpenSans-Bold',
   },
   formGroup: {
     marginBottom: 20,
@@ -2009,16 +2004,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: hyColors.textColor.default,
     marginBottom: 8,
+    fontFamily: 'OpenSans-SemiBold',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: hyColors.borderColor.light,
+    borderRadius: 0,
     padding: 12,
     fontSize: 15,
-    backgroundColor: '#fafafa',
+    backgroundColor: hyColors.bgColor.neutral,
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.default,
   },
   roleSelector: {
     flexDirection: 'row',
@@ -2027,38 +2025,41 @@ const styles = StyleSheet.create({
   roleOption: {
     flex: 1,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 0,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: hyColors.borderColor.light,
     alignItems: 'center',
+    backgroundColor: hyColors.bgColor.neutral,
   },
   roleOptionActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
+    backgroundColor: hyColors.bgColor.primary,
+    borderColor: hyColors.borderColor.primary,
   },
   roleOptionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: hyColors.textColor.secondary,
+    fontFamily: 'OpenSans-SemiBold',
   },
   roleOptionTextActive: {
-    color: '#fff',
+    color: hyColors.textColor.white,
   },
   submitButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
+    backgroundColor: hyColors.bgColor.primary,
+    borderRadius: 0,
     padding: 16,
     alignItems: 'center',
     marginTop: 8,
   },
   deleteButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: hyColors.iconColor.danger,
     marginTop: 12,
   },
   submitButtonText: {
-    color: '#fff',
+    color: hyColors.textColor.white,
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: 'OpenSans-SemiBold',
   },
   section: {
     padding: 16,
@@ -2066,25 +2067,23 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: hyColors.textColor.default,
     marginBottom: 16,
+    fontFamily: 'OpenSans-Bold',
   },
   systemCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: hyColors.bgColor.neutral,
+    borderRadius: 0,
     padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
   },
   systemItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   systemItemContent: {
     flex: 1,
@@ -2092,38 +2091,38 @@ const styles = StyleSheet.create({
   },
   systemItemLabel: {
     fontSize: 14,
-    color: '#666',
+    color: hyColors.textColor.secondary,
     marginBottom: 2,
+    fontFamily: 'OpenSans-Regular',
   },
   systemItemValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: hyColors.textColor.default,
+    fontFamily: 'OpenSans-SemiBold',
   },
   statusDot: {
     width: 10,
     height: 10,
-    borderRadius: 5,
+    borderRadius: 0,
   },
   adminActionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: hyColors.bgColor.neutral,
+    borderRadius: 0,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
   },
   adminActionText: {
     flex: 1,
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
+    color: hyColors.textColor.default,
     marginLeft: 12,
+    fontFamily: 'OpenSans-Regular',
   },
   menuContainer: {
     width: '80%',
@@ -2198,36 +2197,36 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   roleSection: {
-    marginBottom: 16,
+    backgroundColor: hyColors.bgColor.neutral,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    overflow: 'hidden',
   },
   roleSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingHorizontal: 19,
-    paddingVertical: 14,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderLeftWidth: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    padding: 16,
   },
   roleSectionHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   roleSectionTitle: {
-    fontSize: 19,
+    fontSize: 17,
     fontWeight: '600',
-    color: '#333',
-    marginLeft: 10,
+    color: hyColors.textColor.default,
+    marginLeft: 8,
+    fontFamily: 'OpenSans-SemiBold',
   },
   roleSectionContent: {
-    paddingLeft: 8,
+    borderTopWidth: 1,
+    borderTopColor: hyColors.borderColor.light,
+    paddingTop: 12,
   },
   emptyState: {
     alignItems: 'center',
@@ -2275,15 +2274,16 @@ const styles = StyleSheet.create({
   subjectTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: hyColors.textColor.default,
     marginBottom: 12,
+    fontFamily: 'OpenSans-Bold',
   },
   subjectCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: hyColors.bgColor.neutral,
+    borderRadius: 0,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
@@ -2295,7 +2295,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   subjectHeaderLeft: {
     flexDirection: 'row',
@@ -2310,7 +2310,8 @@ const styles = StyleSheet.create({
   subjectName: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#333',
+    color: hyColors.textColor.default,
+    fontFamily: 'OpenSans-SemiBold',
   },
   subjectStats: {
     flexDirection: 'row',
@@ -2319,9 +2320,11 @@ const styles = StyleSheet.create({
   },
   subjectStatsText: {
     fontSize: 13,
-    color: '#666',
+    color: hyColors.textColor.secondary,
+    fontFamily: 'OpenSans-Regular',
   },
   coursesList: {
+
     padding: 8,
   },
   courseItem: {
@@ -2329,9 +2332,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 8,
+
     backgroundColor: '#fafafa',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
   },
   courseItemLeft: {
     flexDirection: 'row',
@@ -2346,8 +2351,9 @@ const styles = StyleSheet.create({
   },
   courseItemText: {
     fontSize: 15,
-    color: '#333',
+    color: hyColors.textColor.default,
     fontWeight: '500',
+    fontFamily: 'OpenSans-Regular',
   },
   courseItemRight: {
     flexDirection: 'row',
@@ -2356,8 +2362,9 @@ const styles = StyleSheet.create({
   },
   courseItemStudents: {
     fontSize: 13,
-    color: '#666',
+    color: hyColors.textColor.secondary,
     fontWeight: '600',
+    fontFamily: 'OpenSans-SemiBold',
   },
   emptyCoursesContainer: {
     padding: 20,
@@ -2375,15 +2382,12 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: hyColors.bgColor.neutral,
+    borderRadius: 0,
     padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
   },
   summaryNumber: {
     fontSize: 28,
