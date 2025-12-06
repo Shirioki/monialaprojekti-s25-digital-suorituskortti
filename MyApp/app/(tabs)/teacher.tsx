@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: hyColors.bgColor.white,
     borderBottomWidth: 1,
-    borderBottomColor: hyColors.borderColor.default,
+    borderBottomColor: hyColors.borderColor.light,
   },
   headerTitle: {
     fontFamily: 'OpenSans-Bold',
@@ -347,6 +347,8 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   menuContainer: {
     width: '70%',
@@ -422,6 +424,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: hyColors.textColor.secondary,
   },
+  // MENU END
   section: {
     padding: 16,
   },
@@ -431,16 +434,17 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 16,
   },
-  // MENU END
   kurssiCard: {
     backgroundColor: hyColors.bgColor.neutral,
     marginBottom: 14,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
     overflow: 'hidden',
+    borderBottomWidth: 1,
+    borderBottomColor: hyColors.borderColor.light,
   },
   kurssiHeader: {
     flexDirection: 'row',
@@ -455,8 +459,8 @@ const styles = StyleSheet.create({
   },
   kurssiNimi: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#333',
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.default,
     marginLeft: 8,
   },
   opiskelijaList: {
@@ -468,8 +472,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: hyColors.bgColor.white,
-    borderWidth: 2,
-    borderColor: hyColors.borderColor.default,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
     paddingHorizontal: 12,
     marginHorizontal: 16,
     marginBottom: 12,
@@ -479,6 +483,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingLeft: 8,
     fontSize: 15,
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
   },
   opiskelijaItem: {
     flexDirection: 'row',
@@ -487,15 +493,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f5f5f5',
+    borderTopColor: hyColors.borderColor.light,
   },
   opiskelijaInfo: {
     flex: 1,
   },
   opiskelijaNimi: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.default,
     marginBottom: 6,
   },
   progressBarContainer: {
@@ -511,22 +517,22 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
   },
   actionButton: {
-    backgroundColor: '#000',
+    backgroundColor: hyColors.bgColor.black,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    borderRadius: 12,
     gap: 8,
     marginBottom: 12,
   },
   actionButtonText: {
-    color: '#fff',
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.white,
     fontSize: 16,
-    fontWeight: '600',
   },
   actionButtonSecondary: {
     backgroundColor: '#fff',
@@ -538,13 +544,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  // Teacher profile starts
   profileSection: {
     padding: 16,
-    paddingBottom: 8,
+    paddingBottom: 2,
   },
   profileCard: {
     backgroundColor: '#fff',
-    borderRadius: 16,
     padding: 24,
     alignItems: 'center',
     shadowColor: '#000',
@@ -557,19 +563,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   teacherName: {
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.default,
     fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
     marginBottom: 4,
   },
   teacherEmail: {
     fontSize: 15,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     marginBottom: 4,
   },
   teacherTitle: {
     fontSize: 14,
-    color: '#888',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     marginBottom: 20,
   },
   statsSection: {
@@ -583,18 +591,19 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#007AFF',
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     textAlign: 'center',
   },
   statDivider: {
     width: 1,
     height: 30,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: hyColors.borderColor.light,
   },
 })

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } fr
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getTasks, calculateCourseProgress } from '../utils/taskManager'
+import { hyColors } from '@/constants/hy-colors'
 
 interface CompletedTask {
   id: string
@@ -229,41 +230,38 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.default,
   },
   content: {
     padding: 16,
   },
+  // Student card starts
   infoCard: {
     backgroundColor: '#fff',
-    borderRadius: 16,
     padding: 24,
     alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    marginBottom: 10,
     elevation: 3,
   },
   avatarContainer: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
   studentName: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.default,
     marginBottom: 4,
   },
   studentEmail: {
     fontSize: 15,
-    color: '#666',
-    marginBottom: 20,
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
+    marginBottom: 10,
   },
   progressSection: {
     width: '100%',
@@ -271,8 +269,8 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.default,
     marginBottom: 8,
   },
   progressBarContainer: {
@@ -288,18 +286,21 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     textAlign: 'right',
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.default,
     marginBottom: 16,
   },
+  // Student card ends
   taskCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
@@ -322,44 +323,45 @@ const styles = StyleSheet.create({
   },
   taskName: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#333',
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.default,
     marginBottom: 4,
   },
   taskSubject: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     marginBottom: 2,
   },
   taskDate: {
     fontSize: 13,
-    color: '#888',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
   },
   approverInfo: {
     fontSize: 12,
-    color: '#4CAF50',
-    fontWeight: '500',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.extraColor.green,
     marginTop: 2,
   },
   statusBadge: {
     alignSelf: 'flex-start',
     paddingVertical: 6,
     paddingHorizontal: 14,
-    borderRadius: 20,
   },
   statusApproved: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: hyColors.extraColor.mediumGreen,
   },
   statusSubmitted: {
-    backgroundColor: '#FFA500',
+    backgroundColor: hyColors.extraColor.lightYellow,
   },
   statusNeedsCorrection: {
-    backgroundColor: '#F44336',
+    backgroundColor: hyColors.extraColor.lightRed,
   },
   statusText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#fff',
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.secondary,
   },
   chevron: {
     marginLeft: 8,

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { reviewTask, getTaskConversation, ConversationMessage, getTaskById, Task } from '../utils/taskManager'
+import { hyColors } from '@/constants/hy-colors'
 
 export default function TeacherTaskReview() {
   const router = useRouter()
@@ -224,33 +225,35 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   headerTitle: {
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.default,
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
   },
   content: {
     flex: 1,
     padding: 20,
   },
   taskTitle: {
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.default,
     fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     fontSize: 15,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 4,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
+    backgroundColor: hyColors.bgColor.white,
     padding: 20,
     marginTop: 20,
     shadowColor: '#000',
@@ -260,20 +263,20 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardTitle: {
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.default,
     fontSize: 18,
-    fontWeight: '600',
     marginBottom: 12,
-    color: '#333',
   },
   text: {
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     fontSize: 16,
-    color: '#555',
     lineHeight: 24,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: hyColors.borderColor.light,
     padding: 12,
     fontSize: 16,
     backgroundColor: '#fafafa',
@@ -292,19 +295,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 12,
     gap: 8,
   },
   approveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: hyColors.bgColor.primary,
   },
   rejectButton: {
-    backgroundColor: '#FFA500',
+    backgroundColor: hyColors.bgColor.black,
   },
   buttonText: {
-    color: '#fff',
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.white,
     fontSize: 16,
-    fontWeight: '600',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -318,16 +320,15 @@ const styles = StyleSheet.create({
   messageContainer: {
     marginBottom: 12,
     padding: 12,
-    borderRadius: 8,
     borderLeftWidth: 4,
   },
   studentMessage: {
-    backgroundColor: '#e3f2fd',
-    borderLeftColor: '#2196F3',
+    backgroundColor: hyColors.extraColor.lightGreen,
+    borderLeftColor: hyColors.extraColor.green,
   },
   teacherMessage: {
-    backgroundColor: '#f3e5f5',
-    borderLeftColor: '#9c27b0',
+    backgroundColor: hyColors.bgColor.secondaryHover,
+    borderLeftColor: hyColors.borderColor.info,
   },
   messageHeader: {
     flexDirection: 'row',
@@ -335,17 +336,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   messageSender: {
+    fontFamily: 'OpenSans-SemiBold',
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    color: hyColors.textColor.default,
   },
   messageTime: {
+    fontFamily: 'OpenSans-Regular',
     fontSize: 12,
-    color: '#666',
+    color: hyColors.textColor.secondary,
   },
   messageText: {
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     fontSize: 14,
-    color: '#333',
     lineHeight: 20,
   },
   messageType: {
@@ -354,15 +357,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 4,
   },
+  // APPROVED/FAILED
   statusCard: {
-    backgroundColor: '#e8f5e8',
-    borderRadius: 12,
+    backgroundColor: hyColors.extraColor.lightGreen,
     padding: 16,
-    marginBottom: 20,
+    marginTop: 10,
+    marginBottom: 10,
     flexDirection: 'row',
     alignItems: 'flex-start',
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: hyColors.extraColor.green,
   },
   statusContent: {
     flex: 1,
@@ -370,27 +374,29 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#2e7d2e',
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.success,
   },
   approverText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#2e7d2e',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     marginTop: 2,
   },
   statusDate: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     marginTop: 4,
   },
   inputReadOnly: {
-    backgroundColor: '#f5f5f5',
-    color: '#666',
+    backgroundColor: hyColors.bgColor.neutral,
+    color: hyColors.textColor.secondary,
   },
   noFeedbackText: {
     fontSize: 14,
-    color: '#999',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     fontStyle: 'italic',
     textAlign: 'center',
     padding: 20,
