@@ -52,5 +52,15 @@ export const hyColors = {
         neutral: '#808080',
         primary: '#005A94',
         success: '#279B2D'
+    },
+    extraColor: {
+        lightGreen: '#E8F5E8',
+        green: '#2E7D32',
+        lightBlue: '#E3F2FD',
+        blue: '#007AFF',
+        inactive: '#FFEBEE',
+        lightYellow: '#ffd085ff',
+        lightRed: '#ffa8a5ff',
+        mediumGreen: '#a8eaa8ff',
     }
 };

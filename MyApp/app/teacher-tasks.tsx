@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { TaskSubmission, getPendingSubmissions, getTasks, Task } from '../utils/taskManager'
+import { hyColors } from '@/constants/hy-colors'
 
 export default function TeacherTasksScreen() {
   const router = useRouter()
@@ -116,23 +117,24 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   headerTitle: {
+    fontFamily: 'OpenSans-Bold',
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
+    color: hyColors.textColor.default,
   },
   listContent: {
     padding: 16,
   },
   taskCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: hyColors.bgColor.white,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
@@ -141,17 +143,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   taskName: {
+    fontFamily: 'OpenSans-SemiBold',
     fontSize: 17,
-    fontWeight: '600',
-    color: '#333',
+    color: hyColors.textColor.default,
     marginBottom: 6,
   },
   studentName: {
+    fontFamily: 'OpenSans-Regular',
     fontSize: 14,
     color: '#666',
     marginBottom: 2,
   },
   completionDate: {
+    fontFamily: 'OpenSans-Regular',
     fontSize: 13,
     color: '#888',
   },
@@ -159,20 +163,19 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingVertical: 6,
     paddingHorizontal: 14,
-    borderRadius: 20,
   },
   statusSubmitted: {
-    backgroundColor: '#FFA500',
+    backgroundColor: hyColors.extraColor.lightYellow,
   },
   statusApproved: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: hyColors.extraColor.mediumGreen,
   },
   statusNeedsCorrection: {
-    backgroundColor: '#F44336',
+    backgroundColor: hyColors.extraColor.lightRed,
   },
   statusText: {
+    fontFamily: 'OpenSans-SemiBold',
     fontSize: 13,
-    fontWeight: '600',
-    color: '#fff',
+    color: hyColors.textColor.default,
   },
 })
