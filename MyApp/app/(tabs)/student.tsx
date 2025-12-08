@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Modal } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+} from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
-import { getAllCoursesProgress, CourseProgress } from '../../utils/taskManager'
+import { getAllCoursesProgress } from '../../utils/taskManager'
 import { getAllCourses, Course } from '../../utils/courseManager'
+import { hyColors } from '@/constants/hy-colors'
 
 interface KurssiTehtava {
   id: string
@@ -21,7 +30,7 @@ interface Oppiaine {
 const StudentView = () => {
   const router = useRouter()
   const [menuVisible, setMenuVisible] = useState(false)
-  const [coursesProgress, setCoursesProgress] = useState<CourseProgress[]>([])
+  const [coursesProgress, setCoursesProgress] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [oppiaineet, setOppiaineet] = useState<Oppiaine[]>([])
 
@@ -38,11 +47,10 @@ const StudentView = () => {
   const loadProgressData = async () => {
     try {
       setLoading(true)
-
       const allCourses = await getAllCourses()
-
       const studentCourses = allCourses.filter(
-        course => course.status === 'active' &&
+        (course) =>
+          course.status === 'active' &&
           (course.visibility === 'student' || course.visibility === 'both')
       )
 
@@ -50,12 +58,12 @@ const StudentView = () => {
       setCoursesProgress(progressData)
 
       const grouped: Record<string, Course[]> = {
-        'Kariologia': [],
-        'Kirurgia': [],
-        'Endodontia': [],
+        Kariologia: [],
+        Kirurgia: [],
+        Endodontia: [],
       }
 
-      studentCourses.forEach(course => {
+      studentCourses.forEach((course) => {
         if (grouped[course.subject]) {
           grouped[course.subject].push(course)
         }
@@ -69,7 +77,7 @@ const StudentView = () => {
           tehtavat: grouped['Kariologia'].map((course) => ({
             id: course.id,
             nimi: course.name,
-            progress: progressData.find(p => p.courseId === course.id)?.progress || 0
+            progress: progressData.find((p) => p.courseId === course.id)?.progress || 0,
           })),
         },
         {
@@ -79,7 +87,7 @@ const StudentView = () => {
           tehtavat: grouped['Kirurgia'].map((course) => ({
             id: course.id,
             nimi: course.name,
-            progress: progressData.find(p => p.courseId === course.id)?.progress || 0
+            progress: progressData.find((p) => p.courseId === course.id)?.progress || 0,
           })),
         },
         {
@@ -89,7 +97,7 @@ const StudentView = () => {
           tehtavat: grouped['Endodontia'].map((course) => ({
             id: course.id,
             nimi: course.name,
-            progress: progressData.find(p => p.courseId === course.id)?.progress || 0
+            progress: progressData.find((p) => p.courseId === course.id)?.progress || 0,
           })),
         },
       ]
@@ -105,9 +113,7 @@ const StudentView = () => {
   const toggleOppiaine = (id: string) => {
     setOppiaineet(
       oppiaineet.map((oppiaine) =>
-        oppiaine.id === id
-          ? { ...oppiaine, expanded: !oppiaine.expanded }
-          : oppiaine
+        oppiaine.id === id ? { ...oppiaine, expanded: !oppiaine.expanded } : oppiaine
       )
     )
   }
@@ -125,52 +131,51 @@ const StudentView = () => {
       title: 'Opiskelijan kotisivu',
       icon: 'home-outline',
       route: '/(tabs)/student',
-      description: 'Palaa etusivulle'
+      description: 'Palaa etusivulle',
     },
     {
       id: '2',
       title: 'Opettajan näkymä',
       icon: 'person-outline',
       route: '/(tabs)/teacher',
-      description: 'Vaihda opettajaksi'
+      description: 'Vaihda opettajaksi',
     },
     {
       id: '3',
       title: 'Tehtävälistaus',
       icon: 'list-outline',
       route: '/h1-tasks',
-      description: 'Näytä kaikki tehtävät'
+      description: 'Näytä kaikki tehtävät',
     },
     {
       id: '4',
       title: 'Oma edistyminen',
       icon: 'stats-chart-outline',
       route: '/(tabs)/student',
-      description: 'Tarkastele tilastoja'
+      description: 'Tarkastele tilastoja',
     },
     {
       id: '5',
       title: 'Asetukset',
       icon: 'settings-outline',
       route: '/(tabs)/settings',
-      description: 'Sovelluksen asetukset'
+      description: 'Sovelluksen asetukset',
     },
     {
       id: '6',
       title: 'Kirjaudu ulos',
       icon: 'log-out-outline',
       route: '/login',
-      description: 'Poistu sovelluksesta'
+      description: 'Poistu sovelluksesta',
     },
   ]
 
   const handleMenuItemPress = (route: string) => {
     setMenuVisible(false)
     if (route === '/h1-tasks') {
-      // Navigate to H1 Syksy tasks by default
       router.push({
         pathname: '/h1-tasks',
-        params: { courseId: '1', courseName: 'H1 Syksy' }
+        params: { courseId: '1', courseName: 'H1 Syksy' },
       } as any)
     } else {
       router.push(route as any)
@@ -243,12 +248,12 @@ const StudentView = () => {
         </TouchableOpacity>
       </Modal>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.section}>
         {/* Student Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
-              <Ionicons name="person-circle" size={80} color="#007AFF" />
+              <Ionicons name="school" size={80} color="#007AFF" />
             </View>
             <Text style={styles.studentName}>Matti Opiskelija</Text>
             <Text style={styles.studentEmail}>matti.opiskelija@helsinki.fi</Text>
@@ -261,82 +266,100 @@ const StudentView = () => {
                   style={[
                     styles.progressBar,
                     {
-                      width: `${coursesProgress.length > 0 ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length : 0}%`,
-                      backgroundColor: getProgressColor(coursesProgress.length > 0 ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length : 0),
+                      width: `${
+                        coursesProgress.length > 0
+                          ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) /
+                            coursesProgress.length
+                          : 0
+                      }%`,
+                      backgroundColor: getProgressColor(
+                        coursesProgress.length > 0
+                          ? coursesProgress.reduce((sum, course) => sum + course.progress, 0) /
+                              coursesProgress.length
+                          : 0
+                      ),
                     },
                   ]}
                 />
               </View>
               <Text style={styles.progressText}>
-                {coursesProgress.length > 0 ? Math.round(coursesProgress.reduce((sum, course) => sum + course.progress, 0) / coursesProgress.length) : 0}%
+                {coursesProgress.length > 0
+                  ? Math.round(
+                      coursesProgress.reduce((sum, course) => sum + course.progress, 0) /
+                        coursesProgress.length
+                    )
+                  : 0}
+                %
               </Text>
             </View>
           </View>
         </View>
 
         {/* Oppiaineet */}
-        <Text style={styles.sectionTitle}>Oppiaineet</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Oppiaineet</Text>
+          {oppiaineet.map((oppiaine) => (
+            <View key={oppiaine.id} style={styles.oppiaineCard}>
+              <TouchableOpacity
+                style={styles.oppiaineHeader}
+                onPress={() => toggleOppiaine(oppiaine.id)}
+              >
+                <View style={styles.oppiaineInfo}>
+                  <Ionicons name="book-outline" size={24} color="#007AFF" />
+                  <Text style={styles.oppiaineNimi}>{oppiaine.nimi}</Text>
+                </View>
+                <Ionicons
+                  name={oppiaine.expanded ? 'chevron-up' : 'chevron-down'}
+                  size={24}
+                  color="#666"
+                />
+              </TouchableOpacity>
 
-        {oppiaineet.map((oppiaine) => (
-          <View key={oppiaine.id} style={styles.oppiaineCard}>
-            <TouchableOpacity
-              style={styles.oppiaineHeader}
-              onPress={() => toggleOppiaine(oppiaine.id)}
-            >
-              <View style={styles.oppiaineInfo}>
-                <Ionicons name="book-outline" size={24} color="#007AFF" />
-                <Text style={styles.oppiaineNimi}>{oppiaine.nimi}</Text>
-              </View>
-              <Ionicons
-                name={oppiaine.expanded ? 'chevron-up' : 'chevron-down'}
-                size={24}
-                color="#666"
-              />
-            </TouchableOpacity>
-
-            {oppiaine.expanded && (
-              <View style={styles.tehtavaList}>
-                {oppiaine.tehtavat.length > 0 ? (
-                  oppiaine.tehtavat.map((tehtava) => {
-                    const progress = tehtava.progress ?? 0
-
-                    return (
-                      <TouchableOpacity
-                        key={tehtava.id}
-                        style={styles.tehtavaItem}
-                        onPress={() => router.push({
-                          pathname: '/h1-tasks',
-                          params: { courseId: tehtava.id, courseName: tehtava.nimi }
-                        } as any)}
-                      >
-                        <View style={styles.tehtavaInfo}>
-                          <Text style={styles.tehtavaNimi}>{tehtava.nimi}</Text>
-                          <View style={styles.progressBarContainer}>
-                            <View
-                              style={[
-                                styles.progressBar,
-                                {
-                                  width: `${progress}%`,
-                                  backgroundColor: getProgressColor(progress),
-                                },
-                              ]}
-                            />
+              {oppiaine.expanded && (
+                <View style={styles.tehtavaList}>
+                  {oppiaine.tehtavat.length > 0 ? (
+                    oppiaine.tehtavat.map((tehtava) => {
+                      const progress = tehtava.progress ?? 0
+                      return (
+                        <TouchableOpacity
+                          key={tehtava.id}
+                          style={styles.tehtavaItem}
+                          onPress={() =>
+                            router.push({
+                              pathname: '/h1-tasks',
+                              params: { courseId: tehtava.id, courseName: tehtava.nimi },
+                            } as any)
+                          }
+                        >
+                          <View style={styles.tehtavaInfo}>
+                            <Text style={styles.tehtavaNimi}>{tehtava.nimi}</Text>
+                            <View style={styles.progressBarContainer}>
+                              <View
+                                style={[
+                                  styles.progressBar,
+                                  {
+                                    width: `${progress}%`,
+                                    backgroundColor: getProgressColor(progress),
+                                  },
+                                ]}
+                              />
+                            </View>
+                            <Text style={styles.progressText}>{progress}% suoritettu</Text>
                           </View>
-                          <Text style={styles.progressText}>{progress}% suoritettu</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={20} color="#999" />
-                      </TouchableOpacity>
-                    )
-                  })
-                ) : (
-                  <View style={styles.tehtavaItem}>
-                    <Text style={styles.tehtavaDisabled}>Kursseja ei ole vielä saatavilla</Text>
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-        ))}
+                          <Ionicons name="chevron-forward" size={20} color="#999" />
+                        </TouchableOpacity>
+                      )
+                    })
+                  ) : (
+                    <View style={styles.emptyContainer}>
+                      <Text style={styles.emptyText}>Kursseja ei ole vielä saatavilla</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   )
@@ -347,28 +370,31 @@ export default StudentView
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: hyColors.bgColor.white,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: hyColors.bgColor.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
+    fontFamily: 'OpenSans-Bold',
+    fontSize: 20,
+    color: hyColors.textColor.default,
   },
+  // MENU Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   menuContainer: {
-    width: '80%',
+    width: '70%',
     height: '100%',
     backgroundColor: '#fff',
     shadowColor: '#000',
@@ -387,13 +413,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   menuTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontFamily: 'OpenSans-SemiBold',
+    fontSize: 16,
+    color: hyColors.textColor.primary,
   },
   menuSubtitle: {
     fontSize: 13,
-    color: '#666',
+    color: hyColors.textColor.primary,
     marginTop: 4,
   },
   menuItems: {
@@ -419,14 +445,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuItemText: {
+    fontFamily: 'OpenSans-SemiBold',
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    color: hyColors.textColor.primary,
     marginBottom: 2,
   },
   menuItemDescription: {
+    fontFamily: 'OpenSans-Regular',
     fontSize: 12,
-    color: '#666',
+    color: hyColors.textColor.primary,
   },
   menuFooter: {
     padding: 16,
@@ -436,28 +463,33 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   menuFooterText: {
+    fontFamily: 'OpenSans-Regular',
     fontSize: 12,
-    color: '#999',
+    color: hyColors.textColor.secondary,
   },
-  content: {
+  // MENU END
+  section: {
     padding: 16,
+    paddingTop: 0,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 16,
+    marginTop: 16,
   },
   oppiaineCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: hyColors.bgColor.neutral,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
     overflow: 'hidden',
+    borderBottomWidth: 1,
+    borderBottomColor: hyColors.borderColor.light,
   },
   oppiaineHeader: {
     padding: 16,
@@ -471,8 +503,8 @@ const styles = StyleSheet.create({
   },
   oppiaineNimi: {
     fontSize: 17,
-    fontWeight: '600',
-    color: '#333',
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.default,
     marginLeft: 8,
   },
   tehtavaList: {
@@ -487,26 +519,25 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f5f5f5',
+    borderTopColor: hyColors.borderColor.light,
   },
   tehtavaInfo: {
     flex: 1,
   },
   tehtavaNimi: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.default,
     marginBottom: 6,
   },
-  tehtavaDisabled: {
-    color: '#999',
-  },
   profileSection: {
-    marginBottom: 24,
+    padding: 16,
+    paddingBottom: 2,
   },
   profileCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: hyColors.bgColor.neutral,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
     padding: 24,
     alignItems: 'center',
     shadowColor: '#000',
@@ -519,14 +550,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   studentName: {
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.default,
     fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
     marginBottom: 4,
   },
   studentEmail: {
     fontSize: 15,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     marginBottom: 20,
   },
   progressSection: {
@@ -535,8 +567,8 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontFamily: 'OpenSans-Bold',
+    color: hyColors.textColor.primary,
     marginBottom: 8,
   },
   progressBarContainer: {
@@ -552,7 +584,17 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     textAlign: 'right',
+  },
+  emptyContainer: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
+    fontStyle: 'italic',
   },
 })

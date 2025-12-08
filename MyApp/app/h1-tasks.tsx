@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native'
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getTasks, Task } from '../utils/taskManager'
+import { hyColors } from '@/constants/hy-colors'
 
 export default function H1TasksScreen() {
   const router = useRouter()
@@ -30,7 +39,7 @@ export default function H1TasksScreen() {
       setLoading(true)
       const allTasks = await getTasks()
       // Filter tasks to only show tasks for the selected course
-      const courseTasks = allTasks.filter(task => task.courseId === courseId)
+      const courseTasks = allTasks.filter((task) => task.courseId === courseId)
       setTasks(courseTasks)
     } catch (error) {
       console.error('Error loading tasks:', error)
@@ -71,29 +80,22 @@ export default function H1TasksScreen() {
       onPress={() => {
         router.push({
           pathname: '/task-detail',
-          params: { taskId: item.id }
+          params: { taskId: item.id },
         } as any)
       }}
     >
-      <View style={styles.taskHeader}>
-        <View style={styles.taskTitleContainer}>
-          <Text style={styles.taskTitle}>{item.nimi}</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color="#999" />
-      </View>
-
-      <View style={styles.taskFooter}>
-        <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(item.status)}20` }]}>
-          <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
+      <View style={styles.taskInfo}>
+        <Text style={styles.taskTitle}>{item.nimi}</Text>
+        <View style={styles.statusContainer}>
+          <View
+            style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]}
+          />
           <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
             {getStatusText(item.status)}
           </Text>
         </View>
-
-        {item.status === 'not_started' && (
-          <Text style={styles.actionText}>Aloita</Text>
-        )}
       </View>
+      <Ionicons name="chevron-forward" size={20} color={hyColors.textColor.secondary} />
     </TouchableOpacity>
   )
 
@@ -102,13 +104,13 @@ export default function H1TasksScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={28} color="#333" />
+            <Ionicons name="arrow-back" size={24} color={hyColors.textColor.default} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{courseName}</Text>
-          <View style={{ width: 28 }} />
+          <View style={{ width: 24 }} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={hyColors.textColor.primary} />
           <Text style={styles.loadingText}>Ladataan tehtäviä...</Text>
         </View>
       </SafeAreaView>
@@ -119,12 +121,10 @@ export default function H1TasksScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={28} color="#333" />
+          <Ionicons name="arrow-back" size={24} color={hyColors.textColor.default} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{courseName}</Text>
-        <TouchableOpacity onPress={loadTasks}>
-          <Ionicons name="refresh" size={24} color="#007AFF" />
-        </TouchableOpacity>
+        <View style={{ width: 24 }} />
       </View>
 
       <FlatList
@@ -134,7 +134,7 @@ export default function H1TasksScreen() {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="clipboard-outline" size={64} color="#ccc" />
+            <Ionicons name="document-text-outline" size={48} color={hyColors.textColor.secondary} />
             <Text style={styles.emptyText}>Ei tehtäviä saatavilla</Text>
           </View>
         }
@@ -146,21 +146,21 @@ export default function H1TasksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: hyColors.bgColor.white,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: hyColors.bgColor.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   headerTitle: {
+    fontFamily: 'OpenSans-Bold',
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
+    color: hyColors.textColor.default,
   },
   loadingContainer: {
     flex: 1,
@@ -170,48 +170,44 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
   },
   listContent: {
     padding: 16,
+    paddingTop: 8,
   },
   taskCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: hyColors.bgColor.neutral,
+    marginBottom: 10,
+    borderRadius: 0, // Matching the flat list style from student view
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
+    // Optional shadow to match student cards exactly if desired,
+    // otherwise keep flat like list items
     shadowColor: '#000',
     shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
   },
-  taskHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  taskTitleContainer: {
+  taskInfo: {
     flex: 1,
   },
   taskTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
+    fontSize: 16,
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.default,
+    marginBottom: 6,
   },
-  taskFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statusBadge: {
+  statusContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
   },
   statusDot: {
     width: 8,
@@ -220,13 +216,8 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   statusText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  actionText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#007AFF',
+    fontSize: 12, // Matches progress text size
+    fontFamily: 'OpenSans-Regular',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -235,7 +226,9 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     marginTop: 12,
+    fontStyle: 'italic',
   },
 })

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react'
 import {
   View,
@@ -17,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { getTaskById, submitTask, Task, getTaskConversation, ConversationMessage } from '../utils/taskManager'
 import { getWorkCardById, WorkCard, WorkCardField } from '../utils/workCardManager'
+import { hyColors } from '@/constants/hy-colors'
 
 export default function TaskDetailScreen() {
   const router = useRouter()
@@ -27,20 +29,16 @@ export default function TaskDetailScreen() {
   const [workCard, setWorkCard] = useState<WorkCard | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Standard task fields
   const [date, setDate] = useState(new Date())
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [selfAssessment, setSelfAssessment] = useState('')
 
-  // Work card field values
   const [workCardValues, setWorkCardValues] = useState<{ [key: string]: any }>({})
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
 
-  // Conversation history
   const [conversation, setConversation] = useState<ConversationMessage[]>([])
   const [isConversationExpanded, setIsConversationExpanded] = useState(false)
 
-  // Check if task is approved (read-only mode)
   const isTaskApproved = task?.status === 'approved'
 
   useEffect(() => {
@@ -50,6 +48,7 @@ export default function TaskDetailScreen() {
   const loadTask = async () => {
     try {
       setLoading(true)
+
       const taskData = await getTaskById(taskId)
       if (!taskData) {
         Alert.alert('Virhe', 'Tehtävää ei löytynyt')
@@ -59,49 +58,33 @@ export default function TaskDetailScreen() {
 
       setTask(taskData)
 
-      // Load conversation history
       const conversationData = await getTaskConversation(taskId)
       setConversation(conversationData)
 
-      // If this is a work card task, load the work card
       if (taskData.type === 'workcard' && taskData.workCardId) {
-        console.log('Loading work card with ID:', taskData.workCardId)
         const workCardData = await getWorkCardById(taskData.workCardId)
         if (workCardData) {
-          console.log('Work card loaded:', workCardData.title, 'Fields:', workCardData.fields.length)
           setWorkCard(workCardData)
 
-          // Initialize work card field values
           const initialValues: { [key: string]: any } = {}
-          // ✅ FIX #1 & #2: Add WorkCardField type annotation
           workCardData.fields.map((field: WorkCardField) => {
-            if (field.type === 'checkbox') {
-              initialValues[field.id] = false
-            } else if (field.type === 'multipleChoice') {
-              initialValues[field.id] = []
-            } else {
-              initialValues[field.id] = field.value || ''
-            }
+            if (field.type === 'checkbox') initialValues[field.id] = false
+            else if (field.type === 'multipleChoice') initialValues[field.id] = []
+            else initialValues[field.id] = field.value || ''
           })
           setWorkCardValues(initialValues)
-        } else {
-          console.log('Work card not found')
         }
       }
 
-      // Load existing data if task has been started
       if (taskData.suoritettuPvm) {
-        const dateParts = taskData.suoritettuPvm.split('.')
-        if (dateParts.length === 3) {
-          setDate(new Date(parseInt(dateParts[2]), parseInt(dateParts[1]) - 1, parseInt(dateParts[0])))
-        }
+        const [d, m, y] = taskData.suoritettuPvm.split('.')
+        setDate(new Date(Number(y), Number(m) - 1, Number(d)))
       }
 
       if (taskData.itsearviointi) {
         setSelfAssessment(taskData.itsearviointi)
       }
     } catch (error) {
-      console.error('Error loading task:', error)
       Alert.alert('Virhe', 'Tehtävän lataaminen epäonnistui')
     } finally {
       setLoading(false)
@@ -117,19 +100,10 @@ export default function TaskDetailScreen() {
 
   const toggleMultipleChoice = (fieldId: string, option: string) => {
     setWorkCardValues(prev => {
-      const currentValues = prev[fieldId] || []
-      const isSelected = currentValues.includes(option)
-      if (isSelected) {
-        return {
-          ...prev,
-          [fieldId]: currentValues.filter((item: string) => item !== option)
-        }
-      } else {
-        return {
-          ...prev,
-          [fieldId]: [...currentValues, option]
-        }
-      }
+      const current = prev[fieldId] || []
+      return current.includes(option)
+        ? { ...prev, [fieldId]: current.filter((x: string) => x !== option) }
+        : { ...prev, [fieldId]: [...current, option] }
     })
   }
 
@@ -138,28 +112,21 @@ export default function TaskDetailScreen() {
   }
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false)
-    }
-
-    if (selectedDate) {
-      setDate(selectedDate)
-    }
+    if (Platform.OS === 'android') setShowDatePicker(false)
+    if (selectedDate) setDate(selectedDate)
   }
 
-  const formatDate = (date: Date): string => {
+  const formatDate = (date: Date) => {
     return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`
   }
 
   const handleSubmit = async () => {
-    // Validate based on task type
     if (task?.type === 'workcard' && workCard) {
-      // Validate work card required fields
       for (const field of workCard.fields) {
+        const value = workCardValues[field.id]
         if (field.required) {
-          const value = workCardValues[field.id]
           if (field.type === 'multipleChoice') {
-            if (!value || !Array.isArray(value) || value.length === 0) {
+            if (!value || value.length === 0) {
               Alert.alert('Virhe', `Kenttä "${field.label}" on pakollinen`)
               return
             }
@@ -170,156 +137,121 @@ export default function TaskDetailScreen() {
         }
       }
 
-      // Convert work card values to self assessment text
       const assessmentParts: string[] = []
-      // ✅ FIX #5: Add WorkCardField type annotation.
-      workCard.fields.map((field: WorkCardField) => {
+      workCard.fields.forEach((field: WorkCardField) => {
         const value = workCardValues[field.id]
-        if (value) {
-          if (field.type === 'multipleChoice' && Array.isArray(value)) {
-            assessmentParts.push(`${field.label}: ${value.join(', ')}`)
-          } else if (field.type === 'checkbox') {
-            assessmentParts.push(`${field.label}: ${value ? 'Kyllä' : 'Ei'}`)
-          } else if (field.type !== 'text' && field.type !== 'teacherReview') {
-            assessmentParts.push(`${field.label}: ${value}`)
-          }
+        if (!value) return
+        if (field.type === 'multipleChoice') {
+          assessmentParts.push(`${field.label}: ${value.join(', ')}`)
+        } else if (field.type === 'checkbox') {
+          assessmentParts.push(`${field.label}: ${value ? 'Kyllä' : 'Ei'}`)
+        } else if (field.type !== 'teacherReview' && field.type !== 'text') {
+          assessmentParts.push(`${field.label}: ${value}`)
         }
       })
 
       const workCardAssessment = assessmentParts.join('\n')
 
       try {
-        await submitTask(
-          taskId,
-          formatDate(date),
-          workCardAssessment,
-          '1',
-          'Matti Opiskelija'
-        )
-
-        Alert.alert(
-          'Onnistui!',
-          'Suorituskortti lähetetty tarkistettavaksi',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.back()
-            }
-          ]
-        )
-      } catch (error) {
-        console.error('Error submitting work card:', error)
+        await submitTask(taskId, formatDate(date), workCardAssessment, '1', 'Matti Opiskelija')
+        Alert.alert('Onnistui!', 'Suorituskortti lähetetty tarkistettavaksi', [
+          { text: 'OK', onPress: () => router.back() }
+        ])
+      } catch (err) {
         Alert.alert('Virhe', 'Lähetys epäonnistui')
       }
-    } else {
-      // Standard task validation
-      if (!selfAssessment.trim()) {
-        Alert.alert('Virhe', 'Lisää itsearviointi')
-        return
-      }
 
-      try {
-        await submitTask(
-          taskId,
-          formatDate(date),
-          selfAssessment,
-          '1',
-          'Matti Opiskelija'
-        )
+      return
+    }
 
-        Alert.alert(
-          'Onnistui!',
-          'Tehtävä lähetetty tarkistettavaksi',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.back()
-            }
-          ]
-        )
-      } catch (error) {
-        console.error('Error submitting task:', error)
-        Alert.alert('Virhe', 'Lähetys epäonnistui')
-      }
+    if (!selfAssessment.trim()) {
+      Alert.alert('Virhe', 'Lisää itsearviointi')
+      return
+    }
+
+    try {
+      await submitTask(taskId, formatDate(date), selfAssessment, '1', 'Matti Opiskelija')
+      Alert.alert('Onnistui!', 'Tehtävä lähetetty tarkistettavaksi', [
+        { text: 'OK', onPress: () => router.back() }
+      ])
+    } catch (err) {
+      Alert.alert('Virhe', 'Lähetys epäonnistui')
     }
   }
 
   const renderWorkCardField = (field: WorkCardField) => {
     return (
-      <View key={field.id} style={[styles.section, isTaskApproved && styles.sectionDisabled]}>
-        <View style={{ marginBottom: 8 }}>
-          <Text style={styles.sectionTitle}>
-            {field.label}
-            {field.required && <Text style={styles.requiredMark}> *</Text>}
-          </Text>
-        </View>
+      <View key={field.id} style={[styles.sectionCard, isTaskApproved && styles.sectionDisabled]}>
+        <Text style={styles.sectionTitle}>
+          {field.label}
+          {field.required && <Text style={styles.requiredMark}> *</Text>}
+        </Text>
 
         {field.type === 'text' && (
-          <Text style={styles.staticTextContent}>
-            {field.staticText || field.value || 'Tekstikenttä (vain luku)'}
-          </Text>
+          <Text style={styles.staticText}>{field.staticText || field.value || '—'}</Text>
         )}
 
         {field.type === 'textInput' && (
           <TextInput
-            style={[styles.textInput, isTaskApproved && styles.textInputDisabled]}
+            style={[styles.input, isTaskApproved && styles.inputDisabled]}
             placeholder="Kirjoita tähän..."
-            value={workCardValues[field.id] || ''}
-            onChangeText={(text) =>
-              !isTaskApproved && updateWorkCardValue(field.id, text)
-            }
             multiline
             textAlignVertical="top"
-            placeholderTextColor="#999"
+            placeholderTextColor={hyColors.textColor.secondary}
+            value={workCardValues[field.id] || ''}
+            onChangeText={t => !isTaskApproved && updateWorkCardValue(field.id, t)}
             editable={!isTaskApproved}
           />
         )}
 
         {field.type === 'multipleChoice' && field.options && (
-          <View>
-            {(!workCardValues[field.id] || workCardValues[field.id].length === 0) && (
-              <Text style={styles.multipleChoiceHint}>Valitse vaihtoehdot:</Text>
-            )}
-            {/* ✅ FIX #3: Add string and number type annotations */}
-            {field.options.map((option: string, index: number) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.multipleChoiceCard,
-                  workCardValues[field.id]?.includes(option) && styles.multipleChoiceCardSelected,
-                  isTaskApproved && styles.multipleChoiceCardDisabled
-                ]}
-                onPress={() =>
-                  !isTaskApproved && toggleMultipleChoice(field.id, option)
-                }
-                disabled={isTaskApproved}
-              >
-                {workCardValues[field.id]?.includes(option) && (
-                  <Ionicons name="checkmark" size={20} color={isTaskApproved ? "#999" : "#007AFF"} style={{ marginRight: 12 }} />
-                )}
-                <Text style={[styles.multipleChoiceText, isTaskApproved && styles.textDisabled]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={{ marginTop: 4 }}>
+            {field.options.map((option, i) => {
+              const selected = workCardValues[field.id]?.includes(option)
+              return (
+                <TouchableOpacity
+                  key={i}
+                  style={[
+                    styles.choiceItem,
+                    selected && styles.choiceItemSelected,
+                    isTaskApproved && styles.choiceItemDisabled
+                  ]}
+                  disabled={isTaskApproved}
+                  onPress={() => toggleMultipleChoice(field.id, option)}
+                >
+                  <Ionicons
+                    name={selected ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={20}
+                    color={selected ? hyColors.textColor.primary : hyColors.textColor.secondary}
+                    style={{ marginRight: 10 }}
+                  />
+                  <Text
+                    style={[
+                      styles.choiceText,
+                      selected && styles.choiceTextSelected,
+                      isTaskApproved && styles.textDisabled
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              )
+            })}
           </View>
         )}
 
         {field.type === 'checkbox' && (
           <TouchableOpacity
-            style={[styles.checkboxRow, isTaskApproved && styles.checkboxRowDisabled]}
-            onPress={() =>
-              !isTaskApproved && updateWorkCardValue(field.id, !workCardValues[field.id])
-            }
-            activeOpacity={isTaskApproved ? 1 : 0.7}
+            style={[styles.checkboxRow, isTaskApproved && styles.checkboxDisabled]}
             disabled={isTaskApproved}
+            onPress={() => updateWorkCardValue(field.id, !workCardValues[field.id])}
           >
-            {workCardValues[field.id] && (
-              <Ionicons name="checkbox" size={24} color={isTaskApproved ? "#999" : "#007AFF"} style={{ marginRight: 12 }} />
-            )}
-            {!workCardValues[field.id] && (
-              <View style={[styles.checkbox, isTaskApproved && styles.checkboxDisabled]} />
-            )}
+            <Ionicons
+              name={workCardValues[field.id] ? 'checkbox' : 'square-outline'}
+              size={26}
+              color={hyColors.textColor.primary}
+              style={{ marginRight: 10 }}
+            />
             <Text style={[styles.checkboxLabel, isTaskApproved && styles.textDisabled]}>Kyllä</Text>
           </TouchableOpacity>
         )}
@@ -327,61 +259,57 @@ export default function TaskDetailScreen() {
         {field.type === 'dropdown' && field.options && (
           <View>
             <TouchableOpacity
-              style={[styles.dropdownButton, isTaskApproved && styles.dropdownButtonDisabled]}
-              onPress={() =>
-                !isTaskApproved && toggleDropdown(field.id)
-              }
+              style={[styles.dropdownButton, isTaskApproved && styles.dropdownDisabled]}
               disabled={isTaskApproved}
+              onPress={() => toggleDropdown(field.id)}
             >
-              <Text style={[
-                styles.dropdownButtonText,
-                !workCardValues[field.id] && styles.dropdownPlaceholder,
-                isTaskApproved && styles.textDisabled
-              ]}>
+              <Text
+                style={[
+                  styles.dropdownButtonText,
+                  !workCardValues[field.id] && styles.dropdownPlaceholder
+                ]}
+              >
                 {workCardValues[field.id] || 'Valitse...'}
               </Text>
-              <Ionicons name="chevron-down" size={20} color={isTaskApproved ? "#ccc" : "#666"} />
+              <Ionicons name="chevron-down" size={18} color={hyColors.textColor.secondary} />
             </TouchableOpacity>
 
             {openDropdownId === field.id && !isTaskApproved && (
-              <View style={styles.dropdownOptions}>
-                {/* ✅ FIX #4: Add string and number type annotations */}
-                {field.options.map((option: string, index: number) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.dropdownOptionCard,
-                      workCardValues[field.id] === option && styles.dropdownOptionCardSelected
-                    ]}
-                    onPress={() => {
-                      updateWorkCardValue(field.id, option)
-                      setOpenDropdownId(null)
-                    }}
-                  >
-                    <Text style={[
-                      styles.dropdownOptionText,
-                      workCardValues[field.id] === option && styles.dropdownOptionTextSelected
-                    ]}>
-                      {option}
-                    </Text>
-                    {workCardValues[field.id] === option && (
-                      <Ionicons name="checkmark" size={20} color="#007AFF" />
-                    )}
-                  </TouchableOpacity>
-                ))}
+              <View style={styles.dropdownList}>
+                {field.options.map((option, i) => {
+                  const selected = workCardValues[field.id] === option
+                  return (
+                    <TouchableOpacity
+                      key={i}
+                      style={[styles.dropdownItem, selected && styles.dropdownItemSelected]}
+                      onPress={() => {
+                        updateWorkCardValue(field.id, option)
+                        setOpenDropdownId(null)
+                      }}
+                    >
+                      <Text style={[styles.dropdownItemText, selected && styles.dropdownItemTextSelected]}>
+                        {option}
+                      </Text>
+
+                      {selected && (
+                        <Ionicons name="checkmark" size={18} color={hyColors.textColor.primary} />
+                      )}
+                    </TouchableOpacity>
+                  )
+                })}
               </View>
             )}
           </View>
         )}
 
         {field.type === 'teacherReview' && (
-          <View style={styles.teacherReviewContainer}>
+          <View style={styles.teacherReviewBox}>
             <View style={styles.teacherReviewHeader}>
-              <Ionicons name="person" size={20} color="#E65100" />
+              <Ionicons name="person" size={18} color={hyColors.textColor.primary} />
               <Text style={styles.teacherReviewLabel}>Opettajan arviointi</Text>
             </View>
-            <Text style={styles.teacherReviewPlaceholder}>
-              Opettaja täyttää tämän kentän arvioinnin yhteydessä
+            <Text style={styles.teacherReviewInfo}>
+              Tämä osio täytetään opettajan arviointivaiheessa.
             </Text>
           </View>
         )}
@@ -394,13 +322,14 @@ export default function TaskDetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={28} color="#007AFF" />
+            <Ionicons name="chevron-back" size={28} color={hyColors.textColor.default} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Tehtävä</Text>
           <View style={{ width: 28 }} />
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={hyColors.textColor.primary} />
           <Text style={styles.loadingText}>Ladataan tehtävää...</Text>
         </View>
       </SafeAreaView>
@@ -412,12 +341,12 @@ export default function TaskDetailScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={28} color="#007AFF" />
+            <Ionicons name="chevron-back" size={28} color={hyColors.textColor.default} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Tehtävä</Text>
           <View style={{ width: 28 }} />
         </View>
-        <View style={styles.loadingContainer}>
+        <View style={styles.loading}>
           <Text style={styles.errorText}>Tehtävää ei löytynyt</Text>
         </View>
       </SafeAreaView>
@@ -426,134 +355,129 @@ export default function TaskDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={28} color="#007AFF" />
+          <Ionicons name="chevron-back" size={28} color={hyColors.textColor.default} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{task.nimi}</Text>
         <View style={{ width: 28 }} />
       </View>
 
-      <ScrollView style={styles.content}>
-        {/* Date Picker (Always show) */}
-        <View style={[styles.section, isTaskApproved && styles.sectionDisabled]}>
+      <ScrollView style={{ flex: 1 }}>
+
+        {/* DATE SECTION */}
+        <View style={[styles.sectionCard, isTaskApproved && styles.sectionDisabled]}>
           <Text style={styles.sectionTitle}>Suorituksen päivämäärä <Text style={styles.requiredMark}>*</Text></Text>
 
-          {/* Status indicator for approved tasks */}
           {isTaskApproved && (
             <View style={styles.statusCard}>
-              <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-              <Text style={styles.statusText}>Tehtävä on hyväksytty</Text>
-              {task?.hyvaksyja && (
-                <Text style={styles.approverText}>Hyväksyjä: {task.hyvaksyja}</Text>
-              )}
+              <Ionicons name="checkmark-circle" size={22} color={hyColors.textColor.success} />
+              <View style={{ marginLeft: 8 }}>
+                <Text style={styles.statusText}>Tehtävä on hyväksytty</Text>
+                {task.hyvaksyja && (
+                  <Text style={styles.statusApprover}>Hyväksyjä: {task.hyvaksyja}</Text>
+                )}
+              </View>
             </View>
           )}
 
           <TouchableOpacity
-            style={[styles.dateButton, isTaskApproved && styles.dateButtonDisabled]}
-            onPress={() => !isTaskApproved && setShowDatePicker(true)}
+            style={[styles.dateButton, isTaskApproved && styles.dateDisabled]}
             disabled={isTaskApproved}
+            onPress={() => setShowDatePicker(true)}
           >
-            <Ionicons name="calendar" size={20} color={isTaskApproved ? "#ccc" : "#666"} />
-            <Text style={[styles.dateText, isTaskApproved && styles.textDisabled]}>{formatDate(date)}</Text>
+            <Ionicons name="calendar-outline" size={20} color={hyColors.textColor.primary} />
+            <Text style={styles.dateText}>{formatDate(date)}</Text>
           </TouchableOpacity>
 
-          {/* Date Picker Modal */}
-          <Modal
-            visible={showDatePicker && !isTaskApproved}
-            transparent
-            animationType="slide"
-          >
-            <View style={styles.datePickerContainer}>
-              <View style={styles.datePickerHeader}>
-                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                  <Text style={styles.datePickerCancelButton}>Peruuta</Text>
-                </TouchableOpacity>
-                <Text style={styles.datePickerTitle}>Valitse päivämäärä</Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                  <Text style={styles.datePickerConfirmButton}>Valmis</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.datePickerContent}>
+          <Modal visible={showDatePicker && !isTaskApproved} transparent animationType="slide">
+            <View style={styles.dateModalOverlay}>
+              <View style={styles.dateModal}>
+                <View style={styles.dateModalHeader}>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text style={styles.dateModalCancel}>Peruuta</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.dateModalTitle}>Valitse päivämäärä</Text>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text style={styles.dateModalConfirm}>Valmis</Text>
+                  </TouchableOpacity>
+                </View>
+
                 <DateTimePicker
                   value={date}
                   mode="date"
                   display="spinner"
-                  onChange={onDateChange}
                   locale="fi"
+                  onChange={onDateChange}
                 />
               </View>
             </View>
           </Modal>
         </View>
 
-        {/* Render Work Card Fields or Standard Task Form */}
+        {/* TASK CONTENT */}
         {task.type === 'workcard' && workCard ? (
           <>
-            {/* Work Card Title */}
-            <View style={styles.section}>
+            <View style={styles.sectionCard}>
               <Text style={styles.workCardTitle}>{workCard.title}</Text>
             </View>
 
-            {/* Dynamic Work Card Fields */}
-            {workCard.fields.map((field: WorkCardField) => renderWorkCardField(field))}
+            {workCard.fields.map(field => renderWorkCardField(field))}
           </>
         ) : (
-          <>
-            {/* Standard Task Form - Only Itsearviointi */}
-            <View style={[styles.section, isTaskApproved && styles.sectionDisabled]}>
-              <Text style={styles.sectionTitle}>Itsearviointi <Text style={styles.requiredMark}>*</Text></Text>
-              <TextInput
-                style={[styles.textInput, { minHeight: 120 }, isTaskApproved && styles.textInputDisabled]}
-                placeholder={isTaskApproved ? "" : "Kirjoita itse arvio siitä, miten sait tehtävän valmiiksi..."}
-                value={selfAssessment}
-                onChangeText={isTaskApproved ? undefined : setSelfAssessment}
-                multiline
-                textAlignVertical="top"
-                placeholderTextColor="#999"
-                editable={!isTaskApproved}
-              />
-            </View>
-          </>
+          <View style={[styles.sectionCard, isTaskApproved && styles.sectionDisabled]}>
+            <Text style={styles.sectionTitle}>Itsearviointi <Text style={styles.requiredMark}>*</Text></Text>
+            <TextInput
+              style={[styles.input, { minHeight: 120 }, isTaskApproved && styles.inputDisabled]}
+              placeholder="Kuvaile tehtävän suorittamista..."
+              placeholderTextColor={hyColors.textColor.secondary}
+              value={selfAssessment}
+              editable={!isTaskApproved}
+              multiline
+              textAlignVertical="top"
+              onChangeText={t => !isTaskApproved && setSelfAssessment(t)}
+            />
+          </View>
         )}
 
-        {/* Conversation History */}
+        {/* Conversation */}
         {conversation.length > 0 && (
-          <View style={styles.section}>
+          <View style={styles.sectionCard}>
             <TouchableOpacity
-              onPress={() => setIsConversationExpanded(!isConversationExpanded)}
+              onPress={() => setIsConversationExpanded(prev => !prev)}
               style={styles.conversationHeader}
             >
               <Text style={styles.sectionTitle}>Keskusteluhistoria ({conversation.length})</Text>
               <Ionicons
-                name={isConversationExpanded ? "chevron-up" : "chevron-down"}
+                name={isConversationExpanded ? 'chevron-up' : 'chevron-down'}
                 size={20}
-                color="#666"
+                color={hyColors.textColor.secondary}
               />
             </TouchableOpacity>
 
             {isConversationExpanded && (
-              <View style={styles.conversationContainer}>
-                {conversation.map((message) => (
+              <View style={{ marginTop: 8 }}>
+                {conversation.map(msg => (
                   <View
-                    key={message.id}
+                    key={msg.id}
                     style={[
-                      styles.messageContainer,
-                      message.sender === 'student'
-                        ? styles.studentMessage
-                        : styles.teacherMessage
+                      styles.message,
+                      msg.sender === 'student' ? styles.messageStudent : styles.messageTeacher
                     ]}
                   >
                     <View style={styles.messageHeader}>
                       <Text style={styles.messageSender}>
-                        {message.sender === 'student' ? 'Minä (opiskelija)' : 'Opettaja'}
+                        {msg.sender === 'student' ? 'Minä (opiskelija)' : 'Opettaja'}
                       </Text>
-                      <Text style={styles.messageTime}>{message.timestamp}</Text>
+                      <Text style={styles.messageTime}>{msg.timestamp}</Text>
                     </View>
-                    <Text style={styles.messageText}>{message.message}</Text>
-                    {message.type === 'resubmission' && (
-                      <Text style={styles.messageType}>Korjaus</Text>
+
+                    <Text style={styles.messageBody}>{msg.message}</Text>
+
+                    {msg.type === 'resubmission' && (
+                      <Text style={styles.messageTag}>Korjaus</Text>
                     )}
                   </View>
                 ))}
@@ -562,407 +486,385 @@ export default function TaskDetailScreen() {
           </View>
         )}
 
-        {/* Submit Button - Only show if not approved */}
+        {/* SUBMIT BUTTON */}
         {!isTaskApproved && (
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleSubmit}
-          >
-            <Text style={styles.submitButtonText}>Lähetä tarkistettavaksi</Text>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitText}>Lähetä tarkistettavaksi</Text>
           </TouchableOpacity>
         )}
 
-        <View style={styles.bottomSpacing} />
+        <View style={{ height: 50 }} />
+
       </ScrollView>
     </SafeAreaView>
   )
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: hyColors.bgColor.white,
   },
+
+  /* HEADER */
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: hyColors.bgColor.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: hyColors.borderColor.light,
   },
   headerTitle: {
+    fontFamily: 'OpenSans-Bold',
     fontSize: 20,
-    fontWeight: '700',
-    color: '#333',
+    color: hyColors.textColor.default,
   },
-  loadingContainer: {
+
+  /* LOADING */
+  loading: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#666',
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
+    marginTop: 10,
   },
   errorText: {
-    fontSize: 16,
-    color: '#FF3B30',
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.danger,
   },
-  content: {
-    flex: 1,
-  },
-  section: {
-    backgroundColor: '#fff',
+
+  /* SECTION CONTAINER */
+  sectionCard: {
+    backgroundColor: hyColors.bgColor.neutral,
     marginHorizontal: 16,
-    marginTop: 16,
-    padding: 20,
-    borderRadius: 12,
+    marginTop: 18,
+    padding: 18,
+    borderRadius: 0,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    elevation: 1,
   },
+
   sectionTitle: {
+    fontFamily: 'OpenSans-SemiBold',
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
-  },
-  workCardTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
-    textAlign: 'center',
+    color: hyColors.textColor.default,
+    marginBottom: 10,
   },
   requiredMark: {
-    color: '#FF3B30',
-    fontWeight: '700',
+    color: hyColors.textColor.danger,
+    fontFamily: 'OpenSans-Bold',
   },
-  dateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
+
+  /* INPUTS */
+  input: {
+    backgroundColor: hyColors.bgColor.white,
+    borderRadius: 0,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: hyColors.borderColor.light,
     padding: 12,
+    fontSize: 15,
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.default,
   },
-  dateText: {
-    fontSize: 16,
-    color: '#333',
-    marginLeft: 12,
-    fontWeight: '500',
+  inputDisabled: {
+    backgroundColor: hyColors.bgColor.neutral,
+    color: hyColors.textColor.secondary,
   },
-  datePickerContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  datePickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  datePickerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  datePickerCancelButton: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FF3B30',
-  },
-  datePickerConfirmButton: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#007AFF',
-  },
-  datePickerContent: {
-    backgroundColor: '#fff',
-    paddingBottom: 20,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
-    color: '#333',
-  },
-  staticTextContent: {
-    fontSize: 16,
-    color: '#333',
-    lineHeight: 22,
-    backgroundColor: '#f9f9f9',
-    padding: 16,
-    borderRadius: 8,
+
+  staticText: {
+    backgroundColor: hyColors.bgColor.white,
+    borderRadius: 0,
+    padding: 14,
     borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: hyColors.textColor.primary,
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 15,
+    color: hyColors.textColor.default,
   },
-  multipleChoiceHint: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 12,
-    fontStyle: 'italic',
-  },
-  multipleChoiceCard: {
+
+  /* MULTIPLE CHOICE */
+  choiceItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
     padding: 12,
-    marginBottom: 8,
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
+    marginBottom: 6,
+    borderRadius: 0,
+    backgroundColor: hyColors.bgColor.white,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
   },
-  multipleChoiceCardSelected: {
+  choiceItemSelected: {
+    borderColor: hyColors.textColor.primary,
     backgroundColor: '#E3F2FD',
-    borderColor: '#007AFF',
   },
-  multipleChoiceRadio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+  choiceItemDisabled: {
+    opacity: 0.6,
   },
-  multipleChoiceRadioSelected: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#007AFF',
+  choiceText: {
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 15,
+    color: hyColors.textColor.default,
   },
-  multipleChoiceText: {
-    fontSize: 16,
-    color: '#333',
-    flex: 1,
+  choiceTextSelected: {
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.primary,
   },
-  multipleChoiceTextSelected: {
-    color: '#007AFF',
-    fontWeight: '600',
-  },
+
+  /* CHECKBOX */
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    marginTop: 6,
   },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    borderRadius: 6,
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+  checkboxDisabled: {
+    opacity: 0.6,
   },
   checkboxLabel: {
-    fontSize: 16,
-    color: '#333',
-    flex: 1,
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 15,
+    color: hyColors.textColor.default,
   },
+
+  /* DROPDOWN */
   dropdownButton: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
+    borderRadius: 0,
+    backgroundColor: hyColors.bgColor.white,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
+  },
+  dropdownDisabled: {
+    opacity: 0.6,
+    backgroundColor: hyColors.bgColor.neutral,
   },
   dropdownButtonText: {
-    fontSize: 16,
-    color: '#333',
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 15,
+    color: hyColors.textColor.default,
   },
   dropdownPlaceholder: {
-    color: '#999',
+    color: hyColors.textColor.secondary,
   },
-  dropdownOptions: {
-    marginTop: 8,
+  dropdownList: {
+    marginTop: 6,
   },
-  dropdownOptionCard: {
+  dropdownItem: {
+    padding: 12,
+    backgroundColor: hyColors.bgColor.white,
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
+    borderRadius: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    marginBottom: 4,
   },
-  dropdownOptionCardSelected: {
+  dropdownItemSelected: {
+    borderColor: hyColors.textColor.primary,
     backgroundColor: '#E3F2FD',
-    borderColor: '#007AFF',
   },
-  dropdownOptionText: {
-    fontSize: 16,
-    color: '#333',
-    flex: 1,
+  dropdownItemText: {
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 15,
+    color: hyColors.textColor.default,
   },
-  dropdownOptionTextSelected: {
-    color: '#007AFF',
-    fontWeight: '600',
+  dropdownItemTextSelected: {
+    color: hyColors.textColor.primary,
+    fontFamily: 'OpenSans-SemiBold',
   },
-  teacherReviewContainer: {
-    backgroundColor: '#FFF3E0',
-    borderRadius: 12,
-    padding: 16,
+
+  /* TEACHER REVIEW */
+  teacherReviewBox: {
+    backgroundColor: '#FFF4E5',
+    padding: 14,
+    borderRadius: 0,
     borderLeftWidth: 4,
     borderLeftColor: '#FF9800',
   },
   teacherReviewHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   teacherReviewLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#E65100',
-    marginLeft: 8,
+    marginLeft: 6,
+    fontFamily: 'OpenSans-SemiBold',
+    fontSize: 15,
+    color: hyColors.textColor.primary,
   },
-  teacherReviewPlaceholder: {
-    fontSize: 14,
-    color: '#E65100',
+  teacherReviewInfo: {
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 13,
+    color: hyColors.textColor.secondary,
     fontStyle: 'italic',
   },
-  submitButton: {
-    backgroundColor: '#007AFF',
-    marginHorizontal: 16,
-    marginTop: 24,
-    padding: 16,
-    borderRadius: 12,
+
+  /* DATE PICKER */
+  dateButton: {
+    marginTop: 6,
+    padding: 12,
+    borderRadius: 0,
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: hyColors.borderColor.light,
+    backgroundColor: hyColors.bgColor.white,
     alignItems: 'center',
   },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  bottomSpacing: {
-    height: 40,
-  },
-  // Disabled state styles
-  sectionDisabled: {
-    opacity: 0.6,
-    backgroundColor: '#f9f9f9',
-  },
-  textInputDisabled: {
-    backgroundColor: '#f0f0f0',
-    color: '#999',
-  },
-  textDisabled: {
-    color: '#999',
-  },
-  dateButtonDisabled: {
-    backgroundColor: '#f0f0f0',
+  dateDisabled: {
     opacity: 0.6,
   },
-  dropdownButtonDisabled: {
-    backgroundColor: '#f0f0f0',
-    opacity: 0.6,
+  dateText: {
+    marginLeft: 10,
+    fontFamily: 'OpenSans-Regular',
+    fontSize: 15,
+    color: hyColors.textColor.default,
   },
-  multipleChoiceCardDisabled: {
-    opacity: 0.6,
-    backgroundColor: '#f0f0f0',
+
+  dateModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
   },
-  checkboxRowDisabled: {
-    opacity: 0.6,
+  dateModal: {
+    backgroundColor: hyColors.bgColor.white,
+    paddingBottom: 10,
   },
-  checkboxDisabled: {
-    borderColor: '#ccc',
-    backgroundColor: '#f0f0f0',
+  dateModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: hyColors.borderColor.light,
   },
-  // Status styles
+  dateModalTitle: {
+    fontFamily: 'OpenSans-SemiBold',
+    fontSize: 16,
+    color: hyColors.textColor.default,
+  },
+  dateModalCancel: {
+    fontFamily: 'OpenSans-SemiBold',
+    fontSize: 15,
+    color: hyColors.textColor.danger,
+  },
+  dateModalConfirm: {
+    fontFamily: 'OpenSans-SemiBold',
+    fontSize: 15,
+    color: hyColors.textColor.primary,
+  },
+
+  /* STATUS */
   statusCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#E8F5E8',
     padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
+    borderRadius: 0,
+    marginBottom: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+    borderLeftColor: hyColors.textColor.success,
   },
   statusText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2E7D32',
-    marginLeft: 8,
-    flex: 1,
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.success,
   },
-  approverText: {
+  statusApprover: {
+    fontFamily: 'OpenSans-Regular',
     fontSize: 12,
-    color: '#2E7D32',
-    marginLeft: 8,
+    color: hyColors.textColor.success,
   },
-  // Conversation styles
+
+  /* CONVERSATION */
   conversationHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 12,
   },
-  conversationContainer: {
-    marginTop: 8,
-  },
-  messageContainer: {
-    marginBottom: 12,
+
+  message: {
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 0,
+    marginBottom: 10,
     borderLeftWidth: 4,
   },
-  studentMessage: {
+  messageStudent: {
     backgroundColor: '#E3F2FD',
-    borderLeftColor: '#2196F3',
+    borderLeftColor: hyColors.textColor.primary,
   },
-  teacherMessage: {
-    backgroundColor: '#FFF3E0',
+  messageTeacher: {
+    backgroundColor: '#FFF4E5',
     borderLeftColor: '#FF9800',
   },
   messageHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 4,
   },
   messageSender: {
+    fontFamily: 'OpenSans-SemiBold',
+    color: hyColors.textColor.primary,
     fontSize: 12,
-    fontWeight: '600',
-    color: '#666',
   },
   messageTime: {
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.secondary,
     fontSize: 12,
-    color: '#999',
   },
-  messageText: {
+  messageBody: {
+    fontFamily: 'OpenSans-Regular',
+    color: hyColors.textColor.default,
     fontSize: 14,
-    color: '#333',
     lineHeight: 20,
   },
-  messageType: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#FF5722',
+  messageTag: {
     marginTop: 4,
+    fontFamily: 'OpenSans-SemiBold',
+    fontSize: 10,
+    color: hyColors.textColor.attention,
     textTransform: 'uppercase',
   },
+
+  /* SUBMIT BUTTON */
+  submitButton: {
+    backgroundColor: hyColors.textColor.primary,
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 26,
+    borderRadius: 0,
+    alignItems: 'center',
+  },
+  submitText: {
+    fontFamily: 'OpenSans-Bold',
+    fontSize: 17,
+    color: hyColors.bgColor.white,
+  },
+
+  /* DISABLED */
+  sectionDisabled: {
+    opacity: 0.6,
+  },
+  textDisabled: {
+    color: hyColors.textColor.secondary,
+  },
+  workCardTitle: {
+    fontFamily: 'OpenSans-Bold',
+    fontSize: 22,
+    color: hyColors.textColor.default,
+    textAlign: 'center',
+    marginBottom: 12,
+  },  
 })
+
