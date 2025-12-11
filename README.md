@@ -106,15 +106,11 @@ Adminiin liittyvät vaatimukset
 - **REQ-24:** Admin voi konfiguroida järjestelmän asetuksia.
  
 
-Tämä voisi olla sitä **Iineksen** hommaa
-
-
 
 ---
 
 ## 4 Ei-toiminnalliset vaatimukset
 
-Nää vois olla **Phongin ja Tiituksen** hommia
 
 ### **Suorituskyky:**
 - Järjestelmän on päivitettävä opiskelijan ja opettajan näkymät reaaliajassa.
@@ -167,17 +163,15 @@ Nää vois olla **Phongin ja Tiituksen** hommia
 
 ## 5 Käyttötapaukset
 
-
-
-
-**Tänne voitas porukalla keksiä näitä ja sit tehdä se UML Kaavio**  
+**Kuva 1: Käyttötapauskaavio**
+![Käyttötapauskaavio](MyApp/assets/images/Käyttötapauskaavio.png)
 
 ## Käyttötapaus UC-1: Opiskelija liittyy kurssille 
 
 **Tunnus:** UC-1  
 **Nimi:** Kurssille liittyminen
 
-**Kuvaus:** Opiskelija liittyy haluamalleen kurssille järjestelmän kautta.  Kurssille liittyminen mahdollistaa harjoituskorttien täyttämisen ja arvioinnin kyseisen kurssin puitteissa.
+**Kuvaus:** Opiskelija liittyy kurssille joko sähköpostilinkin tai sovelluksen kautta.  Kurssille liittyminen mahdollistaa harjoituskorttien täyttämisen ja arvioinnin kyseisen kurssin puitteissa.
 
 ### Osallistujat
 - **Pääosallistuja:** Opiskelija
@@ -418,15 +412,10 @@ Järjestelmä vahvistaa onnistuneen toimenpiteen.
 - Järjestelmä on valmis seuraavaan hallintatoimenpiteeseen.
 
 
-
-
-
-
 ---
 
 ## 6 Liittymät muihin järjestelmiin
 
-**Tiitus, Phong, Liisa** 
 
 ### 6.1 Sisu järjestelmä
 - Integraatio Helsingin yliopiston Sisu-järjestelmään (raportoinnin kautta).
@@ -517,6 +506,341 @@ Käytettävyystestaus takaa, että taitokortit eivät ole saavutettavia vain teo
 
 
 ---
+
+# Firebase
+
+## Yleistä tietoa
+
+Firebase on Googlen tarjoama pilvipalvelu, joka sisältää valmiita työkaluja mobiili- ja web-sovellusten kehitykseen. Sen tietokantavaihtoehdot ovat:
+
+- **Firebase Realtime Database** → yksinkertainen NoSQL-tietokanta, jossa data päivittyy reaaliaikaisesti kaikkiin käyttäjien laitteisiin.
+- **Cloud Firestore** → modernimpi, skaalautuvampi ja joustavampi NoSQL-tietokanta dokumentti–kokoelma -mallilla.
+
+### Ominaisuuksia
+
+- **NoSQL** → ei käytä perinteisiä taulukoita, vaan data tallennetaan dokumentteina (JSON-muodossa).
+- **Reaaliaikaisuus** → sovelluksen käyttäjät näkevät muutokset välittömästi ilman sivun päivitystä.
+- **Pilvipohjaisuus** → data tallentuu Googlen palvelimiin, ei tarvita omaa serveriä.
+- **Integraatiot** → toimii helposti yhteen muiden Firebase-palveluiden kanssa.
+- **Skaalautuvuus** → kasvaa sovelluksen mukana ilman palvelinten hallintaa.
+
+### Meidän projektin kannalta hyödyllistä
+
+- Helppo käyttöönotto
+- Reaaliaikainen data
+- Ei tarvitse ylläpitää serveriä
+- Hyvä yhteensopivuus mobiili- ja web-sovellusten kanssa
+- Tietoturva ja helppo käyttöoikeuksien hallinta
+
+---
+
+## Tietoturva oppimisympäristössä: roolipohjainen käyttöoikeus ja Firebase-autentikointi
+
+Digitaalisten oppimisympäristöjen tietoturva perustuu käyttöoikeuksien hallintaan.  
+**Firebase Authentication** varmistaa, että vain valtuutetut käyttäjät pääsevät käsiksi sovelluksen sisältöön.
+
+Roolipohjainen käyttöoikeus mahdollistaa, että:
+
+- opiskelijat  
+- opettajat  
+- ylläpitäjät  
+
+näkevät ja muokkaavat vain heille tarkoitettuja tietoja.
+
+---
+
+# Firebase Authentication – käyttäjien tunnistautumispalvelu
+
+Firebase Authentication tarjoaa:
+
+- taustapalvelut
+- helppokäyttöiset komponentit
+- valmiit kirjautumiskomponentit
+
+Se tukee mm. sähköposti–salasana-kirjautumista, puhelinnumeroa ja Googlen, Facebookin ja Twitterin kaltaisia palveluita.
+
+---
+
+## Keskeiset ominaisuudet: FirebaseUI ja Firebase Authentication
+
+### FirebaseUI Auth
+- Valmis kirjautumisjärjestelmä
+- Tukee sähköpostia, salasanaa, puhelinnumeroa, Googlea, Facebookia
+- Käsittelee tilien palauttamisen sekä yhdistämisen
+- Helposti muokattavissa
+- Avoimen lähdekoodin
+
+### Firebase Authentication SDK
+- Mahdollistaa oman kirjautumislogiikan
+- Tukee sähköposti–salasana-tunnistautumista
+- Tukee ulkoisia tunnistuspalveluita (Google, Facebook, Twitter, GitHub)
+- Toimii alustoilla iOS, Android, Web, C++, Unity
+
+#### Anonyymi tunnistautuminen
+
+Käyttäjä saa väliaikaisen anonyymin tilin ilman kirjautumista. Tili voidaan päivittää myöhemmin tavalliseksi.
+
+---
+
+# Firebase Authentication + Identity Platform
+
+Identity Platform tuo lisäominaisuuksia:
+
+- Monivaiheinen tunnistautuminen (MFA)
+- Estotoiminnot (blocking functions)
+- SAML- ja OpenID Connect -tuki
+- Lokitus (admin + käyttäjätoiminnot)
+- Multi-tenancy
+- Yritystason SLA
+- Anonyymien käyttäjien automaattinen poisto
+
+### Hinnoittelu
+
+**Spark (maksuton)**  
+- 3 000 DAU -rajoitus
+
+**Blaze (käytön mukaan)**  
+- 50 000 MAU maksutta  
+- Laskutus ylittävästä käytöstä
+
+---
+
+# Miten tunnistautuminen toimii?
+
+1. Käyttäjä syöttää kirjautumistiedot  
+2. Firebase Authentication tarkistaa ne  
+3. Sovellus saa tunnistetun käyttäjän tiedot  
+
+Kirjautumisen jälkeen voit:
+
+- käyttää käyttäjän perustietoja
+- hallita pääsyä Firebase-tietoihin
+- vahvistaa käyttäjän identiteetin omissa taustajärjestelmissä
+
+### Security Rules
+
+Sekä Firestore että Realtime Database vaativat sääntöjen määrittämisen.
+
+---
+
+# Toteutuspolut
+
+## FirebaseUI Authin käyttö
+
+### Kirjautumistapojen määrittäminen
+
+- Ota käyttöön sähköposti/salasana, puhelin, Google, Facebook jne.
+- Tee OAuth-uudelleenohjausosoitteet
+
+### Kirjautumiskäyttöliittymän mukauttaminen
+
+FirebaseUI:n ulkoasu voidaan muokata asetuksilla tai räätälöimällä lähdekoodia.
+
+---
+
+## Firebase Authentication SDK:n käyttö
+
+### Esimerkki: kirjautuminen sähköpostilla
+
+```js
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+
+const auth = getAuth();
+
+signInWithEmailAndPassword(auth, email, password)
+  .then((userCredential) => {
+    const user = userCredential.user;
+    console.log("Kirjautuminen onnistui:", user.uid);
+  })
+  .catch((error) => {
+    console.error("Virhe kirjautumisessa:", error.message);
+  });
+# Firebase Authentication, Firestore ja Roolipohjainen Käyttöoikeus – Koottu Dokumentti
+
+
+---
+
+## Firebase Authentication – roolit ja käyttäjät
+
+### Esimerkki: käyttäjän luominen ja roolin tallentaminen Firestoreen
+
+```javascript
+import { getFirestore, doc, setDoc } from "firebase/firestore";
+
+const db = getFirestore();
+await setDoc(doc(db, "users", user.uid), {
+  role: "student" // vaihtoehdot: "teacher", "admin"
+});
+```
+
+---
+
+## Firestore Security Rules – Roolipohjainen pääsynhallinta
+
+```txt
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /cards/{cardId} {
+      allow read, write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "student" &&
+        request.auth.uid == resource.data.owner;
+    }
+  }
+}
+```
+
+---
+
+## Firebase-datamalli (User, Courses, Assignments)
+
+### Käyttäjät (users)
+
+```json
+{
+  "nimi": "Matti Meikäläinen",
+  "rooli": "opiskelija",
+  "email": "matti@example.com",
+  "enrolledCourses": ["course101"]
+}
+```
+
+### Kurssit (courses)
+
+```json
+{
+  "nimi": "Hampaiden puhdistus 1",
+  "opettajaId": "teacher001",
+  "luotu": "2025-10-04T10:00:00Z"
+}
+```
+
+### Tehtävät (assignments)
+
+```json
+{
+  "courseId": "course101",
+  "nimi": "Harjoitus 1",
+  "kuvaus": "Hampaiden poraus",
+  "deadline": "2025-10-15"
+}
+```
+
+### Tehtävien palautukset (submissions)
+
+```json
+{
+  "tila": "palautettu",
+  "arvosana": 4,
+  "submittedAt": "2025-10-10T09:30:00Z"
+}
+```
+
+---
+
+# Hammaslääketieteen Digitaaliset Taitokortit – Firebase-käyttäjäpolut
+
+## 1. Autentikointi ja roolien hallinta
+
+```json
+{
+  "uid": "abc123",
+  "email": "user@example.com",
+  "role": "student"
+}
+```
+
+---
+
+# Opiskelija (student)
+
+### Polku
+
+* Kirjautuu sisään
+* Näkee taitokortit ja niiden tilan
+* Täyttää tehtäviä (video, kuva, teksti)
+* Lähettää arvioitavaksi
+* Saa palautteen
+* Näkee edistymisen dashboardissa
+
+### Firestore-rakenne
+
+```json
+"students": {
+  "uid123": {
+    "name": "Anna",
+    "cards": {
+      "card001": {
+        "status": "submitted",
+        "feedback": "Hyvä työskentely",
+        "score": 4
+      }
+    }
+  }
+}
+```
+
+---
+
+# Opettaja (teacher)
+
+### Polku
+
+* Näkee opiskelijoiden lähettämät kortit
+* Arvioi sisällön
+* Antaa palautteen
+* Näkee raportit
+
+### Firestore-rakenne
+
+```json
+"teachers": {
+  "uid456": {
+    "name": "Dr. Virtanen",
+    "assignedStudents": ["uid123", "uid789"]
+  }
+}
+```
+
+---
+
+# Admin (admin)
+
+### Polku
+
+* Hallinnoi käyttäjiä
+* Lisää tai muokkaa taitokortteja
+* Asettaa rooleja
+* Näkee koko järjestelmän tilastot
+
+### Firestore-rakenne
+
+```json
+"admin": {
+  "uid999": {
+    "name": "Ylläpitäjä",
+    "permissions": ["createCard", "assignRoles", "viewStats"]
+  }
+}
+```
+
+---
+
+# Reaaliaikaisuus ja ilmoitukset
+
+* Firebase Cloud Messaging → push-ilmoitukset
+* Firestore → UI päivittyy reaaliajassa
+
+---
+
+# Graafinen käyttäjäpolkudiagrammi
+
+*(Lisättävissä pyydettäessä.)*
+
+---
+
+Jos haluat tästä **PDF:n**, **PowerPointin**, **Word-dokumentin** tai **visuaalisen diagrammin**, voin luoda sen heti.
+
 
 ## 11 Liitteet
 - [Sovelluksen wireframe](https://www.figma.com/design/kcA0t7G717CqYGmhIGFy5p/Monialaprojekti-WF?t=JuTxYux5t83AS9Hy-1) 
