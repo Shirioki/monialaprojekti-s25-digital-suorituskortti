@@ -507,7 +507,7 @@ Käytettävyystestaus takaa, että taitokortit eivät ole saavutettavia vain teo
 
 ---
 
-# Firebase
+## 11 Firebase
 
 ## Yleistä tietoa
 
@@ -549,7 +549,7 @@ näkevät ja muokkaavat vain heille tarkoitettuja tietoja.
 
 ---
 
-# Firebase Authentication – käyttäjien tunnistautumispalvelu
+## Firebase Authentication – käyttäjien tunnistautumispalvelu
 
 Firebase Authentication tarjoaa:
 
@@ -582,7 +582,7 @@ Käyttäjä saa väliaikaisen anonyymin tilin ilman kirjautumista. Tili voidaan 
 
 ---
 
-# Firebase Authentication + Identity Platform
+## Firebase Authentication + Identity Platform
 
 Identity Platform tuo lisäominaisuuksia:
 
@@ -605,7 +605,7 @@ Identity Platform tuo lisäominaisuuksia:
 
 ---
 
-# Miten tunnistautuminen toimii?
+## Miten tunnistautuminen toimii?
 
 1. Käyttäjä syöttää kirjautumistiedot  
 2. Firebase Authentication tarkistaa ne  
@@ -623,7 +623,7 @@ Sekä Firestore että Realtime Database vaativat sääntöjen määrittämisen.
 
 ---
 
-# Toteutuspolut
+## Toteutuspolut
 
 ## FirebaseUI Authin käyttö
 
@@ -738,7 +738,7 @@ service cloud.firestore {
 
 ---
 
-# Hammaslääketieteen Digitaaliset Taitokortit – Firebase-käyttäjäpolut
+## Hammaslääketieteen Digitaaliset Taitokortit – Firebase-käyttäjäpolut
 
 ## 1. Autentikointi ja roolien hallinta
 
@@ -752,7 +752,7 @@ service cloud.firestore {
 
 ---
 
-# Opiskelija (student)
+## Opiskelija (student)
 
 ### Polku
 
@@ -782,7 +782,7 @@ service cloud.firestore {
 
 ---
 
-# Opettaja (teacher)
+## Opettaja (teacher)
 
 ### Polku
 
@@ -804,7 +804,7 @@ service cloud.firestore {
 
 ---
 
-# Admin (admin)
+## Admin (admin)
 
 ### Polku
 
@@ -826,14 +826,14 @@ service cloud.firestore {
 
 ---
 
-# Reaaliaikaisuus ja ilmoitukset
+## Reaaliaikaisuus ja ilmoitukset
 
 * Firebase Cloud Messaging → push-ilmoitukset
 * Firestore → UI päivittyy reaaliajassa
 
 ---
 
-# Graafinen käyttäjäpolkudiagrammi
+## Graafinen käyttäjäpolkudiagrammi
 
 *(Lisättävissä pyydettäessä.)*
 
@@ -842,12 +842,12 @@ service cloud.firestore {
 Jos haluat tästä **PDF:n**, **PowerPointin**, **Word-dokumentin** tai **visuaalisen diagrammin**, voin luoda sen heti.
 
 
-## 11 Liitteet
+## 12 Liitteet
 - [Sovelluksen wireframe](https://www.figma.com/design/kcA0t7G717CqYGmhIGFy5p/Monialaprojekti-WF?t=JuTxYux5t83AS9Hy-1) 
 
 ---
 
-## 12 Lähteet
+## 13 Lähteet
 - Projektisuunnitelma 2025  
 - [GDPR-asetus](https://eur-lex.europa.eu/FI/legal-content/summary/general-data-protection-regulation-gdpr.html)
 - [Helsingin yliopiston tietoturvaohjeet](https://www.helsinki.fi/fi/tietotekniikkakeskus/tietoturva-yliopistolla/tietoturva-ja-tietosuoja/yliopiston-tietoturvapolitiikka)
